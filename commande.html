@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Suivi de commande — Beyrouth Express</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧆</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gold:#D4A853;--bordeaux:#8B1A1A;--olive:#4A5B3C;
+  --cream:#FFF8F0;--noir:#1A1A1A;
+  --radius:12px;--radius-lg:20px;
+}
+body{font-family:'Inter',sans-serif;color:var(--noir);background:var(--cream);min-height:100vh;display:flex;flex-direction:column}
+h1,h2,h3{font-family:'Playfair Display',serif}
+
+/* Header */
+.header{background:var(--bordeaux);color:#fff;padding:20px 24px;text-align:center}
+.header a{color:var(--gold);font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700}
+.header p{font-size:.85rem;opacity:.7;margin-top:4px}
+
+/* Main */
+.main{flex:1;max-width:600px;margin:0 auto;width:100%;padding:40px 24px}
+
+/* Search form */
+.search-box{
+  background:#fff;border-radius:var(--radius-lg);padding:32px;
+  box-shadow:0 2px 16px rgba(0,0,0,.08);text-align:center;margin-bottom:32px;
+}
+.search-box h2{font-size:1.5rem;color:var(--bordeaux);margin-bottom:8px}
+.search-box p{color:#666;font-size:.9rem;margin-bottom:20px}
+.search-input{
+  display:flex;gap:8px;max-width:320px;margin:0 auto;
+}
+.search-input input{
+  flex:1;padding:14px 16px;border:2px solid #e0e0e0;border-radius:var(--radius);
+  font-size:1.1rem;font-family:'Playfair Display',serif;font-weight:700;
+  text-transform:uppercase;letter-spacing:1px;text-align:center;
+}
+.search-input input:focus{border-color:var(--gold);outline:none}
+.search-input button{
+  padding:14px 24px;background:var(--bordeaux);color:#fff;
+  border:none;border-radius:var(--radius);font-weight:600;cursor:pointer;
+  transition:background .3s;
+}
+.search-input button:hover{background:#6B1414}
+
+/* Status card */
+.status-card{
+  background:#fff;border-radius:var(--radius-lg);padding:32px;
+  box-shadow:0 2px 16px rgba(0,0,0,.08);display:none;
+}
+.status-card.visible{display:block;animation:fadeIn .4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.order-header{text-align:center;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid #eee}
+.order-num{font-family:'Playfair Display',serif;font-size:2rem;font-weight:800;color:var(--gold)}
+.order-time{color:#666;font-size:.9rem;margin-top:4px}
+
+/* Progress steps */
+.progress{display:flex;flex-direction:column;gap:0;margin-bottom:28px}
+.step{display:flex;align-items:flex-start;gap:16px;position:relative;padding:12px 0}
+.step-indicator{
+  width:36px;height:36px;border-radius:50%;border:2px solid #ddd;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;flex-shrink:0;background:#fff;position:relative;z-index:1;
+  transition:all .4s;
+}
+.step.done .step-indicator{background:var(--olive);border-color:var(--olive);color:#fff}
+.step.current .step-indicator{
+  background:var(--gold);border-color:var(--gold);color:var(--noir);
+  box-shadow:0 0 0 6px rgba(212,168,83,.2);animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 6px rgba(212,168,83,.2)}50%{box-shadow:0 0 0 12px rgba(212,168,83,.1)}}
+.step.pending .step-indicator{opacity:.4}
+.step-line{
+  position:absolute;left:17px;top:48px;width:2px;height:calc(100% - 24px);
+  background:#ddd;z-index:0;
+}
+.step.done .step-line{background:var(--olive)}
+.step:last-child .step-line{display:none}
+.step-content{flex:1;padding-top:6px}
+.step-label{font-weight:600;font-size:1rem}
+.step.pending .step-label{opacity:.4}
+.step-desc{font-size:.85rem;color:#888;margin-top:2px}
+.step.current .step-label{color:var(--bordeaux)}
+
+/* Order details */
+.order-details{border-top:1px solid #eee;padding-top:20px}
+.order-details h3{font-size:1.1rem;color:var(--bordeaux);margin-bottom:12px}
+.detail-item{display:flex;justify-content:space-between;padding:8px 0;font-size:.95rem;border-bottom:1px solid #f5f5f5}
+.detail-item:last-child{border:none;font-weight:700;font-size:1.05rem;padding-top:12px;color:var(--bordeaux)}
+
+/* Error */
+.error-msg{
+  background:#FFF3F3;border:1px solid #FFCDD2;color:#C62828;
+  border-radius:var(--radius);padding:16px;text-align:center;
+  display:none;margin-top:16px;
+}
+.error-msg.visible{display:block}
+
+/* Footer */
+.footer{text-align:center;padding:24px;color:#999;font-size:.85rem}
+.footer a{color:var(--bordeaux)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="index.html">A Beyrouth</a>
+  <p>Suivi de commande</p>
+</div>
+
+<div class="main">
+  <div class="search-box" id="searchBox">
+    <h2>Suivre ma commande</h2>
+    <p>Entrez votre numéro de commande</p>
+    <div class="search-input">
+      <input type="text" id="orderInput" placeholder="BE-0042" maxlength="8" autocomplete="off">
+      <button onclick="searchOrder()">Suivre</button>
+    </div>
+    <div class="error-msg" id="errorMsg">Commande introuvable. Vérifiez le numéro.</div>
+  </div>
+
+  <div class="status-card" id="statusCard">
+    <div class="order-header">
+      <div class="order-num" id="displayNum">BE-0042</div>
+      <div class="order-time" id="displayTime">Retrait : 12h30</div>
+    </div>
+
+    <div class="progress" id="progressSteps">
+      <div class="step" data-status="payee">
+        <div class="step-indicator">💳</div>
+        <div class="step-line"></div>
+        <div class="step-content">
+          <div class="step-label">Payée</div>
+          <div class="step-desc">Commande reçue et payée</div>
+        </div>
+      </div>
+      <div class="step" data-status="acceptee">
+        <div class="step-indicator">👨‍🍳</div>
+        <div class="step-line"></div>
+        <div class="step-content">
+          <div class="step-label">Acceptée</div>
+          <div class="step-desc">Le restaurant a accepté votre commande</div>
+        </div>
+      </div>
+      <div class="step" data-status="en_preparation">
+        <div class="step-indicator">🔥</div>
+        <div class="step-line"></div>
+        <div class="step-content">
+          <div class="step-label">En préparation</div>
+          <div class="step-desc">Votre commande est en cours de préparation</div>
+        </div>
+      </div>
+      <div class="step" data-status="prete">
+        <div class="step-indicator">✅</div>
+        <div class="step-line"></div>
+        <div class="step-content">
+          <div class="step-label">Prête !</div>
+          <div class="step-desc">Venez récupérer votre commande</div>
+        </div>
+      </div>
+      <div class="step" data-status="recuperee">
+        <div class="step-indicator">🎉</div>
+        <div class="step-content">
+          <div class="step-label">Récupérée</div>
+          <div class="step-desc">Bon appétit !</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="order-details" id="orderDetails"></div>
+  </div>
+</div>
+
+<div class="footer">
+  <a href="index.html">← Retour au menu</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://xbuftfwcyontgqbbrrjt.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidWZ0ZndjeW9udGdxYmJycmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2Njg1NzksImV4cCI6MjA4NjI0NDU3OX0.ROkSccADlpLsWMgqyiX_xNaFdJNR8P4R-LJCnZV2Gzg';
+const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+const STATUSES = ['payee','acceptee','en_preparation','prete','recuperee'];
+let currentOrder = null;
+let subscription = null;
+
+// Check URL param
+const params = new URLSearchParams(window.location.search);
+const numParam = params.get('num');
+if (numParam) {
+  document.getElementById('orderInput').value = numParam;
+  window.addEventListener('DOMContentLoaded', () => searchOrder());
+}
+
+// Enter key
+document.getElementById('orderInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') searchOrder();
+});
+
+async function searchOrder() {
+  const num = document.getElementById('orderInput').value.trim().toUpperCase();
+  if (!num) return;
+
+  document.getElementById('errorMsg').classList.remove('visible');
+
+  if (supabase && SUPABASE_URL !== 'VOTRE_SUPABASE_URL') {
+    const {data, error} = await supabase
+      .from('orders')
+      .select('*')
+      .eq('numero', num)
+      .single();
+
+    if (error || !data) {
+      document.getElementById('errorMsg').classList.add('visible');
+      document.getElementById('statusCard').classList.remove('visible');
+      return;
+    }
+    currentOrder = data;
+    displayOrder(data);
+    subscribeToOrder(num);
+  } else {
+    // Demo mode
+    currentOrder = {
+      numero: num,
+      statut: 'en_preparation',
+      heure_retrait: '12h30',
+      items: [
+        {nom:'Shawarma Poulet', prix:7.50, qty:2},
+        {nom:'Houmous', prix:4.50, qty:1},
+        {nom:'Ayran', prix:2.50, qty:2},
+      ],
+      total: 24.50,
+      client_prenom: 'Demo',
+    };
+    displayOrder(currentOrder);
+  }
+}
+
+function displayOrder(order) {
+  document.getElementById('statusCard').classList.add('visible');
+  document.getElementById('displayNum').textContent = order.numero;
+  document.getElementById('displayTime').textContent = order.heure_retrait === 'asap'
+    ? 'Retrait : dès que possible'
+    : `Retrait : ${order.heure_retrait}`;
+
+  updateProgress(order.statut);
+
+  // Order details
+  const details = document.getElementById('orderDetails');
+  const items = order.items || [];
+  let html = '<h3>Détail</h3>';
+  items.forEach(item => {
+    html += `<div class="detail-item"><span>${item.qty}x ${item.nom}</span><span>${(item.prix * item.qty).toFixed(2).replace('.',',')} €</span></div>`;
+  });
+  html += `<div class="detail-item"><span>Total</span><span>${(order.total || 0).toFixed(2).replace('.',',')} €</span></div>`;
+  details.innerHTML = html;
+}
+
+function updateProgress(currentStatus) {
+  const idx = STATUSES.indexOf(currentStatus);
+  document.querySelectorAll('.step').forEach((step, i) => {
+    step.classList.remove('done','current','pending');
+    if (i < idx) step.classList.add('done');
+    else if (i === idx) step.classList.add('current');
+    else step.classList.add('pending');
+  });
+}
+
+function subscribeToOrder(num) {
+  if (subscription) subscription.unsubscribe();
+  if (!supabase || SUPABASE_URL === 'VOTRE_SUPABASE_URL') return;
+
+  subscription = supabase.channel('order-' + num)
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'orders',
+      filter: `numero=eq.${num}`
+    }, payload => {
+      currentOrder = {...currentOrder, ...payload.new};
+      updateProgress(currentOrder.statut);
+      // Vibrate on status change
+      if (navigator.vibrate) navigator.vibrate(200);
+      // Notification if ready
+      if (currentOrder.statut === 'prete' && Notification.permission === 'granted') {
+        new Notification('Beyrouth Express', {body: 'Votre commande est prête ! 🎉', icon: '🧆'});
+      }
+    })
+    .subscribe();
+
+  // Request notification permission
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+</script>
+</body>
+</html>

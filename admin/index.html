@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin — Beyrouth Express</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#8B1A1A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧆</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gold:#D4A853;--bordeaux:#8B1A1A;--olive:#4A5B3C;
+  --cream:#FFF8F0;--noir:#1A1A1A;--radius:12px;
+}
+body{font-family:'Inter',sans-serif;color:var(--noir);background:#f0f0f0;min-height:100vh}
+h1,h2,h3{font-family:'Playfair Display',serif}
+button{cursor:pointer;font-family:inherit;border:none}
+
+/* ========= LOGIN ========= */
+.login-page{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--bordeaux),var(--noir));padding:24px;
+}
+.login-box{
+  background:#fff;border-radius:20px;padding:48px 40px;max-width:400px;width:100%;
+  text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+.login-box h1{color:var(--bordeaux);font-size:1.8rem;margin-bottom:8px}
+.login-box p{color:#888;margin-bottom:28px}
+.login-input{
+  width:100%;padding:14px 16px;border:2px solid #e0e0e0;border-radius:var(--radius);
+  font-size:1rem;margin-bottom:12px;font-family:inherit;
+}
+.login-input:focus{border-color:var(--gold);outline:none}
+.login-btn{
+  width:100%;padding:14px;background:var(--bordeaux);color:#fff;
+  border-radius:var(--radius);font-size:1.05rem;font-weight:600;
+  transition:background .3s;margin-top:8px;
+}
+.login-btn:hover{background:#6B1414}
+.login-error{color:#C62828;font-size:.9rem;margin-top:12px;display:none}
+
+/* ========= DASHBOARD ========= */
+.dashboard{display:none}
+.topbar{
+  background:var(--bordeaux);color:#fff;padding:16px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:50;
+}
+.topbar h1{font-size:1.3rem}
+.topbar-right{display:flex;align-items:center;gap:16px}
+.topbar-stats{font-size:.85rem;opacity:.8}
+.topbar-logout{
+  background:rgba(255,255,255,.15);color:#fff;padding:8px 16px;
+  border-radius:var(--radius);font-size:.85rem;transition:background .3s;
+}
+.topbar-logout:hover{background:rgba(255,255,255,.25)}
+
+/* Tabs */
+.tabs{
+  display:flex;background:#fff;border-bottom:2px solid #eee;
+  padding:0 24px;position:sticky;top:56px;z-index:40;
+}
+.tab{
+  padding:14px 20px;font-weight:600;font-size:.95rem;
+  color:#888;border-bottom:3px solid transparent;
+  background:none;transition:all .3s;
+}
+.tab.active{color:var(--bordeaux);border-bottom-color:var(--bordeaux)}
+.tab:hover{color:var(--noir)}
+.tab-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--gold);color:var(--noir);font-size:.7rem;font-weight:700;
+  width:20px;height:20px;border-radius:50%;margin-left:6px;
+}
+
+/* Content */
+.content{max-width:900px;margin:0 auto;padding:24px}
+
+/* ========= ORDERS TAB ========= */
+.orders-list{display:flex;flex-direction:column;gap:16px}
+.order-card{
+  background:#fff;border-radius:var(--radius);padding:20px;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid #ddd;
+  transition:all .3s;
+}
+.order-card.new{border-left-color:var(--gold);animation:slideIn .4s ease}
+.order-card.preparing{border-left-color:#FF9800}
+.order-card.ready{border-left-color:var(--olive)}
+@keyframes slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:none}}
+.order-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.order-num{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:800;color:var(--bordeaux)}
+.order-time-badge{
+  padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:600;
+  background:var(--cream);color:var(--noir);
+}
+.order-client{font-size:.9rem;color:#666;margin-bottom:8px}
+.order-items{margin-bottom:16px}
+.order-item-line{
+  display:flex;justify-content:space-between;padding:4px 0;
+  font-size:.9rem;border-bottom:1px solid #f5f5f5;
+}
+.order-total-line{font-weight:700;font-size:1rem;color:var(--bordeaux);padding-top:8px}
+.order-actions{display:flex;gap:8px;flex-wrap:wrap}
+.order-action{
+  padding:10px 20px;border-radius:var(--radius);font-weight:600;
+  font-size:.9rem;transition:all .3s;
+}
+.btn-accept{background:var(--olive);color:#fff}
+.btn-accept:hover{background:#3A4B2C}
+.btn-prepare{background:#FF9800;color:#fff}
+.btn-prepare:hover{background:#E68900}
+.btn-ready{background:var(--gold);color:var(--noir)}
+.btn-ready:hover{background:#C49843}
+.btn-done{background:#ccc;color:#666}
+.no-orders{text-align:center;padding:60px 20px;color:#999;font-size:1.1rem}
+
+/* ========= INGREDIENTS TAB ========= */
+.ingredients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.ingredient-card{
+  background:#fff;border-radius:var(--radius);padding:16px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+.ingredient-name{font-weight:600}
+.ingredient-card.off{opacity:.5}
+.ingredient-card.off .ingredient-name{text-decoration:line-through}
+/* Toggle switch */
+.toggle{
+  position:relative;width:52px;height:28px;background:#ccc;border-radius:14px;
+  cursor:pointer;transition:background .3s;flex-shrink:0;
+}
+.toggle.on{background:var(--olive)}
+.toggle::after{
+  content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;
+  background:#fff;border-radius:50%;transition:transform .3s;box-shadow:0 1px 4px rgba(0,0,0,.2);
+}
+.toggle.on::after{transform:translateX(24px)}
+
+/* ========= STATS ========= */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{
+  background:#fff;border-radius:var(--radius);padding:24px;text-align:center;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+.stat-value{font-family:'Playfair Display',serif;font-size:2rem;font-weight:800;color:var(--bordeaux)}
+.stat-label{font-size:.85rem;color:#888;margin-top:4px}
+
+/* ========= RESPONSIVE ========= */
+@media(max-width:600px){
+  .content{padding:16px}
+  .order-actions{flex-direction:column}
+  .order-action{text-align:center}
+  .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div class="login-page" id="loginPage">
+  <div class="login-box">
+    <h1>🧆 Beyrouth Express</h1>
+    <p>Interface de gestion</p>
+    <input class="login-input" type="email" id="loginEmail" placeholder="Email" autocomplete="email">
+    <input class="login-input" type="password" id="loginPassword" placeholder="Mot de passe" autocomplete="current-password">
+    <button class="login-btn" onclick="doLogin()">Se connecter</button>
+    <div class="login-error" id="loginError">Email ou mot de passe incorrect</div>
+  </div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div class="dashboard" id="dashboard">
+  <div class="topbar">
+    <h1>🧆 Beyrouth Express</h1>
+    <div class="topbar-right">
+      <span class="topbar-stats" id="topbarStats">0 commandes — 0,00 €</span>
+      <button class="topbar-logout" onclick="doLogout()">Déconnexion</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="orders" onclick="switchTab('orders')">
+      Commandes <span class="tab-badge" id="ordersBadge" style="display:none">0</span>
+    </button>
+    <button class="tab" data-tab="ingredients" onclick="switchTab('ingredients')">Ingrédients</button>
+    <button class="tab" data-tab="stats" onclick="switchTab('stats')">Stats</button>
+  </div>
+
+  <div class="content">
+    <!-- Orders Tab -->
+    <div class="tab-content" id="tab-orders">
+      <div class="orders-list" id="ordersList">
+        <div class="no-orders">Aucune commande pour le moment</div>
+      </div>
+    </div>
+
+    <!-- Ingredients Tab -->
+    <div class="tab-content" id="tab-ingredients" style="display:none">
+      <h2 style="margin-bottom:16px;color:var(--bordeaux)">Gestion des ingrédients</h2>
+      <p style="color:#888;margin-bottom:20px;font-size:.9rem">Désactivez un ingrédient pour rendre indisponibles tous les plats qui le contiennent.</p>
+      <div class="ingredients-grid" id="ingredientsList"></div>
+    </div>
+
+    <!-- Stats Tab -->
+    <div class="tab-content" id="tab-stats" style="display:none">
+      <h2 style="margin-bottom:16px;color:var(--bordeaux)">Statistiques du jour</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="statOrders">0</div>
+          <div class="stat-label">Commandes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statRevenue">0 €</div>
+          <div class="stat-label">Chiffre d'affaires</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statAvg">0 €</div>
+          <div class="stat-label">Panier moyen</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statClients">0</div>
+          <div class="stat-label">Clients uniques</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Alert sound -->
+<audio id="alertSound" preload="auto">
+  <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH+JkYuDe3N9hoyQjYV/eX+FjJCNhX95f4WMkI2Ff3l/hYyQjYV/eX+FjJCNhX95f4WMkI2Ff3l/hYyQjYV/eX+FjJCNhX95f4WMj4Z+eH6EjI+Mgnp0en+GjI+LgXlzeoGIjY6Jf3d3fIOKjo2Gfnd4fYSLj4yEfHZ5fYWNj4uCenZ5fIWMj4uDe3Z5fYSMj4uDe3d5fYSMj4uDe3d5fYSMj4uDe3d5fYSMj4uDe3d5fYSMj4uDe3d5fYSMj4uDe3d5fYSMj4uDe3d5fYSMj4qCeXV4fIWOj4yEe3Z4fISMj4uCenZ5fIWMj4uDe3d5fYSMj4uDe3d5fYSMj4uDe3d5fYSLjoqBend5fIaMkI2Ff3l/hYyQjYV/eX+FjI6LgXp1eX2GjpCMg3x3eX6FjI+LgXp2eHyFjY+LgXt2eX2FjI+LgXp1eHyFjY+Mgnt3eX6FjI+Lgnt3eX2EjI+Lgnt3eX2EjI+Lgnt3eX2EjI+Lgnt3eX2EjI6LgXp2eHyFjY+LgXp2eHyFjY+LgXp2eHyFjY+LgXp2eHyFjY+LgXp2eHyFjY+LgXp2eHyFjY+LgXp2eHyFjY+LgXp2eHyFjY+LgXp2eHyFjY+LgXp2eHyFjY+LgXp2eHyFjY+LgXp2eHyFjY+LgXp2eHyFjY+LgXp2eHyFjY+LgXp2eHyFjY+LgXp2eHyFjY+LgXp2eHyFjQ==" type="audio/wav">
+</audio>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://xbuftfwcyontgqbbrrjt.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidWZ0ZndjeW9udGdxYmJycmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2Njg1NzksImV4cCI6MjA4NjI0NDU3OX0.ROkSccADlpLsWMgqyiX_xNaFdJNR8P4R-LJCnZV2Gzg';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let orders = [];
+let ingredients = [];
+let currentTab = 'orders';
+
+// ===== AUTH =====
+async function checkSession() {
+  const {data:{session}} = await sb.auth.getSession();
+  if (session) showDashboard();
+}
+checkSession();
+
+document.getElementById('loginPassword').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pwd = document.getElementById('loginPassword').value;
+  const {error} = await sb.auth.signInWithPassword({email, password: pwd});
+  if (error) {
+    document.getElementById('loginError').style.display = 'block';
+    return;
+  }
+  showDashboard();
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
+}
+
+async function showDashboard() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  await Promise.all([loadOrders(), loadIngredients()]);
+  subscribeRealtime();
+}
+
+// ===== TABS =====
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+  document.getElementById('tab-' + tab).style.display = '';
+  if (tab === 'stats') updateStats();
+}
+
+// ===== ORDERS =====
+async function loadOrders() {
+  const today = new Date().toISOString().split('T')[0];
+  const {data} = await sb.from('orders')
+    .select('*')
+    .gte('created_at', today + 'T00:00:00')
+    .order('created_at', {ascending: false});
+  orders = data || [];
+  renderOrders();
+  updateTopbarStats();
+}
+
+function renderOrders() {
+  const list = document.getElementById('ordersList');
+  const active = orders.filter(o => o.statut !== 'recuperee');
+  const done = orders.filter(o => o.statut === 'recuperee');
+
+  if (!orders.length) {
+    list.innerHTML = '<div class="no-orders">Aucune commande pour le moment</div>';
+    return;
+  }
+
+  let html = '';
+  [...active, ...done].forEach(order => {
+    const statusClass = order.statut === 'payee' ? 'new' :
+                        order.statut === 'en_preparation' ? 'preparing' :
+                        order.statut === 'prete' ? 'ready' : '';
+    const items = order.items || [];
+    html += `
+      <div class="order-card ${statusClass}" id="order-${order.id}">
+        <div class="order-top">
+          <span class="order-num">${order.numero}</span>
+          <span class="order-time-badge">${order.heure_retrait === 'asap' ? 'Dès que possible' : order.heure_retrait}</span>
+        </div>
+        <div class="order-client">
+          ${order.client_prenom || ''} — ${order.client_email || ''}
+          ${order.client_telephone ? ' — ' + order.client_telephone : ''}
+        </div>
+        <div class="order-items">
+          ${items.map(i => `<div class="order-item-line"><span>${i.qty}x ${i.nom}</span><span>${(i.prix * i.qty).toFixed(2).replace('.',',')} €</span></div>`).join('')}
+          <div class="order-item-line order-total-line"><span>Total</span><span>${(order.total || 0).toFixed(2).replace('.',',')} €</span></div>
+        </div>
+        <div class="order-actions">
+          ${getActionButtons(order)}
+        </div>
+      </div>`;
+  });
+  list.innerHTML = html;
+
+  // Badge
+  const pending = orders.filter(o => o.statut === 'payee').length;
+  const badge = document.getElementById('ordersBadge');
+  badge.style.display = pending > 0 ? '' : 'none';
+  badge.textContent = pending;
+}
+
+function getActionButtons(order) {
+  switch(order.statut) {
+    case 'payee':
+      return `<button class="order-action btn-accept" onclick="updateStatus(${order.id},'acceptee')">✓ Accepter</button>`;
+    case 'acceptee':
+      return `<button class="order-action btn-prepare" onclick="updateStatus(${order.id},'en_preparation')">🔥 En préparation</button>`;
+    case 'en_preparation':
+      return `<button class="order-action btn-ready" onclick="updateStatus(${order.id},'prete')">✅ Prête !</button>`;
+    case 'prete':
+      return `<button class="order-action btn-done" onclick="updateStatus(${order.id},'recuperee')">📦 Récupérée</button>`;
+    case 'recuperee':
+      return `<span style="color:#888;font-size:.85rem">✓ Terminée</span>`;
+    default:
+      return '';
+  }
+}
+
+async function updateStatus(orderId, newStatus) {
+  await sb.from('orders').update({statut: newStatus}).eq('id', orderId);
+  // Update local
+  const order = orders.find(o => o.id === orderId);
+  if (order) order.statut = newStatus;
+  renderOrders();
+  updateTopbarStats();
+}
+
+// ===== INGREDIENTS =====
+async function loadIngredients() {
+  const {data} = await sb.from('ingredients').select('*').order('nom');
+  ingredients = data || [];
+  renderIngredients();
+}
+
+function renderIngredients() {
+  const list = document.getElementById('ingredientsList');
+  list.innerHTML = ingredients.map(ing => `
+    <div class="ingredient-card ${ing.disponible ? '' : 'off'}" id="ing-${ing.id}">
+      <span class="ingredient-name">${ing.nom}</span>
+      <div class="toggle ${ing.disponible ? 'on' : ''}" onclick="toggleIngredient(${ing.id},${ing.disponible ? 'false' : 'true'})"></div>
+    </div>
+  `).join('');
+}
+
+async function toggleIngredient(id, newValue) {
+  await sb.from('ingredients').update({disponible: newValue}).eq('id', id);
+  const ing = ingredients.find(i => i.id === id);
+  if (ing) ing.disponible = newValue;
+  renderIngredients();
+}
+
+// ===== STATS =====
+function updateStats() {
+  const total = orders.length;
+  const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+  const avg = total > 0 ? revenue / total : 0;
+  const clients = new Set(orders.map(o => o.client_email)).size;
+
+  document.getElementById('statOrders').textContent = total;
+  document.getElementById('statRevenue').textContent = revenue.toFixed(2).replace('.',',') + ' €';
+  document.getElementById('statAvg').textContent = avg.toFixed(2).replace('.',',') + ' €';
+  document.getElementById('statClients').textContent = clients;
+}
+
+function updateTopbarStats() {
+  const total = orders.length;
+  const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+  document.getElementById('topbarStats').textContent = `${total} commande${total > 1 ? 's' : ''} — ${revenue.toFixed(2).replace('.',',')} €`;
+}
+
+// ===== REALTIME =====
+function subscribeRealtime() {
+  sb.channel('admin-orders')
+    .on('postgres_changes', {event:'INSERT', schema:'public', table:'orders'}, payload => {
+      orders.unshift(payload.new);
+      renderOrders();
+      updateTopbarStats();
+      playAlert();
+    })
+    .on('postgres_changes', {event:'UPDATE', schema:'public', table:'orders'}, payload => {
+      const idx = orders.findIndex(o => o.id === payload.new.id);
+      if (idx !== -1) orders[idx] = payload.new;
+      renderOrders();
+      updateTopbarStats();
+    })
+    .on('postgres_changes', {event:'*', schema:'public', table:'ingredients'}, () => {
+      loadIngredients();
+    })
+    .subscribe();
+}
+
+function playAlert() {
+  const audio = document.getElementById('alertSound');
+  audio.currentTime = 0;
+  audio.play().catch(() => {});
+  // Vibrate on mobile
+  if (navigator.vibrate) navigator.vibrate([200,100,200]);
+}
+</script>
+</body>
+</html>

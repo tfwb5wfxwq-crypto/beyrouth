@@ -391,14 +391,14 @@ const DEMO_CATEGORIES = [
 
 const DEMO_ITEMS = [
   // === SANDWICHS (tous à 8.90€) ===
-  {id:1, categorie_id:1, nom:'Shawarma Poulet', description:'Émincé de poulet mariné, crudités, sauce maison', prix:8.90, emoji:'🌯', image_url:'img/sandwich-shawarma.jpg', disponible:true},
-  {id:2, categorie_id:1, nom:'Chich Taouk', description:'Brochette de blanc de poulet mariné', prix:8.90, emoji:'🌯', disponible:true},
-  {id:3, categorie_id:1, nom:'Shawarma Boeuf', description:'Émincé de boeuf mariné, crudités, sauce maison', prix:8.90, emoji:'🌯', disponible:true},
-  {id:4, categorie_id:1, nom:'Falafel', description:'Boulette de fèves et pois chiches', prix:8.90, emoji:'🧆', image_url:'img/sandwich-falafel.jpg', disponible:true},
-  {id:5, categorie_id:1, nom:'Veggie', description:'Chou fleur, aubergine, crudités', prix:8.90, emoji:'🥬', disponible:true},
-  {id:6, categorie_id:1, nom:'Foie de Volaille', description:'Mariné au citron', prix:8.90, emoji:'🍗', disponible:true},
-  {id:7, categorie_id:1, nom:'Kafta', description:'Brochette de boeuf hachée persillée', prix:8.90, emoji:'🍢', disponible:true},
-  {id:8, categorie_id:1, nom:'Soujouk', description:'Saucisses de boeuf épicées', prix:8.90, emoji:'🌭', disponible:true},
+  {id:1, categorie_id:1, nom:'Shawarma Poulet', description:'Émincé de poulet mariné, crudités, sauce maison', prix:6.90, emoji:'🌯', image_url:'img/sandwich-shawarma.jpg', disponible:true},
+  {id:2, categorie_id:1, nom:'Chich Taouk', description:'Brochette de blanc de poulet mariné', prix:6.90, emoji:'🌯', disponible:true},
+  {id:3, categorie_id:1, nom:'Shawarma Boeuf', description:'Émincé de boeuf mariné, crudités, sauce maison', prix:6.90, emoji:'🌯', disponible:true},
+  {id:4, categorie_id:1, nom:'Falafel', description:'Boulette de fèves et pois chiches', prix:6.90, emoji:'🧆', image_url:'img/sandwich-falafel.jpg', disponible:true},
+  {id:5, categorie_id:1, nom:'Veggie', description:'Chou fleur, aubergine, crudités', prix:6.90, emoji:'🥬', disponible:true},
+  {id:6, categorie_id:1, nom:'Foie de Volaille', description:'Mariné au citron', prix:6.90, emoji:'🍗', disponible:true},
+  {id:7, categorie_id:1, nom:'Kafta', description:'Brochette de boeuf hachée persillée', prix:6.90, emoji:'🍢', disponible:true},
+  {id:8, categorie_id:1, nom:'Soujouk', description:'Saucisses de boeuf épicées', prix:6.90, emoji:'🌭', disponible:true},
 
   // === FORMULES ===
   {id:10, categorie_id:2, nom:'Formule 1', description:'Sandwich + 2 feuilletés + boisson', prix:10.90, emoji:'1️⃣', disponible:true},
@@ -417,10 +417,10 @@ const DEMO_ITEMS = [
   // === PLATEAUX ===
   {id:30, categorie_id:4, nom:'Beyrouth Poulet', description:'Houmous, moutabal, taboulé, shawarma poulet, riz', prix:14.00, emoji:'🥘', disponible:true},
   {id:31, categorie_id:4, nom:'Beyrouth Boeuf', description:'Houmous, moutabal, taboulé, shawarma boeuf, riz', prix:15.00, emoji:'🥘', disponible:true},
-  {id:32, categorie_id:4, nom:'Végétarienne', description:'Houmous, moutabal, moussaka, 3 feuilletés', prix:14.00, emoji:'🥬', disponible:true},
-  {id:33, categorie_id:4, nom:'Falafel', description:'Houmous, moutabal, taboulé, 3 falafels', prix:14.00, emoji:'🧆', image_url:'img/falafel.jpg', disponible:true},
-  {id:34, categorie_id:4, nom:'Liban', description:'Houmous, moutabal, chich taouk, riz, 2 feuilletés', prix:16.00, emoji:'🇱🇧', disponible:true},
-  {id:35, categorie_id:4, nom:'Byblos', description:'Le plateau complet : houmous, taboulé, kafta, chich taouk, shawarma, riz', prix:18.00, emoji:'👑', disponible:true},
+  {id:32, categorie_id:4, nom:'Végétarienne', description:'Houmous, moutabal, moussaka, crudités, 3 feuilletés végétariens', prix:14.00, emoji:'🥬', disponible:true},
+  {id:33, categorie_id:4, nom:'Falafel', description:'Houmous, moutabal, taboulé, crudités, 3 falafels', prix:14.00, emoji:'🧆', image_url:'img/falafel.jpg', disponible:true},
+  {id:34, categorie_id:4, nom:'Liban', description:'Houmous, moutabal, chich taouk, riz, crudités, 2 feuilletés végétariens', prix:16.00, emoji:'🇱🇧', disponible:true},
+  {id:35, categorie_id:4, nom:'Byblos', description:'Houmous, moutabal, taboulé, 3 feuilletés végétariens, kafta, chich taouk, shawarma poulet, riz', prix:18.00, emoji:'👑', disponible:true},
 
   // === ENTRÉES ===
   {id:40, categorie_id:5, nom:'Houmous', description:'Pois chiches, tahini, huile d\'olive', prix:4.50, emoji:'🫘', image_url:'img/houmous.jpg', disponible:true},
@@ -440,7 +440,7 @@ const DEMO_ITEMS = [
   {id:63, categorie_id:7, nom:'Lipton Pêche', description:'Canette 33cl', prix:2.00, emoji:'🥤', image_url:'img/lipton.jpg', disponible:true},
   {id:64, categorie_id:7, nom:'7Up', description:'Canette 33cl', prix:2.00, emoji:'🥤', image_url:'img/7up.jpg', disponible:true},
   {id:65, categorie_id:7, nom:'Coca-Cola Zero', description:'Canette 33cl', prix:2.00, emoji:'🥤', image_url:'img/coca-zero.jpg', disponible:true},
-  {id:66, categorie_id:7, nom:'Perrier', description:'Canette 33cl', prix:2.50, emoji:'🫧', image_url:'img/perrier.jpg', disponible:true},
+  {id:66, categorie_id:7, nom:'Perrier', description:'Canette 33cl', prix:2.00, emoji:'🫧', image_url:'img/perrier.jpg', disponible:true},
   {id:67, categorie_id:7, nom:'Ayran', description:'Yaourt salé, rafraîchissant', prix:2.50, emoji:'🥛', disponible:true},
   {id:68, categorie_id:7, nom:'Eau Plate', description:'50cl', prix:2.00, emoji:'💧', image_url:'img/eau.jpg', disponible:true},
 ];

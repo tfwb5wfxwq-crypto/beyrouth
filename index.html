@@ -388,9 +388,10 @@ async function loadFromSupabase() {
       supabase.from('menu_items').select('*').eq('actif', true).order('nom'),
       supabase.from('ingredients').select('*'),
     ]);
-    if (catRes.data) categories = catRes.data;
-    if (itemRes.data) menuItems = itemRes.data;
+    if (catRes.data && catRes.data.length) categories = catRes.data;
+    if (itemRes.data && itemRes.data.length) menuItems = itemRes.data;
     if (ingRes.data) ingredients = ingRes.data;
+    if (!categories.length || !menuItems.length) throw new Error('Tables vides');
     applyIngredientAvailability();
   } catch (e) {
     console.error('Erreur chargement:', e);

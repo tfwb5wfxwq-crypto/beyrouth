@@ -363,45 +363,65 @@ let menuItems = [];
 let ingredients = [];
 let cart = JSON.parse(localStorage.getItem('be_cart') || '[]');
 
-// ===== DEMO DATA (avant connexion Supabase) =====
+// ===== DEMO DATA (menu réel A Beyrouth) =====
 const DEMO_CATEGORIES = [
-  {id:1, nom:'Formules', ordre:1, emoji:'🍽️'},
-  {id:2, nom:'Sandwichs & Wraps', ordre:2, emoji:'🌯'},
-  {id:3, nom:'Assiettes', ordre:3, emoji:'🥘'},
-  {id:4, nom:'Mezze', ordre:4, emoji:'🧆'},
-  {id:5, nom:'Boissons', ordre:5, emoji:'🥤'},
+  {id:1, nom:'Sandwichs', ordre:1, emoji:'🌯'},
+  {id:2, nom:'Formules Sandwich', ordre:2, emoji:'🍽️'},
+  {id:3, nom:'Grillades', ordre:3, emoji:'🔥'},
+  {id:4, nom:'Plateaux Composés', ordre:4, emoji:'🥘'},
+  {id:5, nom:'Entrées Froides', ordre:5, emoji:'🧆'},
   {id:6, nom:'Desserts', ordre:6, emoji:'🍮'},
+  {id:7, nom:'Boissons', ordre:7, emoji:'🥤'},
 ];
 
 const DEMO_ITEMS = [
-  // Formules
-  {id:1, categorie_id:1, nom:'Formule Midi', description:'Sandwich ou wrap + boisson + dessert du jour', prix:10.90, emoji:'🍽️', disponible:true},
-  {id:2, categorie_id:1, nom:'Formule Assiette', description:'Assiette au choix + boisson', prix:13.90, emoji:'🥗', disponible:true},
-  // Sandwichs & Wraps
-  {id:10, categorie_id:2, nom:'Shawarma Poulet', description:'Pain libanais, poulet mariné, tomates, oignons, sauce tarator', prix:7.50, emoji:'🌯', disponible:true},
-  {id:11, categorie_id:2, nom:'Shawarma Bœuf', description:'Pain libanais, bœuf épicé, pickles, sauce tahini', prix:8.50, emoji:'🌯', disponible:true},
-  {id:12, categorie_id:2, nom:'Falafel Wrap', description:'Falafels maison, salade, houmous, sauce tahini', prix:7.00, emoji:'🧆', disponible:true},
-  {id:13, categorie_id:2, nom:'Wrap Mixte', description:'Poulet et bœuf, légumes grillés, sauce à l\'ail', prix:9.00, emoji:'🌯', disponible:true},
-  // Assiettes
-  {id:20, categorie_id:3, nom:'Assiette Shawarma Poulet', description:'Riz, shawarma poulet, salade, houmous, sauce tarator', prix:11.50, emoji:'🍗', disponible:true},
-  {id:21, categorie_id:3, nom:'Assiette Shawarma Bœuf', description:'Riz, shawarma bœuf, taboulé, pickles, sauce tahini', prix:12.50, emoji:'🥩', disponible:true},
-  {id:22, categorie_id:3, nom:'Assiette Falafel', description:'Riz, falafels maison, salade, houmous, sauce tahini', prix:10.50, emoji:'🧆', disponible:true},
-  {id:23, categorie_id:3, nom:'Assiette Mixte', description:'Riz, poulet, bœuf, falafel, houmous, taboulé', prix:14.00, emoji:'🥘', disponible:true},
-  {id:24, categorie_id:3, nom:'Assiette Kefta', description:'Riz, brochettes de kefta, salade, sauce à l\'ail', prix:12.00, emoji:'🍢', disponible:true},
-  // Mezze
-  {id:30, categorie_id:4, nom:'Houmous', description:'Purée de pois chiches, tahini, huile d\'olive, pain libanais', prix:4.50, emoji:'🫘', disponible:true},
-  {id:31, categorie_id:4, nom:'Taboulé Libanais', description:'Persil, boulgour, tomates, menthe, citron', prix:4.50, emoji:'🥗', disponible:true},
-  {id:32, categorie_id:4, nom:'Fattouch', description:'Salade croquante, pain frit, sumac, grenade', prix:5.00, emoji:'🥬', disponible:true},
-  {id:33, categorie_id:4, nom:'Moutabal', description:'Caviar d\'aubergine fumée, tahini, ail', prix:4.50, emoji:'🍆', disponible:true},
-  {id:34, categorie_id:4, nom:'Falafels (6 pcs)', description:'Boulettes de pois chiches épicées, sauce tahini', prix:5.50, emoji:'🧆', disponible:true},
-  // Boissons
-  {id:40, categorie_id:5, nom:'Ayran', description:'Boisson au yaourt salé, rafraîchissante', prix:2.50, emoji:'🥛', disponible:true},
-  {id:41, categorie_id:5, nom:'Jus de Citron Menthe', description:'Citron frais pressé, menthe, sucre', prix:3.50, emoji:'🍋', disponible:true},
-  {id:42, categorie_id:5, nom:'Coca-Cola / Sprite', description:'33cl', prix:2.00, emoji:'🥤', disponible:true},
-  {id:43, categorie_id:5, nom:'Eau Minérale', description:'50cl', prix:1.50, emoji:'💧', disponible:true},
-  // Desserts
-  {id:50, categorie_id:6, nom:'Baklava (2 pcs)', description:'Pâte filo, pistaches, miel', prix:3.50, emoji:'🍯', disponible:true},
-  {id:51, categorie_id:6, nom:'Maamoul', description:'Sablé libanais aux dattes', prix:2.50, emoji:'🍪', disponible:true},
+  // === SANDWICHS (tous à 8.90€, composés de crudités + sauce maison) ===
+  {id:1, categorie_id:1, nom:'Shawarma Poulet', description:'Émincé de poulet mariné, crudités, sauce maison', prix:8.90, emoji:'🌯', image_url:'img/sandwich-shawarma.jpg', disponible:true},
+  {id:2, categorie_id:1, nom:'Chich Taouk', description:'Brochette de blanc de poulet mariné, crudités, sauce maison', prix:8.90, emoji:'🌯', disponible:true},
+  {id:3, categorie_id:1, nom:'Shawarma Boeuf', description:'Émincé de boeuf mariné, crudités, sauce maison', prix:8.90, emoji:'🌯', disponible:true},
+  {id:4, categorie_id:1, nom:'Falafel', description:'Boulette de fèves, pois chiches, crudités, sauce maison', prix:8.90, emoji:'🧆', image_url:'img/sandwich-falafel.jpg', disponible:true},
+  {id:5, categorie_id:1, nom:'Veggie', description:'Chou fleur, aubergine, crudités, sauce maison', prix:8.90, emoji:'🥬', disponible:true},
+  {id:6, categorie_id:1, nom:'Foie de Volaille', description:'Mariné au citron, crudités, sauce maison', prix:8.90, emoji:'🍗', disponible:true},
+  {id:7, categorie_id:1, nom:'Kafta', description:'Brochette de boeuf hachée persillée, crudités, sauce maison', prix:8.90, emoji:'🍢', disponible:true},
+  {id:8, categorie_id:1, nom:'Soujouk', description:'Saucisses de boeuf épicées, crudités, sauce maison', prix:8.90, emoji:'🌭', disponible:true},
+
+  // === FORMULES SANDWICH ===
+  {id:10, categorie_id:2, nom:'Formule 1', description:'Sandwich + 2 feuilletés (fromage, boeuf, épinard ou falafel) + 1 boisson', prix:10.90, emoji:'1️⃣', disponible:true},
+  {id:11, categorie_id:2, nom:'Formule 2', description:'Sandwich + 1 entrée froide (houmous, moutabal ou taboulé) + 1 boisson', prix:11.70, emoji:'2️⃣', disponible:true},
+  {id:12, categorie_id:2, nom:'Formule 3', description:'Sandwich + 1 dessert (baklawas ou mouhalabieh) + 1 boisson', prix:11.70, emoji:'3️⃣', disponible:true},
+  {id:13, categorie_id:2, nom:'Formule 4', description:'2 sandwiches au choix + 1 boisson', prix:14.90, emoji:'4️⃣', disponible:true},
+  {id:14, categorie_id:2, nom:'Formule Plat du Jour', description:'Plat du jour + boisson', prix:13.50, emoji:'🍽️', image_url:'img/plat-jour.jpg', disponible:true},
+
+  // === GRILLADES (servies avec riz et crudités) ===
+  {id:20, categorie_id:3, nom:'Kafta Méchoui', description:'2 brochettes de viande de boeuf hachée persillée au four, riz, crudités', prix:13.00, emoji:'🍢', disponible:true},
+  {id:21, categorie_id:3, nom:'Chich Taouk', description:'2 brochettes de blanc de poulet mariné au citron, riz, crudités', prix:13.00, emoji:'🍗', disponible:true},
+  {id:22, categorie_id:3, nom:'Shawarma Poulet', description:'Émincé de poulet mariné et grillé à la broche, riz, crudités', prix:14.00, emoji:'🌯', disponible:true},
+  {id:23, categorie_id:3, nom:'Shawarma Boeuf', description:'Émincé de boeuf mariné et grillé à la broche, riz, crudités', prix:15.00, emoji:'🌯', disponible:true},
+  {id:24, categorie_id:3, nom:'Grillade Mixte', description:'Shawarma poulet, kafta, chich taouk, riz, crudités', prix:15.00, emoji:'🔥', disponible:true},
+
+  // === PLATEAUX COMPOSÉS (+2€ la boisson) ===
+  {id:30, categorie_id:4, nom:'Beyrouth Poulet', description:'Houmous, moutabal, taboulé, chawarma poulet, riz', prix:14.00, emoji:'🥘', disponible:true},
+  {id:31, categorie_id:4, nom:'Beyrouth Boeuf', description:'Houmous, moutabal, taboulé, chawarma boeuf, riz', prix:15.00, emoji:'🥘', disponible:true},
+  {id:32, categorie_id:4, nom:'Végétarienne', description:'Houmous, moutabal, moussaka, crudités, 3 feuilletés végétariens', prix:14.00, emoji:'🥬', disponible:true},
+  {id:33, categorie_id:4, nom:'Falafel', description:'Houmous, moutabal, taboulé, crudités, 3 falafels', prix:14.00, emoji:'🧆', image_url:'img/falafel.jpg', disponible:true},
+  {id:34, categorie_id:4, nom:'Liban', description:'Houmous, moutabal, chich taouk, riz, crudités, 2 feuilletés végétariens', prix:16.00, emoji:'🇱🇧', disponible:true},
+  {id:35, categorie_id:4, nom:'Byblos', description:'Houmous, moutabal, taboulé, kafta, chich taouk, shawarma poulet, riz', prix:18.00, emoji:'👑', disponible:true},
+
+  // === ENTRÉES FROIDES ===
+  {id:40, categorie_id:5, nom:'Houmous', description:'Purée de pois chiches, tahini, huile d\'olive', prix:4.50, emoji:'🫘', image_url:'img/houmous.jpg', disponible:true},
+  {id:41, categorie_id:5, nom:'Moutabal', description:'Caviar d\'aubergine fumée, tahini, grenade', prix:4.50, emoji:'🍆', image_url:'img/moutabal.jpg', disponible:true},
+  {id:42, categorie_id:5, nom:'Taboulé', description:'Persil, boulgour, tomates, menthe, citron', prix:4.50, emoji:'🥗', image_url:'img/taboule.jpg', disponible:true},
+
+  // === DESSERTS ===
+  {id:50, categorie_id:6, nom:'Mouhalabieh', description:'Flan au lait parfumé à la fleur d\'oranger et éclats de pistaches (fait maison)', prix:4.00, emoji:'🍮', image_url:'img/mouhalabieh.jpg', disponible:true},
+  {id:51, categorie_id:6, nom:'Namoura', description:'Gâteau de semoule parfumé à la fleur d\'oranger et nappé d\'un sirop léger', prix:4.00, emoji:'🍰', image_url:'img/namoura.jpg', disponible:true},
+  {id:52, categorie_id:6, nom:'Baklawas', description:'Boîte de 3 pièces', prix:4.50, emoji:'🍯', disponible:true},
+  {id:53, categorie_id:6, nom:'Duo Sablés', description:'Deux sablés au choix : pistaches, amandes, noix, dattes', prix:5.00, emoji:'🍪', disponible:true},
+
+  // === BOISSONS ===
+  {id:60, categorie_id:7, nom:'Soft 33cl', description:'Coca, Sprite, Orangina...', prix:2.00, emoji:'🥤', disponible:true},
+  {id:61, categorie_id:7, nom:'Ayran', description:'Boisson au yaourt salé, rafraîchissante', prix:2.50, emoji:'🥛', disponible:true},
+  {id:62, categorie_id:7, nom:'Eau Plate', description:'50cl', prix:2.00, emoji:'💧', disponible:true},
 ];
 
 // ===== INIT =====

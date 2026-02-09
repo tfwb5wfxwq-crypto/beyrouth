@@ -148,24 +148,26 @@ ALTER PUBLICATION supabase_realtime ADD TABLE ingredients;
 ALTER PUBLICATION supabase_realtime ADD TABLE menu_items;
 
 -- ============================================
--- DONNÉES INITIALES : Catégories
+-- DONNÉES INITIALES : Catégories (menu réel A Beyrouth)
 -- ============================================
-INSERT INTO menu_categories (nom, emoji, ordre) VALUES
-  ('Formules', '🍽️', 1),
-  ('Sandwichs & Wraps', '🌯', 2),
-  ('Assiettes', '🥘', 3),
-  ('Mezze', '🧆', 4),
-  ('Boissons', '🥤', 5),
-  ('Desserts', '🍮', 6)
-ON CONFLICT DO NOTHING;
+DELETE FROM menu_items;
+DELETE FROM menu_categories;
+
+INSERT INTO menu_categories (id, nom, emoji, ordre) VALUES
+  (1, 'Sandwichs', '🌯', 1),
+  (2, 'Formules Sandwich', '🍽️', 2),
+  (3, 'Grillades', '🔥', 3),
+  (4, 'Plateaux Composés', '🥘', 4),
+  (5, 'Entrées Froides', '🧆', 5),
+  (6, 'Desserts', '🍮', 6),
+  (7, 'Boissons', '🥤', 7);
 
 -- ============================================
 -- DONNÉES INITIALES : Ingrédients
 -- ============================================
 INSERT INTO ingredients (nom, disponible) VALUES
   ('Poulet', true),
-  ('Bœuf', true),
-  ('Agneau', true),
+  ('Boeuf', true),
   ('Pois chiches', true),
   ('Tahini', true),
   ('Pain libanais', true),
@@ -176,45 +178,63 @@ INSERT INTO ingredients (nom, disponible) VALUES
   ('Persil', true),
   ('Menthe', true),
   ('Aubergine', true),
-  ('Concombre', true),
   ('Salade', true),
-  ('Pickles', true),
   ('Pistaches', true),
-  ('Miel', true),
-  ('Dattes', true),
-  ('Yaourt', true)
+  ('Semoule', true),
+  ('Yaourt', true),
+  ('Fèves', true),
+  ('Chou fleur', true),
+  ('Foie de volaille', true)
 ON CONFLICT (nom) DO NOTHING;
 
 -- ============================================
--- DONNÉES INITIALES : Menu items
+-- DONNÉES INITIALES : Menu items (menu réel A Beyrouth)
 -- ============================================
-INSERT INTO menu_items (categorie_id, nom, description, prix, emoji, ingredients, disponible) VALUES
-  -- Formules
-  (1, 'Formule Midi', 'Sandwich ou wrap + boisson + dessert du jour', 10.90, '🍽️', ARRAY['Pain libanais'], true),
-  (1, 'Formule Assiette', 'Assiette au choix + boisson', 13.90, '🥗', ARRAY['Riz'], true),
-  -- Sandwichs & Wraps
-  (2, 'Shawarma Poulet', 'Pain libanais, poulet mariné, tomates, oignons, sauce tarator', 7.50, '🌯', ARRAY['Poulet','Pain libanais','Tomates','Oignons','Tahini'], true),
-  (2, 'Shawarma Bœuf', 'Pain libanais, bœuf épicé, pickles, sauce tahini', 8.50, '🌯', ARRAY['Bœuf','Pain libanais','Pickles','Tahini'], true),
-  (2, 'Falafel Wrap', 'Falafels maison, salade, houmous, sauce tahini', 7.00, '🧆', ARRAY['Pois chiches','Pain libanais','Salade','Tahini'], true),
-  (2, 'Wrap Mixte', 'Poulet et bœuf, légumes grillés, sauce à l''ail', 9.00, '🌯', ARRAY['Poulet','Bœuf','Pain libanais'], true),
-  -- Assiettes
-  (3, 'Assiette Shawarma Poulet', 'Riz, shawarma poulet, salade, houmous, sauce tarator', 11.50, '🍗', ARRAY['Poulet','Riz','Salade','Pois chiches','Tahini'], true),
-  (3, 'Assiette Shawarma Bœuf', 'Riz, shawarma bœuf, taboulé, pickles, sauce tahini', 12.50, '🥩', ARRAY['Bœuf','Riz','Boulgour','Pickles','Tahini'], true),
-  (3, 'Assiette Falafel', 'Riz, falafels maison, salade, houmous, sauce tahini', 10.50, '🧆', ARRAY['Pois chiches','Riz','Salade','Tahini'], true),
-  (3, 'Assiette Mixte', 'Riz, poulet, bœuf, falafel, houmous, taboulé', 14.00, '🥘', ARRAY['Poulet','Bœuf','Pois chiches','Riz','Boulgour'], true),
-  (3, 'Assiette Kefta', 'Riz, brochettes de kefta, salade, sauce à l''ail', 12.00, '🍢', ARRAY['Bœuf','Riz','Salade'], true),
-  -- Mezze
-  (4, 'Houmous', 'Purée de pois chiches, tahini, huile d''olive, pain libanais', 4.50, '🫘', ARRAY['Pois chiches','Tahini','Pain libanais'], true),
-  (4, 'Taboulé Libanais', 'Persil, boulgour, tomates, menthe, citron', 4.50, '🥗', ARRAY['Persil','Boulgour','Tomates','Menthe'], true),
-  (4, 'Fattouch', 'Salade croquante, pain frit, sumac, grenade', 5.00, '🥬', ARRAY['Salade','Pain libanais','Tomates'], true),
-  (4, 'Moutabal', 'Caviar d''aubergine fumée, tahini, ail', 4.50, '🍆', ARRAY['Aubergine','Tahini'], true),
-  (4, 'Falafels (6 pcs)', 'Boulettes de pois chiches épicées, sauce tahini', 5.50, '🧆', ARRAY['Pois chiches','Tahini'], true),
-  -- Boissons
-  (5, 'Ayran', 'Boisson au yaourt salé, rafraîchissante', 2.50, '🥛', ARRAY['Yaourt'], true),
-  (5, 'Jus de Citron Menthe', 'Citron frais pressé, menthe, sucre', 3.50, '🍋', ARRAY['Menthe'], true),
-  (5, 'Coca-Cola / Sprite', '33cl', 2.00, '🥤', ARRAY[]::text[], true),
-  (5, 'Eau Minérale', '50cl', 1.50, '💧', ARRAY[]::text[], true),
+INSERT INTO menu_items (categorie_id, nom, description, prix, emoji, image_url, ingredients, disponible) VALUES
+  -- Sandwichs (tous à 8.90€, composés de crudités + sauce maison)
+  (1, 'Shawarma Poulet', 'Émincé de poulet mariné, crudités, sauce maison', 8.90, '🌯', 'img/sandwich-shawarma.jpg', ARRAY['Poulet','Pain libanais'], true),
+  (1, 'Chich Taouk', 'Brochette de blanc de poulet mariné, crudités, sauce maison', 8.90, '🌯', NULL, ARRAY['Poulet','Pain libanais'], true),
+  (1, 'Shawarma Boeuf', 'Émincé de boeuf mariné, crudités, sauce maison', 8.90, '🌯', NULL, ARRAY['Boeuf','Pain libanais'], true),
+  (1, 'Falafel', 'Boulette de fèves, pois chiches, crudités, sauce maison', 8.90, '🧆', 'img/sandwich-falafel.jpg', ARRAY['Pois chiches','Fèves','Pain libanais'], true),
+  (1, 'Veggie', 'Chou fleur, aubergine, crudités, sauce maison', 8.90, '🥬', NULL, ARRAY['Chou fleur','Aubergine','Pain libanais'], true),
+  (1, 'Foie de Volaille', 'Mariné au citron, crudités, sauce maison', 8.90, '🍗', NULL, ARRAY['Foie de volaille','Pain libanais'], true),
+  (1, 'Kafta', 'Brochette de boeuf hachée persillée, crudités, sauce maison', 8.90, '🍢', NULL, ARRAY['Boeuf','Pain libanais'], true),
+  (1, 'Soujouk', 'Saucisses de boeuf épicées, crudités, sauce maison', 8.90, '🌭', NULL, ARRAY['Boeuf','Pain libanais'], true),
+
+  -- Formules Sandwich
+  (2, 'Formule 1', 'Sandwich + 2 feuilletés (fromage, boeuf, épinard ou falafel) + 1 boisson', 10.90, '1️⃣', NULL, ARRAY[]::text[], true),
+  (2, 'Formule 2', 'Sandwich + 1 entrée froide (houmous, moutabal ou taboulé) + 1 boisson', 11.70, '2️⃣', NULL, ARRAY[]::text[], true),
+  (2, 'Formule 3', 'Sandwich + 1 dessert (baklawas ou mouhalabieh) + 1 boisson', 11.70, '3️⃣', NULL, ARRAY[]::text[], true),
+  (2, 'Formule 4', '2 sandwiches au choix + 1 boisson', 14.90, '4️⃣', NULL, ARRAY[]::text[], true),
+  (2, 'Formule Plat du Jour', 'Plat du jour + boisson', 13.50, '🍽️', 'img/plat-jour.jpg', ARRAY[]::text[], true),
+
+  -- Grillades (servies avec riz et crudités)
+  (3, 'Kafta Méchoui', '2 brochettes de viande de boeuf hachée persillée au four, riz, crudités', 13.00, '🍢', NULL, ARRAY['Boeuf','Riz'], true),
+  (3, 'Chich Taouk', '2 brochettes de blanc de poulet mariné au citron, riz, crudités', 13.00, '🍗', NULL, ARRAY['Poulet','Riz'], true),
+  (3, 'Shawarma Poulet', 'Émincé de poulet mariné et grillé à la broche, riz, crudités', 14.00, '🌯', NULL, ARRAY['Poulet','Riz'], true),
+  (3, 'Shawarma Boeuf', 'Émincé de boeuf mariné et grillé à la broche, riz, crudités', 15.00, '🌯', NULL, ARRAY['Boeuf','Riz'], true),
+  (3, 'Grillade Mixte', 'Shawarma poulet, kafta, chich taouk, riz, crudités', 15.00, '🔥', NULL, ARRAY['Poulet','Boeuf','Riz'], true),
+
+  -- Plateaux Composés (+2€ la boisson)
+  (4, 'Beyrouth Poulet', 'Houmous, moutabal, taboulé, chawarma poulet, riz', 14.00, '🥘', NULL, ARRAY['Poulet','Riz','Pois chiches','Aubergine','Boulgour'], true),
+  (4, 'Beyrouth Boeuf', 'Houmous, moutabal, taboulé, chawarma boeuf, riz', 15.00, '🥘', NULL, ARRAY['Boeuf','Riz','Pois chiches','Aubergine','Boulgour'], true),
+  (4, 'Végétarienne', 'Houmous, moutabal, moussaka, crudités, 3 feuilletés végétariens', 14.00, '🥬', NULL, ARRAY['Pois chiches','Aubergine'], true),
+  (4, 'Falafel', 'Houmous, moutabal, taboulé, crudités, 3 falafels', 14.00, '🧆', 'img/falafel.jpg', ARRAY['Pois chiches','Fèves','Aubergine','Boulgour'], true),
+  (4, 'Liban', 'Houmous, moutabal, chich taouk, riz, crudités, 2 feuilletés végétariens', 16.00, '🇱🇧', NULL, ARRAY['Poulet','Riz','Pois chiches','Aubergine'], true),
+  (4, 'Byblos', 'Houmous, moutabal, taboulé, kafta, chich taouk, shawarma poulet, riz', 18.00, '👑', NULL, ARRAY['Poulet','Boeuf','Riz','Pois chiches','Aubergine','Boulgour'], true),
+
+  -- Entrées Froides
+  (5, 'Houmous', 'Purée de pois chiches, tahini, huile d''olive', 4.50, '🫘', 'img/houmous.jpg', ARRAY['Pois chiches','Tahini'], true),
+  (5, 'Moutabal', 'Caviar d''aubergine fumée, tahini, grenade', 4.50, '🍆', 'img/moutabal.jpg', ARRAY['Aubergine','Tahini'], true),
+  (5, 'Taboulé', 'Persil, boulgour, tomates, menthe, citron', 4.50, '🥗', 'img/taboule.jpg', ARRAY['Persil','Boulgour','Tomates','Menthe'], true),
+
   -- Desserts
-  (6, 'Baklava (2 pcs)', 'Pâte filo, pistaches, miel', 3.50, '🍯', ARRAY['Pistaches','Miel'], true),
-  (6, 'Maamoul', 'Sablé libanais aux dattes', 2.50, '🍪', ARRAY['Dattes'], true)
-ON CONFLICT DO NOTHING;
+  (6, 'Mouhalabieh', 'Flan au lait parfumé à la fleur d''oranger et éclats de pistaches (fait maison)', 4.00, '🍮', 'img/mouhalabieh.jpg', ARRAY['Pistaches'], true),
+  (6, 'Namoura', 'Gâteau de semoule parfumé à la fleur d''oranger et nappé d''un sirop léger', 4.00, '🍰', 'img/namoura.jpg', ARRAY['Semoule'], true),
+  (6, 'Baklawas', 'Boîte de 3 pièces', 4.50, '🍯', NULL, ARRAY['Pistaches'], true),
+  (6, 'Duo Sablés', 'Deux sablés au choix : pistaches, amandes, noix, dattes', 5.00, '🍪', NULL, ARRAY[]::text[], true),
+
+  -- Boissons
+  (7, 'Soft 33cl', 'Coca, Sprite, Orangina...', 2.00, '🥤', NULL, ARRAY[]::text[], true),
+  (7, 'Ayran', 'Boisson au yaourt salé, rafraîchissante', 2.50, '🥛', NULL, ARRAY['Yaourt'], true),
+  (7, 'Eau Plate', '50cl', 2.00, '💧', NULL, ARRAY[]::text[], true);

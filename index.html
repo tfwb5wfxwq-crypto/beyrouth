@@ -322,7 +322,8 @@ a{color:inherit;text-decoration:none}
 // ===== CONFIG =====
 const SUPABASE_URL = 'https://xbuftfwcyontgqbbrrjt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidWZ0ZndjeW9udGdxYmJycmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2Njg1NzksImV4cCI6MjA4NjI0NDU3OX0.ROkSccADlpLsWMgqyiX_xNaFdJNR8P4R-LJCnZV2Gzg';
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+let sb = null;
+try { sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null; } catch(e) { console.error('Supabase init error:', e); }
 
 // ===== STATE =====
 let categories = [];
@@ -396,7 +397,7 @@ document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
   generateTimeSlots();
-  if (supabase && SUPABASE_URL !== 'VOTRE_SUPABASE_URL') {
+  if (sb) {
     await loadFromSupabase();
     subscribeRealtime();
   } else {
@@ -414,9 +415,9 @@ async function init() {
 async function loadFromSupabase() {
   try {
     const [catRes, itemRes, ingRes] = await Promise.all([
-      supabase.from('menu_categories').select('*').order('ordre'),
-      supabase.from('menu_items').select('*').eq('actif', true).order('id'),
-      supabase.from('ingredients').select('*'),
+      sb.from('menu_categories').select('*').order('ordre'),
+      sb.from('menu_items').select('*').eq('actif', true).order('id'),
+      sb.from('ingredients').select('*'),
     ]);
     if (catRes.data && catRes.data.length && itemRes.data && itemRes.data.length) {
       categories = catRes.data;
@@ -443,7 +444,7 @@ function applyIngredientAvailability() {
 }
 
 function subscribeRealtime() {
-  supabase.channel('menu-changes')
+  sb.channel('menu-changes')
     .on('postgres_changes', {event:'*', schema:'public', table:'ingredients'}, () => loadFromSupabase().then(renderMenu))
     .on('postgres_changes', {event:'*', schema:'public', table:'menu_items'}, () => loadFromSupabase().then(renderMenu))
     .subscribe();
@@ -610,13 +611,13 @@ async function submitOrder() {
     created_at: new Date().toISOString(),
   };
 
-  if (supabase && SUPABASE_URL !== 'VOTRE_SUPABASE_URL') {
+  if (sb) {
     try {
-      await supabase.from('clients').upsert({
+      await sb.from('clients').upsert({
         email, prenom: name, telephone: phone || null,
         derniere_commande: new Date().toISOString(),
       }, {onConflict: 'email'});
-      const {error} = await supabase.from('orders').insert([orderData]).select();
+      const {error} = await sb.from('orders').insert([orderData]).select();
       if (error) throw error;
       showConfirmation(orderNum);
     } catch (e) {

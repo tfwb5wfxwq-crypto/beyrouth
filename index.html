@@ -37,6 +37,8 @@ a{color:inherit;text-decoration:none}
   background:rgba(255,255,255,.1);padding:6px 12px;border-radius:20px;font-size:.75rem;
 }
 .header-status .dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0}
+.header-status.closed .dot{background:#E74C3C}
+.header-hours{font-size:.7rem;opacity:.5;margin-top:1px}
 
 /* ========= TIMING PICKER ========= */
 .timing-bar{
@@ -121,6 +123,23 @@ a{color:inherit;text-decoration:none}
 .menu-card-add.in-cart{background:var(--green);color:#fff;font-size:.9rem;font-weight:800}
 .menu-card-unavailable{opacity:.4;pointer-events:none}
 .menu-card-unavailable .menu-card-add{display:none}
+
+/* Stepper [-] qty [+] sur carte */
+.menu-card-stepper{
+  position:absolute;top:6px;right:6px;z-index:2;
+  display:flex;align-items:center;
+  background:var(--blanc);border-radius:22px;
+  box-shadow:0 2px 8px rgba(0,0,0,.2);
+}
+.menu-card-stepper button{
+  width:36px;height:36px;font-size:1.1rem;font-weight:700;
+  background:none;display:flex;align-items:center;justify-content:center;
+  transition:background .15s;-webkit-tap-highlight-color:transparent;
+}
+.menu-card-stepper button:first-child{color:#E74C3C}
+.menu-card-stepper button:last-child{color:var(--green)}
+.menu-card-stepper button:active{background:var(--gris-light);border-radius:50%}
+.menu-card-stepper span{min-width:22px;text-align:center;font-weight:800;font-size:.85rem}
 
 @media(min-width:640px){
   .menu-grid{grid-template-columns:repeat(3,1fr);gap:14px}
@@ -212,6 +231,34 @@ a{color:inherit;text-decoration:none}
 .cart-checkout-btn:hover{background:var(--green-dark)}
 .cart-checkout-btn:disabled{opacity:.4;cursor:not-allowed}
 .cart-pay-info{font-size:.75rem;color:var(--gris);text-align:center;margin-top:6px}
+.cart-form-info{font-size:.8rem;color:var(--green);font-weight:500;margin:4px 0 0;line-height:1.4}
+.cart-optin{display:flex;align-items:flex-start;gap:8px;font-size:.8rem;color:var(--gris);cursor:pointer;margin-top:2px}
+.cart-optin input[type=checkbox]{width:18px;height:18px;accent-color:var(--green);flex-shrink:0;margin-top:1px}
+.cart-form textarea{
+  padding:12px 14px;border:1.5px solid var(--gris-light);border-radius:var(--radius-sm);
+  font-size:.9rem;font-family:inherit;background:var(--blanc);resize:none;
+  transition:border-color .2s;min-height:60px;
+}
+.cart-form textarea:focus{border-color:var(--noir);outline:none}
+
+/* Suggestions upsell */
+.cart-suggest{padding:0 20px 8px}
+.cart-suggest-title{font-size:.8rem;font-weight:700;color:var(--gris);margin-bottom:8px}
+.cart-suggest-list{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
+.cart-suggest-list::-webkit-scrollbar{display:none}
+.cart-suggest-item{
+  flex-shrink:0;display:flex;align-items:center;gap:8px;
+  background:var(--gris-light);border-radius:var(--radius-sm);padding:8px 12px;
+  cursor:pointer;transition:background .15s;font-size:.82rem;
+}
+.cart-suggest-item:active{background:#ddd}
+.cart-suggest-item .suggest-emoji{font-size:1.2rem}
+.cart-suggest-item .suggest-name{font-weight:600;white-space:nowrap}
+.cart-suggest-item .suggest-price{color:var(--gris);font-size:.75rem;white-space:nowrap}
+.cart-suggest-item .suggest-add{
+  width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;
+  font-size:.9rem;display:flex;align-items:center;justify-content:center;font-weight:700;
+}
 
 /* ========= CONFIRMATION MODAL ========= */
 .modal-overlay{
@@ -256,6 +303,7 @@ a{color:inherit;text-decoration:none}
   .menu-card-desc{display:none}
   .menu-card-price{font-size:.88rem}
   .menu-card-add{width:38px;height:38px;font-size:1.2rem}
+  .menu-card-stepper button{width:32px;height:32px;font-size:1rem}
   .bottom-bar{padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
   .cart-panel{width:100vw}
   .cart-footer{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
@@ -282,7 +330,8 @@ a{color:inherit;text-decoration:none}
       <p>Click & Collect — Commande, on prépare, tu récupères</p>
     </div>
     <div class="header-right">
-      <div class="header-status"><span class="dot"></span> Ouvert</div>
+      <div class="header-status" id="headerStatus"><span class="dot"></span> <span id="statusText">Ouvert</span></div>
+      <div class="header-hours" id="headerHours"></div>
     </div>
   </div>
 </header>
@@ -326,6 +375,10 @@ a{color:inherit;text-decoration:none}
   <div class="cart-items" id="cartItems">
     <div class="cart-empty" id="cartEmpty">Votre panier est vide</div>
   </div>
+  <div class="cart-suggest" id="cartSuggest" style="display:none">
+    <div class="cart-suggest-title">Vous aimerez peut-être aussi</div>
+    <div class="cart-suggest-list" id="cartSuggestList"></div>
+  </div>
   <div class="cart-footer" id="cartFooter" style="display:none">
     <div class="cart-subtotal">
       <span>Total</span>
@@ -341,6 +394,12 @@ a{color:inherit;text-decoration:none}
         <input type="tel" id="clientPhone" placeholder="Téléphone" required>
         <input type="email" id="clientEmail" placeholder="Email" required>
       </div>
+      <textarea id="clientNote" placeholder="Note : allergies, sans oignon, etc."></textarea>
+      <p class="cart-form-info">📩 On vous envoie un email quand c'est prêt !</p>
+      <label class="cart-optin">
+        <input type="checkbox" id="optinPromos">
+        <span>Me tenir informé des offres et promotions</span>
+      </label>
     </div>
     <button class="cart-checkout-btn" id="cartSubmit" onclick="submitOrder()">
       Passer la commande
@@ -457,11 +516,74 @@ const DEMO_ITEMS = [
   {id:68, categorie_id:7, nom:'Eau Plate', description:'50cl', prix:2.00, emoji:'💧', image_url:'img/eau.jpg', disponible:true},
 ];
 
+// ===== HORAIRES =====
+const BUSINESS_HOURS = [
+  // [jour (0=dim), ouverture_h, ouverture_m, fermeture_h, fermeture_m]
+  [1, 11, 0, 15, 0], // Lundi
+  [2, 11, 0, 15, 0], // Mardi
+  [3, 11, 0, 15, 0], // Mercredi
+  [4, 11, 0, 15, 0], // Jeudi
+  [5, 11, 0, 15, 0], // Vendredi
+  // Samedi & Dimanche : fermé
+];
+const JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+
+function isOpenNow() {
+  const now = new Date();
+  const day = now.getDay();
+  const h = now.getHours(), m = now.getMinutes();
+  const slot = BUSINESS_HOURS.find(s => s[0] === day);
+  if (!slot) return false;
+  const nowMin = h * 60 + m;
+  return nowMin >= slot[1] * 60 + slot[2] && nowMin < slot[3] * 60 + slot[4];
+}
+
+function getNextOpenSlot() {
+  const now = new Date();
+  const day = now.getDay();
+  const h = now.getHours(), m = now.getMinutes();
+  const nowMin = h * 60 + m;
+  // Check today (not yet open?)
+  const today = BUSINESS_HOURS.find(s => s[0] === day);
+  if (today && nowMin < today[1] * 60 + today[2]) {
+    return {jour: JOURS[day], h: today[1], m: today[2]};
+  }
+  // Check next days
+  for (let i = 1; i <= 7; i++) {
+    const d = (day + i) % 7;
+    const slot = BUSINESS_HOURS.find(s => s[0] === d);
+    if (slot) return {jour: JOURS[d], h: slot[1], m: slot[2]};
+  }
+  return null;
+}
+
+function updateOpenStatus() {
+  const statusEl = document.getElementById('headerStatus');
+  const textEl = document.getElementById('statusText');
+  const hoursEl = document.getElementById('headerHours');
+  const open = isOpenNow();
+  if (open) {
+    statusEl.classList.remove('closed');
+    textEl.textContent = 'Ouvert';
+    const now = new Date();
+    const slot = BUSINESS_HOURS.find(s => s[0] === now.getDay());
+    hoursEl.textContent = `Jusqu'à ${slot[3]}h${slot[4] ? String(slot[4]).padStart(2,'0') : '00'}`;
+  } else {
+    statusEl.classList.add('closed');
+    textEl.textContent = 'Fermé';
+    const next = getNextOpenSlot();
+    hoursEl.textContent = next ? `Ouvre ${next.jour} ${next.h}h${next.m ? String(next.m).padStart(2,'0') : '00'}` : '';
+  }
+  return open;
+}
+
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
   generateTimeSlots();
+  const open = updateOpenStatus();
+  setInterval(updateOpenStatus, 60000); // refresh chaque minute
   if (sb) {
     await loadFromSupabase();
     subscribeRealtime();
@@ -473,7 +595,7 @@ async function init() {
   renderNavCats();
   updateCartUI();
   setupScrollSpy();
-  setTiming('now');
+  setTiming(open ? 'now' : 'later');
 }
 
 // ===== SUPABASE =====
@@ -534,11 +656,15 @@ function renderMenu() {
               : `<span class="emoji-placeholder">${item.emoji || '🍽️'}</span>`
             }
           </div>
-          <button class="menu-card-add ${qty > 0 ? 'in-cart' : ''}"
+          ${qty > 0 ? `
+          <div class="menu-card-stepper">
+            <button onclick="event.stopPropagation();changeQty(${item.id},-1)">&minus;</button>
+            <span>${qty}</span>
+            <button onclick="event.stopPropagation();addToCart(${item.id})">+</button>
+          </div>` : `
+          <button class="menu-card-add"
                   onclick="event.stopPropagation();addToCart(${item.id})"
-                  ${!item.disponible ? 'disabled' : ''}>
-            ${qty > 0 ? qty : '+'}
-          </button>
+                  ${!item.disponible ? 'disabled' : ''}>+</button>`}
           <div class="menu-card-body">
             <div class="menu-card-name">${item.nom}</div>
             <div class="menu-card-desc">${item.description || ''}</div>
@@ -596,10 +722,12 @@ function updateCartUI() {
   const emptyEl = document.getElementById('cartEmpty');
   const footerEl = document.getElementById('cartFooter');
   const totalEl = document.getElementById('cartTotal');
+  const suggestEl = document.getElementById('cartSuggest');
 
   if (cart.length === 0) {
     emptyEl.style.display = '';
     footerEl.style.display = 'none';
+    suggestEl.style.display = 'none';
     itemsEl.querySelectorAll('.cart-item').forEach(el => el.remove());
     return;
   }
@@ -625,6 +753,45 @@ function updateCartUI() {
       </div>`;
     itemsEl.appendChild(div);
   });
+
+  // Suggestions upsell
+  renderSuggestions();
+}
+
+function renderSuggestions() {
+  const suggestEl = document.getElementById('cartSuggest');
+  const listEl = document.getElementById('cartSuggestList');
+  const cartIds = new Set(cart.map(c => c.id));
+  const cartCatIds = new Set(cart.map(c => {
+    const item = menuItems.find(i => i.id === c.id);
+    return item ? item.categorie_id : 0;
+  }));
+
+  // Suggest: dessert si pas de dessert, entrée chaude si pas d'entrée, boisson si pas de boisson
+  const suggestCats = [];
+  if (!cartCatIds.has(13) && !cartCatIds.has(5)) suggestCats.push(13, 5); // entrées
+  if (!cartCatIds.has(6)) suggestCats.push(6); // desserts
+  if (!cartCatIds.has(7)) suggestCats.push(7); // boissons
+
+  const suggestions = menuItems
+    .filter(i => suggestCats.includes(i.categorie_id) && i.disponible && !cartIds.has(i.id))
+    .slice(0, 6);
+
+  if (suggestions.length === 0 || cart.length === 0) {
+    suggestEl.style.display = 'none';
+    return;
+  }
+  suggestEl.style.display = '';
+  listEl.innerHTML = suggestions.map(s => `
+    <div class="cart-suggest-item" onclick="addToCart(${s.id});updateCartUI();renderMenu()">
+      <span class="suggest-emoji">${s.emoji || '🍽️'}</span>
+      <div>
+        <div class="suggest-name">${s.nom}</div>
+        <div class="suggest-price">${formatPrice(s.prix)}</div>
+      </div>
+      <span class="suggest-add">+</span>
+    </div>
+  `).join('');
 }
 
 function toggleCart() {
@@ -639,9 +806,13 @@ function saveCart() { localStorage.setItem('be_cart', JSON.stringify(cart)); }
 function generateTimeSlots() {
   const sel = document.getElementById('pickupTime');
   const now = new Date();
-  for (let m = 11*60; m <= 15*60; m += 15) {
-    const h = Math.floor(m/60), min = m%60;
-    const label = `${h}h${min.toString().padStart(2,'0')}`;
+  const day = now.getDay();
+  const slot = BUSINESS_HOURS.find(s => s[0] === day);
+  const startMin = slot ? slot[1] * 60 + slot[2] : 11 * 60;
+  const endMin = slot ? slot[3] * 60 + slot[4] : 15 * 60;
+  for (let m = startMin; m <= endMin; m += 15) {
+    const h = Math.floor(m / 60), min = m % 60;
+    const label = `${h}h${min.toString().padStart(2, '0')}`;
     const opt = document.createElement('option');
     opt.value = label; opt.textContent = label;
     const t = new Date(); t.setHours(h, min, 0);
@@ -669,6 +840,9 @@ async function submitOrder() {
   const total = cart.reduce((s, c) => s + c.prix * c.qty, 0);
   const orderNum = 'BE-' + String(Math.floor(Math.random()*9000)+1000);
 
+  const note = document.getElementById('clientNote').value.trim();
+  const optin = document.getElementById('optinPromos').checked;
+
   const orderData = {
     numero: orderNum,
     items: cart.map(c => ({id:c.id, nom:c.nom, prix:c.prix, qty:c.qty})),
@@ -677,6 +851,7 @@ async function submitOrder() {
     heure_retrait: pickup,
     client_prenom: name, client_email: email,
     client_telephone: phone || null,
+    note: note || null,
     created_at: new Date().toISOString(),
   };
 
@@ -685,6 +860,7 @@ async function submitOrder() {
       await sb.from('clients').upsert({
         email, prenom: name, telephone: phone || null,
         derniere_commande: new Date().toISOString(),
+        optin_promo: optin,
       }, {onConflict: 'email'});
       const {error} = await sb.from('orders').insert([orderData]).select();
       if (error) throw error;
@@ -706,7 +882,8 @@ function showConfirmation(orderNum) {
   cart = []; saveCart(); updateCartUI(); renderMenu();
   document.getElementById('cartSubmit').disabled = false;
   document.getElementById('cartSubmit').textContent = 'Passer la commande';
-  ['clientName','clientEmail','clientPhone','pickupTime'].forEach(id => document.getElementById(id).value = '');
+  ['clientName','clientEmail','clientPhone','pickupTime','clientNote'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('optinPromos').checked = false;
 }
 
 // ===== NAV =====
@@ -739,11 +916,16 @@ function setupScrollSpy() {
 }
 
 // ===== TIMING PICKER =====
-let timingMode = 'now'; // 'now' ou 'later'
+let timingMode = 'now';
 function setTiming(mode) {
+  const open = isOpenNow();
+  if (mode === 'now' && !open) mode = 'later';
   timingMode = mode;
-  document.getElementById('btnNow').classList.toggle('active', mode === 'now');
+  const btnNow = document.getElementById('btnNow');
+  btnNow.classList.toggle('active', mode === 'now');
   document.getElementById('btnLater').classList.toggle('active', mode === 'later');
+  btnNow.disabled = !open;
+  btnNow.style.opacity = open ? '1' : '.4';
   const sel = document.getElementById('pickupTime');
   if (mode === 'now') {
     sel.value = 'asap';

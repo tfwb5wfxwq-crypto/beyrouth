@@ -380,17 +380,18 @@ let cart = JSON.parse(localStorage.getItem('be_cart') || '[]');
 
 // ===== DEMO DATA (menu réel A Beyrouth) =====
 const DEMO_CATEGORIES = [
-  {id:1, nom:'Sandwichs', ordre:1, emoji:'🌯'},
-  {id:2, nom:'Formules', ordre:2, emoji:'🍽️'},
+  {id:2, nom:'Formules', ordre:1, emoji:'🍽️'},
+  {id:1, nom:'Sandwichs', ordre:2, emoji:'🌯'},
   {id:3, nom:'Grillades', ordre:3, emoji:'🔥'},
   {id:4, nom:'Plateaux', ordre:4, emoji:'🥘'},
-  {id:5, nom:'Entrées', ordre:5, emoji:'🧆'},
-  {id:6, nom:'Desserts', ordre:6, emoji:'🍮'},
-  {id:7, nom:'Boissons', ordre:7, emoji:'🥤'},
+  {id:5, nom:'Entrées Froides', ordre:5, emoji:'🧆'},
+  {id:13, nom:'Entrées Chaudes', ordre:6, emoji:'🥟'},
+  {id:6, nom:'Desserts', ordre:7, emoji:'🍮'},
+  {id:7, nom:'Boissons', ordre:8, emoji:'🥤'},
 ];
 
 const DEMO_ITEMS = [
-  // === SANDWICHS (tous à 8.90€) ===
+  // === SANDWICHS (tous à 6.90€) ===
   {id:1, categorie_id:1, nom:'Shawarma Poulet', description:'Émincé de poulet mariné, crudités, sauce maison', prix:6.90, emoji:'🌯', image_url:'img/sandwich-shawarma.jpg', disponible:true},
   {id:2, categorie_id:1, nom:'Chich Taouk', description:'Brochette de blanc de poulet mariné', prix:6.90, emoji:'🌯', disponible:true},
   {id:3, categorie_id:1, nom:'Shawarma Boeuf', description:'Émincé de boeuf mariné, crudités, sauce maison', prix:6.90, emoji:'🌯', disponible:true},
@@ -402,17 +403,17 @@ const DEMO_ITEMS = [
 
   // === FORMULES ===
   {id:10, categorie_id:2, nom:'Formule 1', description:'Sandwich + 2 feuilletés + boisson', prix:10.90, emoji:'1️⃣', disponible:true},
-  {id:11, categorie_id:2, nom:'Formule 2', description:'Sandwich + entrée froide + boisson', prix:11.70, emoji:'2️⃣', disponible:true},
-  {id:12, categorie_id:2, nom:'Formule 3', description:'Sandwich + dessert + boisson', prix:11.70, emoji:'3️⃣', disponible:true},
+  {id:11, categorie_id:2, nom:'Formule 2', description:'Sandwich + entrée froide + boisson', prix:11.90, emoji:'2️⃣', disponible:true},
+  {id:12, categorie_id:2, nom:'Formule 3', description:'Sandwich + dessert + boisson', prix:11.90, emoji:'3️⃣', disponible:true},
   {id:13, categorie_id:2, nom:'Formule 4', description:'2 sandwiches au choix + boisson', prix:14.90, emoji:'4️⃣', disponible:true},
-  {id:14, categorie_id:2, nom:'Formule Plat du Jour', description:'Plat du jour + boisson', prix:13.50, emoji:'🍽️', image_url:'img/plat-jour.jpg', disponible:true},
+  {id:14, categorie_id:2, nom:'Formule Plat du Jour', description:'Plat du jour + boisson', prix:13.90, emoji:'🍽️', image_url:'img/plat-jour.jpg', disponible:true},
 
   // === GRILLADES ===
   {id:20, categorie_id:3, nom:'Kafta Méchoui', description:'2 brochettes boeuf, riz, crudités', prix:13.00, emoji:'🍢', disponible:true},
   {id:21, categorie_id:3, nom:'Chich Taouk', description:'2 brochettes poulet, riz, crudités', prix:13.00, emoji:'🍗', disponible:true},
-  {id:22, categorie_id:3, nom:'Shawarma Poulet', description:'Poulet grillé à la broche, riz, crudités', prix:14.00, emoji:'🌯', disponible:true},
+  {id:22, categorie_id:3, nom:'Shawarma Poulet', description:'Poulet grillé à la broche, riz, crudités', prix:15.00, emoji:'🌯', disponible:true},
   {id:23, categorie_id:3, nom:'Shawarma Boeuf', description:'Boeuf grillé à la broche, riz, crudités', prix:15.00, emoji:'🌯', disponible:true},
-  {id:24, categorie_id:3, nom:'Grillade Mixte', description:'Shawarma, kafta, chich taouk, riz', prix:15.00, emoji:'🔥', disponible:true},
+  {id:24, categorie_id:3, nom:'Grillade Mixte', description:'Shawarma, kafta, chich taouk, riz', prix:16.00, emoji:'🔥', disponible:true},
 
   // === PLATEAUX ===
   {id:30, categorie_id:4, nom:'Beyrouth Poulet', description:'Houmous, moutabal, taboulé, shawarma poulet, riz', prix:14.00, emoji:'🥘', disponible:true},
@@ -422,10 +423,21 @@ const DEMO_ITEMS = [
   {id:34, categorie_id:4, nom:'Liban', description:'Houmous, moutabal, chich taouk, riz, crudités, 2 feuilletés végétariens', prix:16.00, emoji:'🇱🇧', disponible:true},
   {id:35, categorie_id:4, nom:'Byblos', description:'Houmous, moutabal, taboulé, 3 feuilletés végétariens, kafta, chich taouk, shawarma poulet, riz', prix:18.00, emoji:'👑', disponible:true},
 
-  // === ENTRÉES ===
-  {id:40, categorie_id:5, nom:'Houmous', description:'Pois chiches, tahini, huile d\'olive', prix:4.50, emoji:'🫘', image_url:'img/houmous.jpg', disponible:true},
-  {id:41, categorie_id:5, nom:'Moutabal', description:'Aubergine fumée, tahini, grenade', prix:4.50, emoji:'🍆', image_url:'img/moutabal.jpg', disponible:true},
-  {id:42, categorie_id:5, nom:'Taboulé', description:'Persil, boulgour, tomates, menthe', prix:4.50, emoji:'🥗', image_url:'img/taboule.jpg', disponible:true},
+  // === ENTRÉES FROIDES ===
+  {id:40, categorie_id:5, nom:'Houmous', description:'Purée de pois chiches au tahini, parfumée au citron et à l\'huile d\'olive', prix:6.00, emoji:'🫘', image_url:'img/houmous.jpg', disponible:true},
+  {id:41, categorie_id:5, nom:'Moutabal', description:'Caviar d\'aubergines rôties à la crème de sésame, jus de citron', prix:6.00, emoji:'🍆', image_url:'img/moutabal.jpg', disponible:true},
+  {id:42, categorie_id:5, nom:'Taboulé', description:'Salade de persil, tomates, oignons, blé concassé, huile d\'olive, citron', prix:6.00, emoji:'🥗', image_url:'img/taboule.jpg', disponible:true},
+  {id:43, categorie_id:5, nom:'Salade du Moine', description:'Aubergines grillées, tomates, persil, poivrons, huile d\'olive, jus de citron', prix:6.00, emoji:'🥗', disponible:true},
+  {id:44, categorie_id:5, nom:'Moussaka', description:'Aubergines au four, cuisinées à la sauce tomate, pois chiches', prix:7.50, emoji:'🍲', disponible:true},
+  {id:45, categorie_id:5, nom:'Feuilles de Vignes', description:'Farcies de riz, huile d\'olive, citron', prix:6.00, emoji:'🌿', image_url:'img/feuilles-vigne.jpg', disponible:true},
+
+  // === ENTRÉES CHAUDES ===
+  {id:70, categorie_id:13, nom:'Falafel (pièce)', description:'Fèves et pois chiches à la coriandre', prix:1.50, emoji:'🧆', disponible:true},
+  {id:71, categorie_id:13, nom:'Fattayer', description:'Chaussons aux épinards acidulés', prix:1.50, emoji:'🥟', disponible:true},
+  {id:72, categorie_id:13, nom:'Samboussek Fromage', description:'Fromage de feta', prix:1.50, emoji:'🥟', image_url:'img/sambousek-fromage.jpg', disponible:true},
+  {id:73, categorie_id:13, nom:'Rikakat Fromage', description:'Fromage de feta', prix:2.00, emoji:'🧀', image_url:'img/rkakat.jpg', disponible:true},
+  {id:74, categorie_id:13, nom:'Samboussek Viande', description:'Viande de boeuf haché', prix:1.50, emoji:'🥟', disponible:true},
+  {id:75, categorie_id:13, nom:'Kebbé', description:'Boulette de blé concassé farcies de viande hachée', prix:2.50, emoji:'🍡', disponible:true},
 
   // === DESSERTS ===
   {id:50, categorie_id:6, nom:'Mouhalabieh', description:'Flan fleur d\'oranger, pistaches (fait maison)', prix:4.00, emoji:'🍮', image_url:'img/mouhalabieh.jpg', disponible:true},

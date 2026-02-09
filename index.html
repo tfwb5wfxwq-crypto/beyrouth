@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Beyrouth Express — Click & Collect | A Beyrouth, La Défense</title>
 <meta name="description" content="Commandez en ligne chez A Beyrouth à La Défense. Cuisine libanaise traditionnelle, retrait express sans faire la queue.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧆</text></svg>">
@@ -77,7 +77,7 @@ a{color:inherit;text-decoration:none}
 }
 .menu-cat-title:first-child{margin-top:4px}
 
-/* Grille de cartes carrées */
+/* Grille de cartes */
 .menu-grid{
   display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:8px;
 }
@@ -85,43 +85,46 @@ a{color:inherit;text-decoration:none}
   position:relative;border-radius:var(--radius);overflow:hidden;
   background:var(--blanc);box-shadow:var(--shadow);cursor:pointer;
   transition:transform .15s,box-shadow .15s;
+  -webkit-tap-highlight-color:transparent;
 }
 .menu-card:active{transform:scale(.97)}
-.menu-card:hover{box-shadow:var(--shadow-lg)}
+@media(hover:hover){.menu-card:hover{box-shadow:var(--shadow-lg)}}
 
-/* Image / emoji zone */
+/* Image / emoji zone — ratio 4:3 pour gagner de la place */
 .menu-card-visual{
-  width:100%;aspect-ratio:1;background:var(--gris-light);
+  width:100%;aspect-ratio:4/3;background:var(--gris-light);
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;position:relative;
 }
 .menu-card-visual img{width:100%;height:100%;object-fit:cover}
-.menu-card-visual .emoji-placeholder{font-size:3rem}
+.menu-card-visual .emoji-placeholder{font-size:2.8rem}
 
 /* Infos en bas */
 .menu-card-body{padding:8px 10px 10px}
-.menu-card-name{font-weight:700;font-size:.85rem;line-height:1.2;margin-bottom:2px;
+.menu-card-name{font-weight:700;font-size:.88rem;line-height:1.25;margin-bottom:2px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.menu-card-desc{font-size:.7rem;color:var(--gris);line-height:1.3;
+.menu-card-desc{font-size:.72rem;color:var(--gris);line-height:1.3;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px}
 .menu-card-bottom{display:flex;align-items:center;justify-content:space-between}
-.menu-card-price{font-weight:800;font-size:.9rem}
+.menu-card-price{font-weight:800;font-size:.92rem}
 
-/* Bouton + */
+/* Bouton + (min 44px pour touch) */
 .menu-card-add{
-  position:absolute;top:8px;right:8px;
-  width:34px;height:34px;border-radius:50%;
-  background:var(--blanc);box-shadow:0 2px 8px rgba(0,0,0,.18);
-  font-size:1.3rem;display:flex;align-items:center;justify-content:center;
+  position:absolute;top:6px;right:6px;
+  width:44px;height:44px;border-radius:50%;
+  background:var(--blanc);box-shadow:0 2px 8px rgba(0,0,0,.2);
+  font-size:1.4rem;display:flex;align-items:center;justify-content:center;
   transition:all .2s;font-weight:700;color:var(--noir);z-index:2;
+  -webkit-tap-highlight-color:transparent;
 }
-.menu-card-add:hover{background:var(--green);color:#fff;transform:scale(1.1)}
-.menu-card-add.in-cart{background:var(--green);color:#fff;font-size:.85rem;font-weight:800}
-.menu-card-unavailable{opacity:.45;pointer-events:none}
+@media(hover:hover){.menu-card-add:hover{background:var(--green);color:#fff;transform:scale(1.08)}}
+.menu-card-add.in-cart{background:var(--green);color:#fff;font-size:.9rem;font-weight:800}
+.menu-card-unavailable{opacity:.4;pointer-events:none}
 .menu-card-unavailable .menu-card-add{display:none}
 
 @media(min-width:640px){
   .menu-grid{grid-template-columns:repeat(3,1fr);gap:14px}
+  .menu-card-visual{aspect-ratio:1}
 }
 @media(min-width:900px){
   .menu-grid{grid-template-columns:repeat(4,1fr)}
@@ -130,7 +133,7 @@ a{color:inherit;text-decoration:none}
 /* ========= BOTTOM CART BAR (style Uber Eats) ========= */
 .bottom-bar{
   position:fixed;bottom:0;left:0;right:0;z-index:150;
-  padding:12px 24px;background:var(--blanc);
+  padding:12px 24px calc(12px + env(safe-area-inset-bottom,0px));background:var(--blanc);
   border-top:1px solid var(--gris-light);
   transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
 }
@@ -167,7 +170,7 @@ a{color:inherit;text-decoration:none}
   border-bottom:1px solid var(--gris-light);
 }
 .cart-header h3{font-size:1.15rem;font-weight:800}
-.cart-close{background:var(--gris-light);width:32px;height:32px;border-radius:50%;font-size:1.2rem;display:flex;align-items:center;justify-content:center}
+.cart-close{background:var(--gris-light);width:44px;height:44px;border-radius:50%;font-size:1.4rem;display:flex;align-items:center;justify-content:center}
 
 .cart-items{flex:1;overflow-y:auto;padding:12px 20px}
 .cart-empty{text-align:center;padding:48px 20px;color:var(--gris);font-size:.9rem}
@@ -181,8 +184,8 @@ a{color:inherit;text-decoration:none}
 .cart-item-price{font-size:.8rem;color:var(--gris);font-weight:500}
 .cart-item-qty{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .cart-item-qty button{
-  width:28px;height:28px;border-radius:50%;background:var(--gris-light);
-  font-size:1rem;display:flex;align-items:center;justify-content:center;
+  width:36px;height:36px;border-radius:50%;background:var(--gris-light);
+  font-size:1.1rem;display:flex;align-items:center;justify-content:center;
   transition:background .2s;font-weight:600;
 }
 .cart-item-qty button:hover{background:#ddd}
@@ -237,18 +240,35 @@ a{color:inherit;text-decoration:none}
 
 /* ========= RESPONSIVE ========= */
 @media(max-width:640px){
-  .header-inner{flex-direction:column;align-items:flex-start;gap:6px}
-  .timing-inner{flex-wrap:wrap;gap:6px}
+  .header{padding:12px 16px}
+  .header-inner{flex-direction:column;align-items:flex-start;gap:4px}
+  .header-left h1{font-size:1.2rem}
+  .timing-inner{flex-wrap:wrap;gap:6px;padding:8px 16px}
   .timing-tagline{width:100%;margin-right:0;font-size:.75rem}
-  .timing-btn{padding:6px 14px;font-size:.78rem}
-  .menu-section{padding:12px 10px 100px}
+  .timing-btn{padding:7px 16px;font-size:.8rem}
+  .nav-inner{padding:0 12px}
+  .nav-cat{padding:12px 14px;font-size:.82rem}
+  .menu-section{padding:10px 10px calc(90px + env(safe-area-inset-bottom,0px))}
+  .menu-cat-title{font-size:1.05rem;margin:16px 0 8px}
   .menu-grid{gap:8px}
   .menu-card-body{padding:6px 8px 8px}
-  .menu-card-name{font-size:.8rem}
-  .menu-card-desc{font-size:.65rem}
-  .menu-card-price{font-size:.85rem}
+  .menu-card-name{font-size:.82rem}
+  .menu-card-desc{display:none}
+  .menu-card-price{font-size:.88rem}
+  .menu-card-add{width:38px;height:38px;font-size:1.2rem}
+  .bottom-bar{padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
   .cart-panel{width:100vw}
+  .cart-footer{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
   .cart-form .form-row{flex-direction:column;gap:8px}
+}
+
+/* Petits écrans (iPhone SE, 375px) */
+@media(max-width:380px){
+  .menu-grid{gap:6px}
+  .menu-card-body{padding:5px 6px 7px}
+  .menu-card-name{font-size:.78rem}
+  .menu-card-price{font-size:.82rem}
+  .timing-btn{padding:6px 12px;font-size:.75rem}
 }
 </style>
 </head>

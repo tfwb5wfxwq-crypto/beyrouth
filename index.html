@@ -29,6 +29,7 @@ a{color:inherit;text-decoration:none}
 }
 .header-inner{max-width:1000px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
 .header-left h1{font-size:1.4rem;font-weight:800;letter-spacing:-.5px}
+.header-left h1 span{color:var(--green)}
 .header-left p{font-size:.8rem;opacity:.6;margin-top:2px}
 .header-right{display:flex;align-items:center;gap:8px}
 .header-status{
@@ -36,6 +37,22 @@ a{color:inherit;text-decoration:none}
   background:rgba(255,255,255,.1);padding:6px 12px;border-radius:20px;font-size:.75rem;
 }
 .header-status .dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0}
+
+/* ========= TIMING PICKER ========= */
+.timing-bar{
+  background:var(--blanc);border-bottom:1px solid var(--gris-light);
+}
+.timing-inner{
+  max-width:1000px;margin:0 auto;padding:10px 24px;
+  display:flex;align-items:center;gap:8px;
+}
+.timing-tagline{font-size:.8rem;color:var(--gris);margin-right:auto;font-weight:500}
+.timing-btn{
+  padding:8px 18px;border-radius:20px;font-size:.82rem;font-weight:600;
+  transition:all .2s;background:var(--gris-light);color:var(--noir);
+}
+.timing-btn.active{background:var(--noir);color:#fff}
+.timing-btn:hover:not(.active){background:#ddd}
 
 /* ========= NAV CATEGORIES ========= */
 .nav{
@@ -197,6 +214,9 @@ a{color:inherit;text-decoration:none}
 /* ========= RESPONSIVE ========= */
 @media(max-width:640px){
   .header-inner{flex-direction:column;align-items:flex-start;gap:6px}
+  .timing-inner{flex-wrap:wrap;gap:6px}
+  .timing-tagline{width:100%;margin-right:0;font-size:.75rem}
+  .timing-btn{padding:6px 14px;font-size:.78rem}
   .menu-item-desc{display:none}
   .menu-item-img{width:56px;height:56px}
   .menu-item{padding:10px 12px;gap:10px}
@@ -211,14 +231,23 @@ a{color:inherit;text-decoration:none}
 <header class="header">
   <div class="header-inner">
     <div class="header-left">
-      <h1>A Beyrouth</h1>
-      <p>1 Esplanade du Gal de Gaulle, La Défense</p>
+      <h1>A Beyrouth <span>Express</span></h1>
+      <p>Click & Collect — Commande, on prépare, tu récupères</p>
     </div>
     <div class="header-right">
-      <div class="header-status"><span class="dot"></span> Ouvert - Retrait 15 min</div>
+      <div class="header-status"><span class="dot"></span> Ouvert</div>
     </div>
   </div>
 </header>
+
+<!-- ===== TIMING PICKER ===== -->
+<div class="timing-bar">
+  <div class="timing-inner">
+    <span class="timing-tagline">Retrait sur place - La Défense (Sortie 4 métro)</span>
+    <button class="timing-btn active" id="btnNow" onclick="setTiming('now')">J'ai faim maintenant</button>
+    <button class="timing-btn" id="btnLater" onclick="setTiming('later')">Plus tard</button>
+  </div>
+</div>
 
 <!-- ===== NAV CATEGORIES ===== -->
 <nav class="nav" id="nav">
@@ -378,6 +407,7 @@ async function init() {
   renderNavCats();
   updateCartUI();
   setupScrollSpy();
+  setTiming('now');
 }
 
 // ===== SUPABASE =====
@@ -388,11 +418,14 @@ async function loadFromSupabase() {
       supabase.from('menu_items').select('*').eq('actif', true).order('nom'),
       supabase.from('ingredients').select('*'),
     ]);
-    if (catRes.data && catRes.data.length) categories = catRes.data;
-    if (itemRes.data && itemRes.data.length) menuItems = itemRes.data;
-    if (ingRes.data) ingredients = ingRes.data;
-    if (!categories.length || !menuItems.length) throw new Error('Tables vides');
-    applyIngredientAvailability();
+    if (catRes.data && catRes.data.length && itemRes.data && itemRes.data.length) {
+      categories = catRes.data;
+      menuItems = itemRes.data;
+      if (ingRes.data) ingredients = ingRes.data;
+      applyIngredientAvailability();
+    } else {
+      throw new Error('Données incomplètes');
+    }
   } catch (e) {
     console.error('Erreur chargement:', e);
     categories = DEMO_CATEGORIES;
@@ -557,7 +590,7 @@ async function submitOrder() {
   if (!name) { alert('Entrez votre prénom'); return; }
   if (!phone) { alert('Entrez votre téléphone'); return; }
   if (!email || !email.includes('@')) { alert('Entrez un email valide'); return; }
-  if (!pickup) { alert('Choisissez une heure de retrait'); return; }
+  if (timingMode === 'later' && !pickup) { alert('Choisissez une heure de retrait'); return; }
   if (!cart.length) return;
 
   const btn = document.getElementById('cartSubmit');
@@ -633,6 +666,22 @@ function setupScrollSpy() {
     const el = document.getElementById('cat-' + cat.id);
     if (el) observer.observe(el);
   });
+}
+
+// ===== TIMING PICKER =====
+let timingMode = 'now'; // 'now' ou 'later'
+function setTiming(mode) {
+  timingMode = mode;
+  document.getElementById('btnNow').classList.toggle('active', mode === 'now');
+  document.getElementById('btnLater').classList.toggle('active', mode === 'later');
+  const sel = document.getElementById('pickupTime');
+  if (mode === 'now') {
+    sel.value = 'asap';
+    sel.style.display = 'none';
+  } else {
+    sel.value = '';
+    sel.style.display = '';
+  }
 }
 
 // ===== UTILS =====

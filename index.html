@@ -415,7 +415,7 @@ async function loadFromSupabase() {
   try {
     const [catRes, itemRes, ingRes] = await Promise.all([
       supabase.from('menu_categories').select('*').order('ordre'),
-      supabase.from('menu_items').select('*').eq('actif', true).order('nom'),
+      supabase.from('menu_items').select('*').eq('actif', true).order('id'),
       supabase.from('ingredients').select('*'),
     ]);
     if (catRes.data && catRes.data.length && itemRes.data && itemRes.data.length) {

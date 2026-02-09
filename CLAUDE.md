@@ -9,8 +9,10 @@ Site click & collect pour le restaurant libanais "A Beyrouth" à La Défense.
 - **GitHub** : tfwb5wfxwq-crypto/beyrouth
 
 ## Supabase
+- **Project ref** : xbuftfwcyontgqbbrrjt
 - **URL** : https://xbuftfwcyontgqbbrrjt.supabase.co
-- **Anon Key** : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidWZ0ZndjeW9udGdxYmJycmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2Njg1NzksImV4cCI6MjA4NjI0NDU3OX0.ROkSccADlpLsWMgqyiX_xNaFdJNR8P4R-LJCnZV2Gzg
+- **Anon Key** : (dans index.html, publique)
+- **Service Role Key + secrets** : voir `.env` (gitignored)
 - **Schema** : voir supabase-schema.sql
 
 ## Tables Supabase
@@ -30,9 +32,16 @@ Site click & collect pour le restaurant libanais "A Beyrouth" à La Défense.
 - Hébergé sur GitHub Pages
 - Supabase pour BDD + Realtime + Auth
 
+## GitHub
+- **Repo** : tfwb5wfxwq-crypto/beyrouth
+- **Compte GitHub** : `tfwb5wfxwq-crypto` (switch avant push, puis reswitch sur `iarmy-dev`)
+- **Commandes** : `gh auth switch --user tfwb5wfxwq-crypto` → push → `gh auth switch --user iarmy-dev`
+
 ## Fichiers
-- `index.html` : page client (menu + panier + commande)
+- `index.html` : page client (menu + panier + commande) - UI Uber Eats-like
 - `commande.html` : suivi commande temps réel
 - `admin/index.html` : dashboard Paco (tablette, PWA)
 - `admin/manifest.json` : PWA manifest
 - `supabase-schema.sql` : schéma BDD complet à exécuter dans Supabase SQL Editor
+- `seed-menu.sql` : script seed menu complet (alternative SQL Editor)
+- `img/` : images optimisées des plats (JPG 600px, sans watermark Gemini)

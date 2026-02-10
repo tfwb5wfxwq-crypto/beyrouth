@@ -64,7 +64,7 @@ INSERT INTO menu_items (id, categorie_id, nom, description, prix, emoji, image_u
   (11, 2, 'Formule 2', 'Sandwich + entrée froide + boisson', 11.90, '2️⃣', NULL, ARRAY[]::text[], true, true),
   (12, 2, 'Formule 3', 'Sandwich + dessert + boisson', 11.90, '3️⃣', NULL, ARRAY[]::text[], true, true),
   (13, 2, 'Formule 4', '2 sandwiches au choix + boisson', 14.90, '4️⃣', NULL, ARRAY[]::text[], true, true),
-  (14, 2, 'Formule Plat du Jour', 'Plat du jour + boisson', 13.90, '🍽️', 'img/plat-jour.jpg', ARRAY[]::text[], true, true),
+  (14, 2, 'Formule Plat du Jour', 'Plat du jour + boisson', 13.90, '🍽️', NULL, ARRAY[]::text[], true, true),
 
   -- === GRILLADES ===
   (20, 3, 'Kafta Méchoui', '2 brochettes boeuf, riz, crudités', 13.00, '🍢', NULL, ARRAY['Boeuf','Riz'], true, true),
@@ -85,7 +85,7 @@ INSERT INTO menu_items (id, categorie_id, nom, description, prix, emoji, image_u
   (41, 5, 'Moutabal', 'Caviar d''aubergines rôties à la crème de sésame, jus de citron', 6.00, '🍆', 'img/moutabal.jpg', ARRAY['Aubergine','Tahini'], true, true),
   (42, 5, 'Taboulé', 'Salade de persil, tomates, oignons, blé concassé, huile d''olive, citron', 6.00, '🥗', 'img/taboule.jpg', ARRAY['Persil','Boulgour','Tomates','Menthe'], true, true),
   (43, 5, 'Salade du Moine', 'Aubergines grillées, tomates, persil, poivrons, huile d''olive, jus de citron', 6.00, '🥗', NULL, ARRAY['Aubergine','Tomates','Persil'], true, true),
-  (44, 5, 'Moussaka', 'Aubergines au four, cuisinées à la sauce tomate, pois chiches', 7.50, '🍲', NULL, ARRAY['Aubergine','Tomates','Pois chiches'], true, true),
+  (44, 5, 'Moussaka', 'Aubergines au four, cuisinées à la sauce tomate, pois chiches', 7.50, '🍲', 'img/plat-jour.jpg', ARRAY['Aubergine','Tomates','Pois chiches'], true, true),
   (45, 5, 'Feuilles de Vignes', 'Farcies de riz, huile d''olive, citron', 6.00, '🌿', 'img/feuilles-vigne.jpg', ARRAY['Riz'], true, true),
 
   -- === ENTRÉES CHAUDES ===

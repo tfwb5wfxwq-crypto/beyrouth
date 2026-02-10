@@ -90,7 +90,7 @@ INSERT INTO menu_items (id, categorie_id, nom, description, prix, emoji, image_u
 
   -- === ENTRÉES CHAUDES ===
   (70, 13, 'Falafel (pièce)', 'Fèves et pois chiches à la coriandre', 1.50, '🧆', 'img/falafel.jpg', ARRAY['Pois chiches','Fèves'], true, true),
-  (71, 13, 'Fattayer', 'Chaussons aux épinards acidulés', 1.50, '🥟', NULL, ARRAY[]::text[], true, true),
+  (71, 13, 'Fattayer', 'Chaussons aux épinards acidulés', 1.50, '🥟', 'img/fattayer.jpg', ARRAY[]::text[], true, true),
   (72, 13, 'Samboussek Fromage', 'Fromage de feta', 1.50, '🥟', 'img/sambousek-fromage.jpg', ARRAY[]::text[], true, true),
   (73, 13, 'Rikakat Fromage', 'Fromage de feta', 2.00, '🧀', 'img/rkakat.jpg', ARRAY[]::text[], true, true),
   (74, 13, 'Samboussek Viande', 'Viande de boeuf haché', 1.50, '🥟', 'img/sambousek-viande.jpg', ARRAY['Boeuf'], true, true),

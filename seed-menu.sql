@@ -99,7 +99,7 @@ INSERT INTO menu_items (id, categorie_id, nom, description, prix, emoji, image_u
   -- === DESSERTS ===
   (50, 6, 'Mouhalabieh', 'Flan fleur d''oranger, pistaches (fait maison)', 4.00, '🍮', 'img/mouhalabieh.jpg', ARRAY['Pistaches'], true, true),
   (51, 6, 'Namoura', 'Gâteau de semoule, sirop fleur d''oranger', 4.00, '🍰', 'img/namoura.jpg', ARRAY['Semoule'], true, true),
-  (52, 6, 'Baklawas', 'Boîte de 3 pièces', 4.50, '🍯', NULL, ARRAY['Pistaches'], true, true),
+  (52, 6, 'Baklawas', 'Boîte de 3 pièces', 4.50, '🍯', 'img/baklawas.jpg', ARRAY['Pistaches'], true, true),
   (53, 6, 'Duo Sablés', '2 sablés : pistaches, amandes, noix ou dattes', 5.00, '🍪', 'img/duo-sables.jpg', ARRAY[]::text[], true, true),
 
   -- === BOISSONS (individuelles) ===

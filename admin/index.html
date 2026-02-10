@@ -141,6 +141,25 @@ button{cursor:pointer;font-family:inherit;border:none}
 }
 .toggle.on::after{transform:translateX(24px)}
 
+/* ========= MENU MANAGEMENT ========= */
+.menu-cat-group{margin-bottom:24px}
+.menu-cat-header{
+  font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;
+  color:var(--bordeaux);margin-bottom:10px;padding-bottom:6px;
+  border-bottom:2px solid #eee;
+}
+.menu-items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.menu-item-card{
+  background:#fff;border-radius:var(--radius);padding:14px 16px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);transition:opacity .3s;
+}
+.menu-item-card.off{opacity:.45}
+.menu-item-card.off .menu-item-name{text-decoration:line-through}
+.menu-item-info{flex:1;min-width:0}
+.menu-item-name{font-weight:600;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu-item-price{font-size:.8rem;color:#888}
+
 /* ========= STATS ========= */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
 .stat-card{
@@ -188,6 +207,7 @@ button{cursor:pointer;font-family:inherit;border:none}
       Commandes <span class="tab-badge" id="ordersBadge" style="display:none">0</span>
     </button>
     <button class="tab" data-tab="ingredients" onclick="switchTab('ingredients')">Ingrédients</button>
+    <button class="tab" data-tab="menu" onclick="switchTab('menu')">Menu</button>
     <button class="tab" data-tab="stats" onclick="switchTab('stats')">Stats</button>
   </div>
 
@@ -204,6 +224,13 @@ button{cursor:pointer;font-family:inherit;border:none}
       <h2 style="margin-bottom:16px;color:var(--bordeaux)">Gestion des ingrédients</h2>
       <p style="color:#888;margin-bottom:20px;font-size:.9rem">Désactivez un ingrédient pour rendre indisponibles tous les plats qui le contiennent.</p>
       <div class="ingredients-grid" id="ingredientsList"></div>
+    </div>
+
+    <!-- Menu Tab -->
+    <div class="tab-content" id="tab-menu" style="display:none">
+      <h2 style="margin-bottom:16px;color:var(--bordeaux)">Gestion du menu</h2>
+      <p style="color:#888;margin-bottom:20px;font-size:.9rem">Activez/désactivez des plats individuellement. Les changements sont visibles instantanément chez les clients.</p>
+      <div id="menuList"></div>
     </div>
 
     <!-- Stats Tab -->
@@ -244,6 +271,8 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let orders = [];
 let ingredients = [];
+let menuCategories = [];
+let menuItemsList = [];
 let currentTab = 'orders';
 
 // ===== AUTH =====
@@ -277,7 +306,7 @@ async function doLogout() {
 async function showDashboard() {
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
-  await Promise.all([loadOrders(), loadIngredients()]);
+  await Promise.all([loadOrders(), loadIngredients(), loadMenuItems()]);
   subscribeRealtime();
 }
 
@@ -396,6 +425,48 @@ async function toggleIngredient(id, newValue) {
   renderIngredients();
 }
 
+// ===== MENU ITEMS =====
+async function loadMenuItems() {
+  const [catRes, itemRes] = await Promise.all([
+    sb.from('menu_categories').select('*').order('ordre'),
+    sb.from('menu_items').select('*').eq('actif', true).order('id'),
+  ]);
+  menuCategories = catRes.data || [];
+  menuItemsList = itemRes.data || [];
+  renderMenuItems();
+}
+
+function renderMenuItems() {
+  const container = document.getElementById('menuList');
+  let html = '';
+  menuCategories.forEach(cat => {
+    const items = menuItemsList.filter(i => i.categorie_id === cat.id);
+    if (!items.length) return;
+    html += `<div class="menu-cat-group">`;
+    html += `<div class="menu-cat-header">${cat.emoji || ''} ${cat.nom} (${items.filter(i => i.disponible).length}/${items.length})</div>`;
+    html += '<div class="menu-items-grid">';
+    items.forEach(item => {
+      html += `
+        <div class="menu-item-card ${item.disponible ? '' : 'off'}" id="menu-${item.id}">
+          <div class="menu-item-info">
+            <div class="menu-item-name">${item.emoji || ''} ${item.nom}</div>
+            <div class="menu-item-price">${item.prix.toFixed(2).replace('.',',')} €</div>
+          </div>
+          <div class="toggle ${item.disponible ? 'on' : ''}" onclick="toggleMenuItem(${item.id},${item.disponible ? 'false' : 'true'})"></div>
+        </div>`;
+    });
+    html += '</div></div>';
+  });
+  container.innerHTML = html;
+}
+
+async function toggleMenuItem(id, newValue) {
+  await sb.from('menu_items').update({disponible: newValue}).eq('id', id);
+  const item = menuItemsList.find(i => i.id === id);
+  if (item) item.disponible = newValue;
+  renderMenuItems();
+}
+
 // ===== STATS =====
 function updateStats() {
   const total = orders.length;
@@ -432,6 +503,9 @@ function subscribeRealtime() {
     })
     .on('postgres_changes', {event:'*', schema:'public', table:'ingredients'}, () => {
       loadIngredients();
+    })
+    .on('postgres_changes', {event:'*', schema:'public', table:'menu_items'}, () => {
+      loadMenuItems();
     })
     .subscribe();
 }

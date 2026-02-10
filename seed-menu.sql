@@ -76,7 +76,7 @@ INSERT INTO menu_items (id, categorie_id, nom, description, prix, emoji, image_u
   (30, 4, 'Beyrouth Poulet', 'Houmous, moutabal, taboulé, shawarma poulet, riz', 14.00, '🥘', NULL, ARRAY['Poulet','Riz','Pois chiches','Aubergine','Boulgour'], true, true),
   (31, 4, 'Beyrouth Boeuf', 'Houmous, moutabal, taboulé, shawarma boeuf, riz', 15.00, '🥘', NULL, ARRAY['Boeuf','Riz','Pois chiches','Aubergine','Boulgour'], true, true),
   (32, 4, 'Végétarienne', 'Houmous, moutabal, moussaka, crudités, 3 feuilletés végétariens', 14.00, '🥬', NULL, ARRAY['Pois chiches','Aubergine'], true, true),
-  (33, 4, 'Falafel', 'Houmous, moutabal, taboulé, crudités, 3 falafels', 14.00, '🧆', 'img/falafel.jpg', ARRAY['Pois chiches','Fèves','Aubergine','Boulgour'], true, true),
+  (33, 4, 'Falafel', 'Houmous, moutabal, taboulé, crudités, 3 falafels', 14.00, '🧆', NULL, ARRAY['Pois chiches','Fèves','Aubergine','Boulgour'], true, true),
   (34, 4, 'Liban', 'Houmous, moutabal, chich taouk, riz, crudités, 2 feuilletés végétariens', 16.00, '🇱🇧', NULL, ARRAY['Poulet','Riz','Pois chiches','Aubergine'], true, true),
   (35, 4, 'Byblos', 'Houmous, moutabal, taboulé, 3 feuilletés végétariens, kafta, chich taouk, shawarma poulet, riz', 18.00, '👑', NULL, ARRAY['Poulet','Boeuf','Riz','Pois chiches','Aubergine','Boulgour'], true, true),
 
@@ -89,7 +89,7 @@ INSERT INTO menu_items (id, categorie_id, nom, description, prix, emoji, image_u
   (45, 5, 'Feuilles de Vignes', 'Farcies de riz, huile d''olive, citron', 6.00, '🌿', 'img/feuilles-vigne.jpg', ARRAY['Riz'], true, true),
 
   -- === ENTRÉES CHAUDES ===
-  (70, 13, 'Falafel (pièce)', 'Fèves et pois chiches à la coriandre', 1.50, '🧆', NULL, ARRAY['Pois chiches','Fèves'], true, true),
+  (70, 13, 'Falafel (pièce)', 'Fèves et pois chiches à la coriandre', 1.50, '🧆', 'img/falafel.jpg', ARRAY['Pois chiches','Fèves'], true, true),
   (71, 13, 'Fattayer', 'Chaussons aux épinards acidulés', 1.50, '🥟', NULL, ARRAY[]::text[], true, true),
   (72, 13, 'Samboussek Fromage', 'Fromage de feta', 1.50, '🥟', 'img/sambousek-fromage.jpg', ARRAY[]::text[], true, true),
   (73, 13, 'Rikakat Fromage', 'Fromage de feta', 2.00, '🧀', 'img/rkakat.jpg', ARRAY[]::text[], true, true),

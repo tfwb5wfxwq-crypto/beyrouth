@@ -84,7 +84,7 @@ INSERT INTO menu_items (id, categorie_id, nom, description, prix, emoji, image_u
   (40, 5, 'Houmous', 'Purée de pois chiches au tahini, parfumée au citron et à l''huile d''olive', 6.00, '🫘', 'img/houmous.jpg', ARRAY['Pois chiches','Tahini'], true, true),
   (41, 5, 'Moutabal', 'Caviar d''aubergines rôties à la crème de sésame, jus de citron', 6.00, '🍆', 'img/moutabal.jpg', ARRAY['Aubergine','Tahini'], true, true),
   (42, 5, 'Taboulé', 'Salade de persil, tomates, oignons, blé concassé, huile d''olive, citron', 6.00, '🥗', 'img/taboule.jpg', ARRAY['Persil','Boulgour','Tomates','Menthe'], true, true),
-  (43, 5, 'Salade du Moine', 'Aubergines grillées, tomates, persil, poivrons, huile d''olive, jus de citron', 6.00, '🥗', NULL, ARRAY['Aubergine','Tomates','Persil'], true, true),
+  (43, 5, 'Salade du Moine', 'Aubergines grillées, tomates, persil, poivrons, huile d''olive, jus de citron', 6.00, '🥗', 'img/salade-moine.jpg', ARRAY['Aubergine','Tomates','Persil'], true, true),
   (44, 5, 'Moussaka', 'Aubergines au four, cuisinées à la sauce tomate, pois chiches', 7.50, '🍲', 'img/plat-jour.jpg', ARRAY['Aubergine','Tomates','Pois chiches'], true, true),
   (45, 5, 'Feuilles de Vignes', 'Farcies de riz, huile d''olive, citron', 6.00, '🌿', 'img/feuilles-vigne.jpg', ARRAY['Riz'], true, true),
 

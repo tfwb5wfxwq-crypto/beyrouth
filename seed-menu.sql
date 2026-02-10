@@ -94,7 +94,7 @@ INSERT INTO menu_items (id, categorie_id, nom, description, prix, emoji, image_u
   (72, 13, 'Samboussek Fromage', 'Fromage de feta', 1.50, '🥟', 'img/sambousek-fromage.jpg', ARRAY[]::text[], true, true),
   (73, 13, 'Rikakat Fromage', 'Fromage de feta', 2.00, '🧀', 'img/rkakat.jpg', ARRAY[]::text[], true, true),
   (74, 13, 'Samboussek Viande', 'Viande de boeuf haché', 1.50, '🥟', 'img/sambousek-viande.jpg', ARRAY['Boeuf'], true, true),
-  (75, 13, 'Kebbé', 'Boulette de blé concassé farcies de viande hachée', 2.50, '🍡', NULL, ARRAY['Boeuf','Boulgour'], true, true),
+  (75, 13, 'Kebbé', 'Boulette de blé concassé farcies de viande hachée', 2.50, '🍡', 'img/kebbe.jpg', ARRAY['Boeuf','Boulgour'], true, true),
 
   -- === DESSERTS ===
   (50, 6, 'Mouhalabieh', 'Flan fleur d''oranger, pistaches (fait maison)', 4.00, '🍮', 'img/mouhalabieh.jpg', ARRAY['Pistaches'], true, true),

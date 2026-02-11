@@ -12,10 +12,11 @@
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
   --green:#06C167;--green-dark:#05a559;
-  --noir:#191919;--gris:#545454;--gris-light:#EEEEEE;
-  --blanc:#FFFFFF;--bg:#FAFAFA;
-  --shadow:0 2px 8px rgba(0,0,0,.08);--shadow-lg:0 4px 16px rgba(0,0,0,.12);
-  --radius:12px;--radius-sm:8px;
+  --noir:#1A1A1A;--gris:#6B6B6B;--gris-light:#F2F2F2;
+  --blanc:#FFFFFF;--bg:#F8F7F5;
+  --gold:#C8A255;--bordeaux:#8B1A1A;
+  --shadow:0 2px 12px rgba(0,0,0,.06);--shadow-lg:0 8px 24px rgba(0,0,0,.1);
+  --radius:14px;--radius-sm:10px;
 }
 html{scroll-behavior:smooth}
 body{font-family:'Inter',system-ui,sans-serif;color:var(--noir);background:var(--bg);line-height:1.5;overflow-x:hidden;padding-bottom:0}
@@ -23,13 +24,13 @@ button{cursor:pointer;font-family:inherit;border:none;outline:none}
 img{max-width:100%;display:block}
 a{color:inherit;text-decoration:none}
 
-/* ========= HEADER COMPACT ========= */
+/* ========= HEADER ========= */
 .header{
-  background:var(--noir);color:#fff;padding:16px 24px;
+  background:var(--noir);color:#fff;padding:18px 24px;
 }
 .header-inner{max-width:1000px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
-.header-left h1{font-size:1.4rem;font-weight:800;letter-spacing:-.5px}
-.header-left h1 span{color:var(--green)}
+.header-left h1{font-size:1.4rem;font-weight:800;letter-spacing:-.3px}
+.header-left h1 span{color:var(--gold)}
 .header-left p{font-size:.8rem;opacity:.6;margin-top:2px}
 .header-right{display:flex;align-items:center;gap:8px}
 .header-status{
@@ -78,13 +79,17 @@ a{color:inherit;text-decoration:none}
   border-bottom:2px solid transparent;flex-shrink:0;
 }
 .nav-cat:hover{color:var(--noir)}
-.nav-cat.active{color:var(--noir);font-weight:700;border-bottom-color:var(--noir)}
+.nav-cat.active{color:var(--noir);font-weight:700;border-bottom-color:var(--bordeaux)}
 
 /* ========= MENU ========= */
 .menu-section{max-width:1000px;margin:0 auto;padding:16px 16px 100px}
 .menu-cat-title{
-  font-size:1.2rem;font-weight:800;margin:20px 0 10px;padding-top:4px;
-  letter-spacing:-.3px;
+  font-size:1.15rem;font-weight:800;margin:24px 0 12px;padding-top:4px;
+  letter-spacing:-.3px;color:var(--noir);
+  display:flex;align-items:center;gap:8px;
+}
+.menu-cat-title::after{
+  content:'';flex:1;height:1px;background:var(--gris-light);
 }
 .menu-cat-title:first-child{margin-top:4px}
 
@@ -115,11 +120,11 @@ a{color:inherit;text-decoration:none}
 /* Infos en bas */
 .menu-card-body{padding:8px 10px 10px}
 .menu-card-name{font-weight:700;font-size:.88rem;line-height:1.25;margin-bottom:2px;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.2px}
 .menu-card-desc{font-size:.72rem;color:var(--gris);line-height:1.3;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px}
 .menu-card-bottom{display:flex;align-items:center;justify-content:space-between}
-.menu-card-price{font-weight:800;font-size:.92rem}
+.menu-card-price{font-weight:800;font-size:.92rem;color:var(--bordeaux)}
 
 /* Bouton + (min 44px pour touch) */
 .menu-card-add{
@@ -170,12 +175,12 @@ a{color:inherit;text-decoration:none}
 .bottom-bar.show{transform:translateY(0)}
 .bottom-bar-inner{max-width:1000px;margin:0 auto}
 .bottom-bar-btn{
-  width:100%;padding:16px;background:var(--noir);color:#fff;
+  width:100%;padding:16px;background:var(--bordeaux);color:#fff;
   border-radius:var(--radius-sm);font-size:1rem;font-weight:700;
   display:flex;align-items:center;justify-content:space-between;
-  transition:background .2s;
+  transition:all .25s;box-shadow:0 4px 16px rgba(139,26,26,.2);
 }
-.bottom-bar-btn:hover{background:#333}
+.bottom-bar-btn:hover{background:#6B1414}
 .bottom-bar-count{
   background:rgba(255,255,255,.2);padding:2px 10px;border-radius:20px;font-size:.85rem;
 }
@@ -202,7 +207,8 @@ a{color:inherit;text-decoration:none}
 .cart-header h3{font-size:1.15rem;font-weight:800}
 .cart-close{background:var(--gris-light);width:44px;height:44px;border-radius:50%;font-size:1.4rem;display:flex;align-items:center;justify-content:center}
 
-.cart-items{flex:1;overflow-y:auto;padding:12px 20px}
+.cart-body{flex:1;overflow-y:auto}
+.cart-items{padding:12px 20px}
 .cart-empty{text-align:center;padding:48px 20px;color:var(--gris);font-size:.9rem}
 .cart-item{
   display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--gris-light);
@@ -222,7 +228,7 @@ a{color:inherit;text-decoration:none}
 .cart-item-qty span{font-weight:700;min-width:20px;text-align:center;font-size:.9rem}
 
 /* ========= CHECKOUT ========= */
-.cart-footer{padding:16px 20px;border-top:1px solid var(--gris-light);background:var(--blanc)}
+.cart-footer{padding:16px 20px;background:var(--blanc)}
 .cart-subtotal{display:flex;justify-content:space-between;margin-bottom:12px;font-size:.9rem;color:var(--gris)}
 .cart-subtotal strong{color:var(--noir);font-size:1.1rem}
 .cart-form{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
@@ -235,11 +241,12 @@ a{color:inherit;text-decoration:none}
 .cart-form .form-row{display:flex;gap:8px}
 .cart-form .form-row>*{flex:1}
 .cart-checkout-btn{
-  width:100%;padding:16px;background:var(--green);color:#fff;
+  width:100%;padding:16px;background:var(--bordeaux);color:#fff;
   border-radius:var(--radius-sm);font-size:1rem;font-weight:700;
-  transition:background .2s;
+  transition:all .25s;letter-spacing:.3px;
+  box-shadow:0 4px 16px rgba(139,26,26,.25);
 }
-.cart-checkout-btn:hover{background:var(--green-dark)}
+.cart-checkout-btn:hover{background:#6B1414;transform:translateY(-1px);box-shadow:0 6px 20px rgba(139,26,26,.3)}
 .cart-checkout-btn:disabled{opacity:.4;cursor:not-allowed}
 .cart-pay-info{font-size:.75rem;color:var(--gris);text-align:center;margin-top:6px}
 .cart-form-info{font-size:.8rem;color:var(--green);font-weight:500;margin:4px 0 0;line-height:1.4}
@@ -314,7 +321,7 @@ a{color:inherit;text-decoration:none}
 @keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:none}}
 .modal-icon{font-size:3rem;margin-bottom:12px}
 .modal h3{font-size:1.2rem;font-weight:800;margin-bottom:4px}
-.modal-order-num{font-size:1.8rem;font-weight:800;color:var(--green);margin:8px 0}
+.modal-order-num{font-size:1.8rem;font-weight:800;color:var(--bordeaux);margin:8px 0}
 .modal p{color:var(--gris);font-size:.9rem;margin-bottom:16px}
 .modal-btn{
   display:inline-block;padding:12px 28px;background:var(--noir);
@@ -419,6 +426,7 @@ a{color:inherit;text-decoration:none}
     <h3>Votre commande</h3>
     <button class="cart-close" onclick="toggleCart()">&times;</button>
   </div>
+  <div class="cart-body">
   <div class="cart-items" id="cartItems">
     <div class="cart-empty" id="cartEmpty">Votre panier est vide</div>
   </div>
@@ -452,6 +460,7 @@ a{color:inherit;text-decoration:none}
     </button>
     <p class="cart-pay-info">Paiement en ligne sécurisé (CB, carte resto)</p>
   </div>
+  </div><!-- /cart-body -->
 </div>
 
 <!-- ===== CONFIRMATION MODAL ===== -->
@@ -977,30 +986,54 @@ function loadClientInfo() {
   } catch(e) {}
 }
 
-// ===== TIME SLOTS =====
+// ===== TIME SLOTS (today + next open days) =====
 function generateTimeSlots() {
-  // Populate both selects (bar + cart form)
   const barSel = document.getElementById('pickupTimeBar');
   const formSel = document.getElementById('pickupTime');
   const now = new Date();
-  const day = now.getDay();
-  const slot = BUSINESS_HOURS.find(s => s[0] === day);
-  const startMin = slot ? slot[1] * 60 + slot[2] : 11 * 60;
-  const endMin = slot ? slot[3] * 60 + slot[4] : 15 * 60;
-  for (let m = startMin; m <= endMin; m += 15) {
-    const h = Math.floor(m / 60), min = m % 60;
-    const label = `${h}h${min.toString().padStart(2, '0')}`;
-    const t = new Date(); t.setHours(h, min, 0);
-    // Bar select
-    const opt1 = document.createElement('option');
-    opt1.value = label; opt1.textContent = label;
-    if (t <= now) opt1.disabled = true;
-    barSel.appendChild(opt1);
-    // Form select (hidden)
-    const opt2 = document.createElement('option');
-    opt2.value = label; opt2.textContent = label;
-    if (t <= now) opt2.disabled = true;
-    formSel.appendChild(opt2);
+
+  // Generate slots for today and next 3 open days
+  for (let d = 0; d <= 7; d++) {
+    const date = new Date(now);
+    date.setDate(date.getDate() + d);
+    const dayOfWeek = date.getDay();
+    const slot = BUSINESS_HOURS.find(s => s[0] === dayOfWeek);
+    if (!slot) continue;
+
+    const isToday = d === 0;
+    const dayLabel = isToday ? "Aujourd'hui" :
+      d === 1 ? 'Demain' :
+      JOURS[dayOfWeek] + ' ' + date.getDate() + '/' + (date.getMonth()+1);
+
+    // Separator
+    const sep1 = document.createElement('option');
+    sep1.disabled = true;
+    sep1.textContent = `── ${dayLabel} ──`;
+    barSel.appendChild(sep1);
+
+    const startMin = slot[1] * 60 + slot[2];
+    const endMin = slot[3] * 60 + slot[4];
+
+    for (let m = startMin; m <= endMin; m += 15) {
+      const h = Math.floor(m / 60), min = m % 60;
+      const label = `${h}h${min.toString().padStart(2, '0')}`;
+      const value = isToday ? label : `${dayLabel} ${label}`;
+
+      const isPast = isToday && (now.getHours() * 60 + now.getMinutes()) >= m;
+
+      const opt1 = document.createElement('option');
+      opt1.value = value; opt1.textContent = `${isToday ? '' : dayLabel + ' '}${label}`;
+      if (isPast) opt1.disabled = true;
+      barSel.appendChild(opt1);
+
+      const opt2 = document.createElement('option');
+      opt2.value = value; opt2.textContent = opt1.textContent;
+      if (isPast) opt2.disabled = true;
+      formSel.appendChild(opt2);
+    }
+
+    // Max 3 future days
+    if (!isToday && d >= 5) break;
   }
 }
 

@@ -45,16 +45,21 @@ a{color:inherit;text-decoration:none}
   background:var(--blanc);border-bottom:1px solid var(--gris-light);
 }
 .timing-inner{
-  max-width:1000px;margin:0 auto;padding:10px 24px;
-  display:flex;align-items:center;gap:8px;
+  max-width:1000px;margin:0 auto;padding:14px 24px;
+  display:flex;align-items:center;gap:10px;
 }
 .timing-tagline{font-size:.8rem;color:var(--gris);margin-right:auto;font-weight:500}
-.timing-btn{
-  padding:8px 18px;border-radius:20px;font-size:.82rem;font-weight:600;
-  transition:all .2s;background:var(--gris-light);color:var(--noir);
+.timing-hours{
+  font-size:.72rem;color:var(--gris);background:var(--gris-light);
+  padding:4px 10px;border-radius:12px;white-space:nowrap;
 }
-.timing-btn.active{background:var(--noir);color:#fff}
-.timing-btn:hover:not(.active){background:#ddd}
+.timing-btn{
+  padding:10px 22px;border-radius:24px;font-size:.85rem;font-weight:700;
+  transition:all .25s cubic-bezier(.4,0,.2,1);background:var(--gris-light);color:var(--noir);
+}
+.timing-btn.active{background:var(--noir);color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.timing-btn:hover:not(.active){background:#e0e0e0;transform:translateY(-1px)}
+.timing-btn:active{transform:scale(.96)}
 
 /* ========= NAV CATEGORIES ========= */
 .nav{
@@ -86,11 +91,13 @@ a{color:inherit;text-decoration:none}
 .menu-card{
   position:relative;border-radius:var(--radius);overflow:hidden;
   background:var(--blanc);box-shadow:var(--shadow);cursor:pointer;
-  transition:transform .15s,box-shadow .15s;
+  transition:transform .25s cubic-bezier(.4,0,.2,1),box-shadow .25s,opacity .5s;
   -webkit-tap-highlight-color:transparent;
+  opacity:0;transform:translateY(20px);
 }
+.menu-card.visible{opacity:1;transform:translateY(0)}
 .menu-card:active{transform:scale(.97)}
-@media(hover:hover){.menu-card:hover{box-shadow:var(--shadow-lg)}}
+@media(hover:hover){.menu-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-3px)}}
 
 /* Image / emoji zone — ratio 4:3 pour gagner de la place */
 .menu-card-visual{
@@ -249,9 +256,10 @@ a{color:inherit;text-decoration:none}
 .cart-suggest-item{
   flex-shrink:0;display:flex;align-items:center;gap:8px;
   background:var(--gris-light);border-radius:var(--radius-sm);padding:8px 12px;
-  cursor:pointer;transition:background .15s;font-size:.82rem;
+  cursor:pointer;transition:all .2s;font-size:.82rem;
 }
-.cart-suggest-item:active{background:#ddd}
+.cart-suggest-item:hover{background:#e8e8e8;transform:translateY(-1px)}
+.cart-suggest-item:active{background:#ddd;transform:scale(.97)}
 .cart-suggest-item .suggest-emoji{font-size:1.2rem}
 .cart-suggest-item .suggest-name{font-weight:600;white-space:nowrap}
 .cart-suggest-item .suggest-price{color:var(--gris);font-size:.75rem;white-space:nowrap}
@@ -259,6 +267,34 @@ a{color:inherit;text-decoration:none}
   width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;
   font-size:.9rem;display:flex;align-items:center;justify-content:center;font-weight:700;
 }
+
+/* Upsell bubble toast */
+.upsell-bubble{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(120px);
+  z-index:160;background:var(--noir);color:#fff;
+  padding:14px 20px;border-radius:16px;
+  box-shadow:0 8px 32px rgba(0,0,0,.25);
+  display:flex;align-items:center;gap:12px;
+  max-width:min(400px,calc(100vw - 32px));
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .3s;
+  opacity:0;pointer-events:none;
+}
+.upsell-bubble.show{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto}
+.upsell-bubble-emoji{font-size:1.6rem;flex-shrink:0}
+.upsell-bubble-text{flex:1;font-size:.85rem;line-height:1.35}
+.upsell-bubble-text strong{color:var(--green);font-weight:700}
+.upsell-bubble-btn{
+  background:var(--green);color:#fff;padding:8px 16px;border-radius:20px;
+  font-size:.8rem;font-weight:700;white-space:nowrap;transition:all .2s;flex-shrink:0;
+}
+.upsell-bubble-btn:hover{background:var(--green-dark);transform:scale(1.05)}
+.upsell-bubble-close{
+  position:absolute;top:-8px;right:-8px;width:24px;height:24px;
+  background:#555;color:#fff;border-radius:50%;font-size:.75rem;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:background .2s;
+}
+.upsell-bubble-close:hover{background:#777}
 
 /* ========= CONFIRMATION MODAL ========= */
 .modal-overlay{
@@ -339,9 +375,10 @@ a{color:inherit;text-decoration:none}
 <!-- ===== TIMING PICKER ===== -->
 <div class="timing-bar">
   <div class="timing-inner">
-    <span class="timing-tagline">Retrait sur place - La Défense (Sortie 4 métro)</span>
-    <button class="timing-btn active" id="btnNow" onclick="setTiming('now')">J'ai faim maintenant</button>
-    <button class="timing-btn" id="btnLater" onclick="setTiming('later')">Plus tard</button>
+    <span class="timing-tagline">Retrait sur place — La Défense (Sortie 4 métro)</span>
+    <span class="timing-hours" id="timingHours">Lun-Ven 11h-15h</span>
+    <button class="timing-btn active" id="btnNow" onclick="setTiming('now')">J'ai faim !</button>
+    <button class="timing-btn" id="btnLater" onclick="setTiming('later')">Choisir l'heure</button>
   </div>
 </div>
 
@@ -417,6 +454,14 @@ a{color:inherit;text-decoration:none}
     <p id="confirmText">On prépare votre commande.<br>Vous serez prévenu quand c'est prêt.</p>
     <a class="modal-btn" id="confirmTrackBtn" href="commande.html">Suivre ma commande</a>
   </div>
+</div>
+
+<!-- ===== UPSELL BUBBLE ===== -->
+<div class="upsell-bubble" id="upsellBubble">
+  <span class="upsell-bubble-emoji" id="upsellEmoji"></span>
+  <div class="upsell-bubble-text" id="upsellText"></div>
+  <button class="upsell-bubble-btn" id="upsellBtn" onclick="applyUpsell()">Ajouter</button>
+  <div class="upsell-bubble-close" onclick="dismissUpsell()">&times;</div>
 </div>
 
 <!-- ===== FOOTER ===== -->
@@ -594,6 +639,7 @@ async function init() {
   renderNavCats();
   updateCartUI();
   setupScrollSpy();
+  setupScrollReveal();
   setTiming(open ? 'now' : 'later');
 }
 
@@ -676,6 +722,12 @@ function renderMenu() {
     html += '</div>';
   });
   container.innerHTML = html;
+  // Re-reveal cards already in view (after re-render)
+  document.querySelectorAll('.menu-card').forEach(card => {
+    const rect = card.getBoundingClientRect();
+    if (rect.top < window.innerHeight) card.classList.add('visible');
+  });
+  if (typeof setupScrollReveal === 'function') setupScrollReveal();
 }
 
 function renderNavCats() {
@@ -692,10 +744,13 @@ function addToCart(itemId) {
   const item = menuItems.find(i => i.id === itemId);
   if (!item || !item.disponible) return;
   const existing = cart.find(c => c.id === itemId);
+  const isNew = !existing;
   if (existing) { existing.qty++; } else {
     cart.push({id: item.id, nom: item.nom, prix: item.prix, emoji: item.emoji || '🍽️', qty: 1});
   }
   saveCart(); updateCartUI(); renderMenu();
+  // Smart upsell bubble on first add
+  if (isNew) showUpsellBubble(itemId);
 }
 
 function changeQty(itemId, delta) {
@@ -766,11 +821,11 @@ function renderSuggestions() {
     return item ? item.categorie_id : 0;
   }));
 
-  // Suggest: dessert si pas de dessert, entrée chaude si pas d'entrée, boisson si pas de boisson
+  // Intelligent suggestions based on what's in cart
   const suggestCats = [];
-  if (!cartCatIds.has(13) && !cartCatIds.has(5)) suggestCats.push(13, 5); // entrées
+  if (!cartCatIds.has(7)) suggestCats.push(7); // boisson en premier (le plus vendu en cross-sell)
   if (!cartCatIds.has(6)) suggestCats.push(6); // desserts
-  if (!cartCatIds.has(7)) suggestCats.push(7); // boissons
+  if (!cartCatIds.has(13) && !cartCatIds.has(5)) suggestCats.push(13, 5); // entrées
 
   const suggestions = menuItems
     .filter(i => suggestCats.includes(i.categorie_id) && i.disponible && !cartIds.has(i.id))
@@ -780,6 +835,13 @@ function renderSuggestions() {
     suggestEl.style.display = 'none';
     return;
   }
+
+  // Dynamic title based on what's missing
+  const titleEl = suggestEl.querySelector('.cart-suggest-title');
+  if (!cartCatIds.has(7)) titleEl.textContent = 'Une boisson avec ça ?';
+  else if (!cartCatIds.has(6)) titleEl.textContent = 'Une petite douceur pour finir ?';
+  else titleEl.textContent = 'Vous aimerez peut-être aussi';
+
   suggestEl.style.display = '';
   listEl.innerHTML = suggestions.map(s => `
     <div class="cart-suggest-item" onclick="addToCart(${s.id});updateCartUI();renderMenu()">
@@ -791,6 +853,96 @@ function renderSuggestions() {
       <span class="suggest-add">+</span>
     </div>
   `).join('');
+}
+
+// ===== SMART UPSELL BUBBLE =====
+let upsellTimeout = null;
+let pendingUpsell = null;
+
+function getSmartUpsell(addedItem) {
+  const item = menuItems.find(i => i.id === addedItem);
+  if (!item) return null;
+  const cartCatIds = new Set(cart.map(c => {
+    const mi = menuItems.find(i => i.id === c.id);
+    return mi ? mi.categorie_id : 0;
+  }));
+
+  // Sandwich seul → pousse formule
+  if (item.categorie_id === 1 && !cartCatIds.has(2)) {
+    const formule1 = menuItems.find(i => i.id === 10 && i.disponible);
+    if (formule1) {
+      const savings = item.prix + 2.00 + 1.50 + 1.50 - formule1.prix; // sandwich + boisson + 2 feuilletés - formule
+      return {
+        emoji: '💡',
+        text: `<strong>Formule 1 à ${formatPrice(formule1.prix)}</strong> — sandwich + 2 feuilletés + boisson. Vous économisez !`,
+        action: () => { cart = cart.filter(c => c.id !== addedItem); addToCart(formule1.id); },
+        btn: 'Passer en formule'
+      };
+    }
+  }
+
+  // Formule → pousse dessert
+  if (item.categorie_id === 2 && !cartCatIds.has(6)) {
+    const desserts = menuItems.filter(i => i.categorie_id === 6 && i.disponible);
+    if (desserts.length) {
+      const d = desserts[Math.floor(Math.random() * desserts.length)];
+      return {
+        emoji: '🍮',
+        text: `Finissez en douceur ! <strong>${d.nom}</strong> — ${formatPrice(d.prix)}`,
+        action: () => addToCart(d.id),
+        btn: `+ ${formatPrice(d.prix)}`
+      };
+    }
+  }
+
+  // Grillade/Plateau sans boisson
+  if ([3, 4].includes(item.categorie_id) && !cartCatIds.has(7)) {
+    return {
+      emoji: '🥤',
+      text: 'Une <strong>boisson fraîche</strong> avec votre plat ? À partir de <strong>2,00 €</strong>',
+      action: () => scrollToCat(7),
+      btn: 'Voir les boissons'
+    };
+  }
+
+  // Dessert seul → pousse boisson (Ayran par ex)
+  if (item.categorie_id === 6 && !cartCatIds.has(7)) {
+    const ayran = menuItems.find(i => i.nom === 'Ayran' && i.disponible);
+    if (ayran) {
+      return {
+        emoji: '🥛',
+        text: `Accompagnez avec un <strong>Ayran</strong> — yaourt salé rafraîchissant ${formatPrice(ayran.prix)}`,
+        action: () => addToCart(ayran.id),
+        btn: `+ ${formatPrice(ayran.prix)}`
+      };
+    }
+  }
+
+  return null;
+}
+
+function showUpsellBubble(addedItemId) {
+  const upsell = getSmartUpsell(addedItemId);
+  if (!upsell) return;
+  pendingUpsell = upsell;
+  document.getElementById('upsellEmoji').textContent = upsell.emoji;
+  document.getElementById('upsellText').innerHTML = upsell.text;
+  document.getElementById('upsellBtn').textContent = upsell.btn;
+  const bubble = document.getElementById('upsellBubble');
+  bubble.classList.add('show');
+  clearTimeout(upsellTimeout);
+  upsellTimeout = setTimeout(dismissUpsell, 6000);
+}
+
+function applyUpsell() {
+  if (pendingUpsell) { pendingUpsell.action(); saveCart(); updateCartUI(); renderMenu(); }
+  dismissUpsell();
+}
+
+function dismissUpsell() {
+  document.getElementById('upsellBubble').classList.remove('show');
+  clearTimeout(upsellTimeout);
+  pendingUpsell = null;
 }
 
 function toggleCart() {
@@ -937,6 +1089,24 @@ function setTiming(mode) {
 
 // ===== UTILS =====
 function formatPrice(n) { return n.toFixed(2).replace('.', ',') + ' €'; }
+
+// ===== SCROLL REVEAL =====
+function setupScrollReveal() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        // Stagger animation per card in grid
+        const card = entry.target;
+        const siblings = [...card.parentElement.children];
+        const idx = siblings.indexOf(card);
+        setTimeout(() => card.classList.add('visible'), idx * 60);
+        observer.unobserve(card);
+      }
+    });
+  }, {threshold: 0.1, rootMargin: '0px 0px -40px 0px'});
+
+  document.querySelectorAll('.menu-card').forEach(card => observer.observe(card));
+}
 
 document.getElementById('confirmModal').addEventListener('click', function(e) {
   if (e.target === this) this.classList.remove('open');

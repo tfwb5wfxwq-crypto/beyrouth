@@ -3,468 +3,309 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Beyrouth Express — Click & Collect | A Beyrouth, La Défense</title>
-<meta name="description" content="Commandez en ligne chez A Beyrouth à La Défense. Cuisine libanaise traditionnelle, retrait express sans faire la queue.">
+<title>A Beyrouth — Click & Collect | La Défense</title>
+<meta name="description" content="Commandez en ligne chez A Beyrouth à La Défense. Cuisine libanaise authentique, retrait express.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧆</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --green:#06C167;--green-dark:#05a559;
-  --noir:#1A1A1A;--gris:#6B6B6B;--gris-light:#F2F2F2;
-  --blanc:#FFFFFF;--bg:#F8F7F5;
-  --gold:#C8A255;--bordeaux:#8B1A1A;
-  --shadow:0 2px 12px rgba(0,0,0,.06);--shadow-lg:0 8px 24px rgba(0,0,0,.1);
-  --radius:14px;--radius-sm:10px;
+  --dark:#1A1A1A;
+  --text:#1A1A1A;--text-soft:#6B6B6B;--text-muted:#ABABAB;
+  --bg:#F7F7F5;--white:#FFFFFF;
+  --border:#EAEAE8;--border-light:#F3F3F1;
+  --green:#1B8C3E;--green-light:#E8F5EC;--green-dark:#157A33;
+  --red:#DC2626;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.04);
+  --shadow:0 1px 3px rgba(0,0,0,.05),0 2px 8px rgba(0,0,0,.04);
+  --shadow-lg:0 8px 24px rgba(0,0,0,.1);
+  --r:16px;--r-sm:12px;--r-xs:8px;
 }
-html{scroll-behavior:smooth}
-body{font-family:'Inter',system-ui,sans-serif;color:var(--noir);background:var(--bg);line-height:1.5;overflow-x:hidden;padding-bottom:0}
-button{cursor:pointer;font-family:inherit;border:none;outline:none}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;color:var(--text);background:var(--bg);line-height:1.5;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+button{cursor:pointer;font-family:inherit;border:none;outline:none;background:none}
 img{max-width:100%;display:block}
 a{color:inherit;text-decoration:none}
 
-/* ========= HEADER ========= */
-.header{
-  background:var(--noir);color:#fff;padding:18px 24px;
-}
+/* ===== HEADER ===== */
+.header{background:var(--dark);color:#fff;padding:20px 24px}
 .header-inner{max-width:1000px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
-.header-left h1{font-size:1.4rem;font-weight:800;letter-spacing:-.3px}
-.header-left h1 span{color:var(--gold)}
-.header-left p{font-size:.8rem;opacity:.6;margin-top:2px}
-.header-right{display:flex;align-items:center;gap:8px}
-.header-status{
-  display:inline-flex;align-items:center;gap:6px;
-  background:rgba(255,255,255,.1);padding:6px 12px;border-radius:20px;font-size:.75rem;
-}
-.header-status .dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0}
-.header-status.closed .dot{background:#E74C3C}
-.header-hours{font-size:.7rem;opacity:.5;margin-top:1px}
+.brand{font-family:'DM Serif Display',Georgia,serif;font-size:1.5rem;font-weight:400;letter-spacing:.3px;line-height:1.2}
+.header-right{display:flex;align-items:center;gap:12px}
+.header-badge{font-size:.6rem;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;padding:5px 12px;border:1px solid rgba(255,255,255,.2);border-radius:20px;color:rgba(255,255,255,.6)}
+.header-status{display:flex;align-items:center;gap:6px;font-size:.82rem;font-weight:500}
+.header-status .dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
+.header-status.closed .dot{background:var(--red)}
+.header-sub{font-size:.72rem;opacity:.45;font-weight:400}
 
-/* ========= TIMING BAR ========= */
-.timing-bar{
-  background:var(--blanc);border-bottom:1px solid var(--gris-light);
-}
-.timing-inner{
-  max-width:1000px;margin:0 auto;padding:12px 24px;
-  display:flex;align-items:center;gap:10px;
-}
-.timing-info{display:flex;align-items:center;gap:8px;margin-right:auto}
-.timing-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0}
-.timing-dot.closed{background:#E74C3C}
-.timing-text{font-size:.85rem;font-weight:600;color:var(--noir)}
-.timing-text small{font-weight:400;color:var(--gris);font-size:.78rem}
-.timing-pick{
-  display:flex;align-items:center;gap:6px;
-  padding:8px 16px;border-radius:20px;background:var(--gris-light);
-  font-size:.82rem;font-weight:600;color:var(--noir);transition:all .2s;cursor:pointer;
-}
-.timing-pick:hover{background:#e0e0e0}
+/* ===== INFO BAR ===== */
+.info-bar{background:var(--white);border-bottom:1px solid var(--border)}
+.info-inner{max-width:1000px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.info-address{display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--text-soft);transition:color .2s;margin-right:auto}
+.info-address:hover{color:var(--dark)}
+.info-address svg{width:16px;height:16px;flex-shrink:0;opacity:.5}
+.info-time{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;background:var(--border-light);font-size:.82rem;font-weight:600;color:var(--dark);transition:all .15s;cursor:pointer}
+.info-time:hover{background:var(--border)}
+.info-time svg{width:14px;height:14px;opacity:.5}
 
-/* ========= TIME PICKER SHEET ========= */
-.timepicker-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;
-  opacity:0;pointer-events:none;transition:opacity .3s;
-}
+/* ===== TIME PICKER ===== */
+.timepicker-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;opacity:0;pointer-events:none;transition:opacity .3s}
 .timepicker-overlay.open{opacity:1;pointer-events:auto}
-.timepicker-sheet{
-  position:fixed;bottom:0;left:0;right:0;z-index:301;
-  background:var(--blanc);border-radius:20px 20px 0 0;
-  padding:24px 20px calc(24px + env(safe-area-inset-bottom,0px));
-  transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);
-  max-height:70vh;overflow-y:auto;
-}
+.timepicker-sheet{position:fixed;bottom:0;left:0;right:0;z-index:301;background:var(--white);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);max-height:70vh;overflow-y:auto}
 .timepicker-sheet.open{transform:translateY(0)}
-.timepicker-handle{width:40px;height:4px;border-radius:2px;background:#ddd;margin:0 auto 16px}
-.timepicker-title{font-size:1.1rem;font-weight:800;text-align:center;margin-bottom:16px;letter-spacing:-.3px}
-.timepicker-days{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
-.timepicker-days::-webkit-scrollbar{display:none}
-.timepicker-day{
-  flex-shrink:0;padding:10px 18px;border-radius:12px;font-size:.85rem;font-weight:600;
-  background:var(--gris-light);color:var(--noir);cursor:pointer;transition:all .2s;
-  text-align:center;min-width:80px;
-}
-.timepicker-day.active{background:var(--bordeaux);color:#fff}
-.timepicker-day small{display:block;font-size:.7rem;font-weight:400;opacity:.7;margin-top:2px}
-.timepicker-slots{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
-.timepicker-slot{
-  padding:12px 8px;border-radius:10px;font-size:.9rem;font-weight:600;
-  background:var(--gris-light);color:var(--noir);cursor:pointer;
-  text-align:center;transition:all .2s;
-}
-.timepicker-slot:hover{background:#e0e0e0;transform:scale(1.03)}
-.timepicker-slot.active{background:var(--bordeaux);color:#fff}
-.timepicker-slot.disabled{opacity:.3;pointer-events:none}
-.timepicker-asap{
-  width:100%;padding:14px;border-radius:12px;font-size:.95rem;font-weight:700;
-  background:var(--green);color:#fff;margin-bottom:12px;transition:all .2s;
-}
+.timepicker-handle{width:36px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 16px}
+.timepicker-title{font-size:1.05rem;font-weight:700;text-align:center;margin-bottom:16px;letter-spacing:-.3px}
+.timepicker-asap{width:100%;padding:16px;border-radius:var(--r-sm);font-size:.95rem;font-weight:600;background:var(--green);color:#fff;margin-bottom:6px;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:2px}
 .timepicker-asap:hover{background:var(--green-dark)}
-.timepicker-asap:disabled{opacity:.4;cursor:not-allowed}
+.timepicker-asap:disabled{opacity:.3;cursor:not-allowed}
+.timepicker-asap-sub{font-size:.75rem;font-weight:400;opacity:.8}
+.timepicker-divider{font-size:.7rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);text-align:center;margin:14px 0 12px}
+.timepicker-days{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px}
+.timepicker-days::-webkit-scrollbar{display:none}
+.timepicker-day{flex-shrink:0;padding:10px 20px;border-radius:20px;font-size:.85rem;font-weight:600;background:var(--border-light);color:var(--dark);cursor:pointer;transition:all .15s;text-align:center}
+.timepicker-day.active{background:var(--dark);color:#fff}
+.timepicker-day small{display:block;font-size:.7rem;font-weight:400;opacity:.6;margin-top:2px}
+.timepicker-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.timepicker-slot{padding:14px 8px;border-radius:var(--r-xs);font-size:.9rem;font-weight:600;background:var(--border-light);color:var(--dark);cursor:pointer;text-align:center;transition:all .15s}
+.timepicker-slot:hover{background:var(--border);transform:scale(1.02)}
+.timepicker-slot.active{background:var(--dark);color:#fff}
+.timepicker-slot.disabled{opacity:.2;pointer-events:none}
 
-/* ========= NAV CATEGORIES ========= */
-.nav{
-  position:sticky;top:0;z-index:100;background:var(--blanc);
-  border-bottom:1px solid var(--gris-light);
-}
-.nav-inner{max-width:1000px;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:0;overflow-x:auto;scrollbar-width:none}
+/* ===== NAV ===== */
+.nav{position:sticky;top:0;z-index:100;background:var(--white);border-bottom:1px solid var(--border)}
+.nav-inner{max-width:1000px;margin:0 auto;padding:8px 20px;display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none}
 .nav-inner::-webkit-scrollbar{display:none}
-.nav-cat{
-  padding:14px 16px;font-size:.875rem;font-weight:500;
-  white-space:nowrap;color:var(--gris);transition:all .2s;background:none;
-  border-bottom:2px solid transparent;flex-shrink:0;
-}
-.nav-cat:hover{color:var(--noir)}
-.nav-cat.active{color:var(--noir);font-weight:700;border-bottom-color:var(--bordeaux)}
+.nav-cat{padding:8px 16px;font-size:.82rem;font-weight:500;white-space:nowrap;color:var(--text-soft);border-radius:20px;transition:all .15s;flex-shrink:0}
+.nav-cat:hover{color:var(--dark);background:var(--border-light)}
+.nav-cat.active{background:var(--dark);color:var(--white);font-weight:600}
 
-/* ========= MENU ========= */
+/* ===== MENU ===== */
 .menu-section{max-width:1000px;margin:0 auto;padding:16px 16px 100px}
-.menu-cat-title{
-  font-size:1.15rem;font-weight:800;margin:24px 0 12px;padding-top:4px;
-  letter-spacing:-.3px;color:var(--noir);
-  display:flex;align-items:center;gap:8px;
-}
-.menu-cat-title::after{
-  content:'';flex:1;height:1px;background:var(--gris-light);
-}
-.menu-cat-title:first-child{margin-top:4px}
-
-/* Grille de cartes */
-.menu-grid{
-  display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:8px;
-}
-.menu-card{
-  position:relative;border-radius:var(--radius);overflow:hidden;
-  background:var(--blanc);box-shadow:var(--shadow);cursor:pointer;
-  transition:transform .25s cubic-bezier(.4,0,.2,1),box-shadow .25s;
-  -webkit-tap-highlight-color:transparent;
-}
-.menu-card.reveal{opacity:0;transform:translateY(20px);transition:transform .5s cubic-bezier(.4,0,.2,1),box-shadow .25s,opacity .5s}
+.menu-cat-title{font-size:1.1rem;font-weight:700;margin:28px 0 14px;letter-spacing:-.3px;color:var(--dark);display:flex;align-items:center;gap:10px}
+.menu-cat-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.menu-cat-title:first-child{margin-top:8px}
+.menu-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:8px}
+.menu-card{position:relative;border-radius:var(--r);overflow:hidden;background:var(--white);box-shadow:var(--shadow-sm);cursor:pointer;transition:transform .2s,box-shadow .2s;-webkit-tap-highlight-color:transparent}
+.menu-card.reveal{opacity:0;transform:translateY(16px);transition:transform .45s cubic-bezier(.4,0,.2,1),box-shadow .2s,opacity .45s}
 .menu-card.reveal.visible{opacity:1;transform:translateY(0)}
 .menu-card:active{transform:scale(.97)}
-@media(hover:hover){.menu-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-3px)}}
-
-/* Image / emoji zone — ratio 4:3 pour gagner de la place */
-.menu-card-visual{
-  width:100%;aspect-ratio:4/3;background:var(--gris-light);
-  display:flex;align-items:center;justify-content:center;
-  overflow:hidden;position:relative;
-}
+@media(hover:hover){.menu-card:hover{box-shadow:var(--shadow);transform:translateY(-2px)}}
+.menu-card-visual{width:100%;aspect-ratio:4/3;background:linear-gradient(145deg,#F5F0EB,#EDE6DE);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
 .menu-card-visual img{width:100%;height:100%;object-fit:cover}
-.menu-card-visual .emoji-placeholder{font-size:2.8rem}
-
-/* Infos en bas */
-.menu-card-body{padding:8px 10px 10px}
-.menu-card-name{font-weight:700;font-size:.88rem;line-height:1.25;margin-bottom:2px;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.2px}
-.menu-card-desc{font-size:.72rem;color:var(--gris);line-height:1.3;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px}
+.emoji-placeholder{font-size:2.5rem;opacity:.7}
+.menu-card-body{padding:10px 12px 12px}
+.menu-card-name{font-weight:600;font-size:.88rem;line-height:1.25;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.2px}
+.menu-card-desc{font-size:.72rem;color:var(--text-soft);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:6px}
 .menu-card-bottom{display:flex;align-items:center;justify-content:space-between}
-.menu-card-price{font-weight:800;font-size:.92rem;color:var(--bordeaux)}
-
-/* Bouton + (min 44px pour touch) */
-.menu-card-add{
-  position:absolute;top:6px;right:6px;
-  width:44px;height:44px;border-radius:50%;
-  background:var(--blanc);box-shadow:0 2px 8px rgba(0,0,0,.2);
-  font-size:1.4rem;display:flex;align-items:center;justify-content:center;
-  transition:all .2s;font-weight:700;color:var(--noir);z-index:2;
-  -webkit-tap-highlight-color:transparent;
-}
-@media(hover:hover){.menu-card-add:hover{background:var(--green);color:#fff;transform:scale(1.08)}}
-.menu-card-add.in-cart{background:var(--green);color:#fff;font-size:.9rem;font-weight:800}
-.menu-card-unavailable{opacity:.4;pointer-events:none}
+.menu-card-price{font-weight:700;font-size:.92rem;color:var(--dark)}
+.menu-card-add{position:absolute;top:8px;right:8px;width:36px;height:36px;border-radius:50%;background:var(--white);box-shadow:0 2px 8px rgba(0,0,0,.12);font-size:1.3rem;display:flex;align-items:center;justify-content:center;transition:all .15s;font-weight:600;color:var(--dark);z-index:2;-webkit-tap-highlight-color:transparent}
+@media(hover:hover){.menu-card-add:hover{background:var(--dark);color:var(--white);transform:scale(1.1)}}
+.menu-card-unavailable{opacity:.35;pointer-events:none}
 .menu-card-unavailable .menu-card-add{display:none}
-
-/* Stepper [-] qty [+] sur carte */
-.menu-card-stepper{
-  position:absolute;top:6px;right:6px;z-index:2;
-  display:flex;align-items:center;
-  background:var(--blanc);border-radius:22px;
-  box-shadow:0 2px 8px rgba(0,0,0,.2);
-}
-.menu-card-stepper button{
-  width:36px;height:36px;font-size:1.1rem;font-weight:700;
-  background:none;display:flex;align-items:center;justify-content:center;
-  transition:background .15s;-webkit-tap-highlight-color:transparent;
-}
-.menu-card-stepper button:first-child{color:#E74C3C}
+.menu-card-stepper{position:absolute;top:8px;right:8px;z-index:2;display:flex;align-items:center;background:var(--white);border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.menu-card-stepper button{width:34px;height:34px;font-size:1rem;font-weight:600;background:none;display:flex;align-items:center;justify-content:center;transition:background .1s;-webkit-tap-highlight-color:transparent}
+.menu-card-stepper button:first-child{color:var(--red)}
 .menu-card-stepper button:last-child{color:var(--green)}
-.menu-card-stepper button:active{background:var(--gris-light);border-radius:50%}
-.menu-card-stepper span{min-width:22px;text-align:center;font-weight:800;font-size:.85rem}
+.menu-card-stepper button:active{background:var(--border-light);border-radius:50%}
+.menu-card-stepper span{min-width:22px;text-align:center;font-weight:700;font-size:.85rem}
 
+/* ===== BOTTOM BAR ===== */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;z-index:150;padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px));background:var(--white);border-top:1px solid var(--border);transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.bottom-bar.show{transform:translateY(0)}
+.bottom-bar-inner{max-width:1000px;margin:0 auto}
+.bottom-bar-btn{width:100%;padding:16px 20px;background:var(--dark);color:#fff;border-radius:var(--r-sm);font-size:.95rem;font-weight:600;display:flex;align-items:center;justify-content:space-between;transition:all .15s}
+.bottom-bar-btn:hover{background:#000}
+.bottom-bar-count{background:rgba(255,255,255,.2);padding:2px 10px;border-radius:20px;font-size:.82rem}
+.bottom-bar-total{font-size:.95rem;font-weight:700}
+
+/* ===== CART ===== */
+.cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;opacity:0;pointer-events:none;transition:opacity .3s}
+.cart-overlay.open{opacity:1;pointer-events:auto}
+.cart-panel{position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);background:var(--white);z-index:201;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+.cart-panel.open{transform:translateX(0)}
+.cart-header{padding:20px 20px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
+.cart-header h3{font-size:1.1rem;font-weight:700;letter-spacing:-.3px}
+.cart-close{background:var(--border-light);width:40px;height:40px;border-radius:50%;font-size:1.3rem;display:flex;align-items:center;justify-content:center;transition:background .15s;color:var(--text-soft)}
+.cart-close:hover{background:var(--border)}
+.cart-body{flex:1;overflow-y:auto}
+.cart-items{padding:12px 20px}
+.cart-empty{text-align:center;padding:48px 20px;color:var(--text-muted);font-size:.9rem}
+.cart-item{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--border-light);align-items:center}
+.cart-item:last-child{border-bottom:none}
+.cart-item-emoji{font-size:1.5rem;width:40px;height:40px;background:linear-gradient(145deg,#F5F0EB,#EDE6DE);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cart-item-info{flex:1;min-width:0}
+.cart-item-name{font-weight:600;font-size:.88rem;letter-spacing:-.2px}
+.cart-item-price{font-size:.78rem;color:var(--text-soft);font-weight:400;margin-top:1px}
+.cart-item-qty{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.cart-item-qty button{width:32px;height:32px;border-radius:50%;background:var(--border-light);font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all .15s;font-weight:600}
+.cart-item-qty button:hover{background:var(--border);transform:scale(1.05)}
+.cart-item-qty span{font-weight:700;min-width:20px;text-align:center;font-size:.88rem}
+
+/* ===== CART FOOTER ===== */
+.cart-footer{padding:16px 20px;background:var(--white)}
+.cart-subtotal{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:14px 16px;background:var(--border-light);border-radius:var(--r-sm);font-size:.88rem;color:var(--text-soft)}
+.cart-subtotal strong{color:var(--dark);font-size:1.1rem}
+.cart-form{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.cart-form input,.cart-form select,.cart-form textarea{padding:13px 16px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:.88rem;font-family:inherit;background:var(--white);transition:border-color .15s}
+.cart-form input:focus,.cart-form select:focus,.cart-form textarea:focus{border-color:var(--dark);outline:none}
+.cart-form input::placeholder,.cart-form textarea::placeholder{color:var(--text-muted)}
+.cart-form .form-row{display:flex;gap:8px}
+.cart-form .form-row>*{flex:1}
+.cart-form textarea{resize:none;min-height:56px}
+.cart-checkout-btn{width:100%;padding:16px;background:var(--dark);color:#fff;border-radius:var(--r-sm);font-size:1rem;font-weight:600;transition:all .15s;letter-spacing:.2px}
+.cart-checkout-btn:hover{background:#000;transform:translateY(-1px)}
+.cart-checkout-btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
+.cart-pay-info{font-size:.72rem;color:var(--text-muted);text-align:center;margin-top:8px}
+.cart-form-info{font-size:.78rem;color:var(--green);font-weight:500;margin:2px 0 0;line-height:1.4}
+.cart-optin{display:flex;align-items:flex-start;gap:8px;font-size:.78rem;color:var(--text-soft);cursor:pointer;margin-top:2px}
+.cart-optin input[type=checkbox]{width:18px;height:18px;accent-color:var(--green);flex-shrink:0;margin-top:1px}
+
+/* ===== SUGGESTIONS ===== */
+.cart-suggest{padding:0 20px 8px}
+.cart-suggest-title{font-size:.75rem;font-weight:600;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.cart-suggest-list{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
+.cart-suggest-list::-webkit-scrollbar{display:none}
+.cart-suggest-item{flex-shrink:0;display:flex;align-items:center;gap:8px;background:var(--border-light);border-radius:var(--r-sm);padding:8px 12px;cursor:pointer;transition:all .15s;font-size:.82rem}
+.cart-suggest-item:hover{background:var(--border);transform:translateY(-1px)}
+.cart-suggest-item:active{transform:scale(.97)}
+.suggest-emoji{font-size:1.2rem}
+.suggest-name{font-weight:600;white-space:nowrap}
+.suggest-price{color:var(--text-soft);font-size:.72rem;white-space:nowrap}
+.suggest-add{width:24px;height:24px;border-radius:50%;background:var(--dark);color:#fff;font-size:.8rem;display:flex;align-items:center;justify-content:center;font-weight:600}
+
+/* ===== UPSELL BUBBLE ===== */
+.upsell-bubble{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(120px);z-index:160;background:var(--dark);color:#fff;padding:14px 20px;border-radius:var(--r);box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:12px;max-width:min(400px,calc(100vw - 32px));transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .3s;opacity:0;pointer-events:none}
+.upsell-bubble.show{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto}
+.upsell-bubble-emoji{font-size:1.5rem;flex-shrink:0}
+.upsell-bubble-text{flex:1;font-size:.82rem;line-height:1.35}
+.upsell-bubble-text strong{color:var(--green);font-weight:600}
+.upsell-bubble-btn{background:var(--green);color:#fff;padding:8px 16px;border-radius:20px;font-size:.78rem;font-weight:600;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.upsell-bubble-btn:hover{background:var(--green-dark)}
+.upsell-bubble-close{position:absolute;top:-8px;right:-8px;width:22px;height:22px;background:#555;color:#fff;border-radius:50%;font-size:.7rem;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s}
+.upsell-bubble-close:hover{background:#777}
+
+/* ===== MODAL ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--white);border-radius:var(--r);padding:36px 32px;max-width:380px;width:100%;text-align:center;animation:modalIn .3s ease-out}
+@keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:none}}
+.modal-icon{width:64px;height:64px;border-radius:50%;background:var(--green-light);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 16px}
+.modal h3{font-size:1.15rem;font-weight:700;margin-bottom:4px}
+.modal-order-num{font-size:1.8rem;font-weight:700;color:var(--dark);margin:8px 0}
+.modal p{color:var(--text-soft);font-size:.88rem;margin-bottom:16px;line-height:1.5}
+.modal-btn{display:inline-block;padding:14px 28px;background:var(--dark);color:#fff;border-radius:var(--r-sm);font-weight:600;font-size:.9rem;transition:all .15s}
+.modal-btn:hover{background:#000}
+
+/* ===== FOOTER ===== */
+.footer{background:var(--dark);color:#fff;padding:40px 24px;text-align:center}
+.footer-inner{max-width:600px;margin:0 auto}
+.footer-brand{font-family:'DM Serif Display',Georgia,serif;font-size:1.2rem;margin-bottom:4px}
+.footer-sub{font-size:.78rem;opacity:.5;margin-bottom:16px}
+.footer-address{font-size:.78rem;opacity:.4;margin-bottom:4px}
+.footer-hours{font-size:.78rem;opacity:.4;margin-bottom:16px}
+.footer-link{font-size:.72rem;opacity:.3}
+
+/* ===== RESPONSIVE ===== */
 @media(min-width:640px){
   .menu-grid{grid-template-columns:repeat(3,1fr);gap:14px}
   .menu-card-visual{aspect-ratio:1}
+  .timepicker-slots{grid-template-columns:repeat(4,1fr)}
 }
 @media(min-width:900px){
   .menu-grid{grid-template-columns:repeat(4,1fr)}
 }
-
-/* ========= BOTTOM CART BAR (style Uber Eats) ========= */
-.bottom-bar{
-  position:fixed;bottom:0;left:0;right:0;z-index:150;
-  padding:12px 24px calc(12px + env(safe-area-inset-bottom,0px));background:var(--blanc);
-  border-top:1px solid var(--gris-light);
-  transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
-}
-.bottom-bar.show{transform:translateY(0)}
-.bottom-bar-inner{max-width:1000px;margin:0 auto}
-.bottom-bar-btn{
-  width:100%;padding:16px;background:var(--bordeaux);color:#fff;
-  border-radius:var(--radius-sm);font-size:1rem;font-weight:700;
-  display:flex;align-items:center;justify-content:space-between;
-  transition:all .25s;box-shadow:0 4px 16px rgba(139,26,26,.2);
-}
-.bottom-bar-btn:hover{background:#6B1414}
-.bottom-bar-count{
-  background:rgba(255,255,255,.2);padding:2px 10px;border-radius:20px;font-size:.85rem;
-}
-.bottom-bar-total{font-size:1rem}
-
-/* ========= CART PANEL ========= */
-.cart-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;
-  opacity:0;pointer-events:none;transition:opacity .3s;
-}
-.cart-overlay.open{opacity:1;pointer-events:auto}
-.cart-panel{
-  position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);
-  background:var(--blanc);z-index:201;
-  transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);
-  display:flex;flex-direction:column;
-}
-.cart-panel.open{transform:translateX(0)}
-
-.cart-header{
-  padding:20px 20px 16px;display:flex;align-items:center;justify-content:space-between;
-  border-bottom:1px solid var(--gris-light);flex-shrink:0;
-}
-.cart-header h3{font-size:1.15rem;font-weight:800;letter-spacing:-.3px}
-.cart-close{background:var(--gris-light);width:44px;height:44px;border-radius:50%;font-size:1.4rem;display:flex;align-items:center;justify-content:center;transition:background .2s}
-.cart-close:hover{background:#ddd}
-
-.cart-body{flex:1;overflow-y:auto}
-.cart-items{padding:12px 20px}
-.cart-empty{text-align:center;padding:48px 20px;color:var(--gris);font-size:.9rem}
-.cart-item{
-  display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--gris-light);
-  align-items:center;
-}
-.cart-item:last-child{border-bottom:none}
-.cart-item-emoji{font-size:1.6rem;width:40px;height:40px;
-  background:var(--gris-light);border-radius:10px;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.cart-item-info{flex:1;min-width:0}
-.cart-item-name{font-weight:700;font-size:.9rem;letter-spacing:-.2px}
-.cart-item-price{font-size:.78rem;color:var(--gris);font-weight:500;margin-top:1px}
-.cart-item-qty{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.cart-item-qty button{
-  width:34px;height:34px;border-radius:50%;background:var(--gris-light);
-  font-size:1.1rem;display:flex;align-items:center;justify-content:center;
-  transition:all .2s;font-weight:600;
-}
-.cart-item-qty button:hover{background:#ddd;transform:scale(1.08)}
-.cart-item-qty span{font-weight:800;min-width:22px;text-align:center;font-size:.9rem}
-
-/* ========= CHECKOUT ========= */
-.cart-footer{padding:16px 20px;background:var(--blanc)}
-.cart-subtotal{
-  display:flex;justify-content:space-between;margin-bottom:16px;
-  padding:14px 16px;background:var(--gris-light);border-radius:var(--radius-sm);
-  font-size:.9rem;color:var(--gris);
-}
-.cart-subtotal strong{color:var(--noir);font-size:1.15rem}
-.cart-form{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
-.cart-form input,.cart-form select{
-  padding:12px 14px;border:1.5px solid var(--gris-light);border-radius:var(--radius-sm);
-  font-size:.9rem;font-family:inherit;background:var(--blanc);
-  transition:border-color .2s;
-}
-.cart-form input:focus,.cart-form select:focus{border-color:var(--noir);outline:none}
-.cart-form .form-row{display:flex;gap:8px}
-.cart-form .form-row>*{flex:1}
-.cart-checkout-btn{
-  width:100%;padding:16px;background:var(--bordeaux);color:#fff;
-  border-radius:var(--radius-sm);font-size:1rem;font-weight:700;
-  transition:all .25s;letter-spacing:.3px;
-  box-shadow:0 4px 16px rgba(139,26,26,.25);
-}
-.cart-checkout-btn:hover{background:#6B1414;transform:translateY(-1px);box-shadow:0 6px 20px rgba(139,26,26,.3)}
-.cart-checkout-btn:disabled{opacity:.4;cursor:not-allowed}
-.cart-pay-info{font-size:.75rem;color:var(--gris);text-align:center;margin-top:6px}
-.cart-form-info{font-size:.8rem;color:var(--green);font-weight:500;margin:4px 0 0;line-height:1.4}
-.cart-optin{display:flex;align-items:flex-start;gap:8px;font-size:.8rem;color:var(--gris);cursor:pointer;margin-top:2px}
-.cart-optin input[type=checkbox]{width:18px;height:18px;accent-color:var(--green);flex-shrink:0;margin-top:1px}
-.cart-form textarea{
-  padding:12px 14px;border:1.5px solid var(--gris-light);border-radius:var(--radius-sm);
-  font-size:.9rem;font-family:inherit;background:var(--blanc);resize:none;
-  transition:border-color .2s;min-height:60px;
-}
-.cart-form textarea:focus{border-color:var(--noir);outline:none}
-
-/* Suggestions upsell */
-.cart-suggest{padding:0 20px 8px}
-.cart-suggest-title{font-size:.8rem;font-weight:700;color:var(--gris);margin-bottom:8px}
-.cart-suggest-list{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
-.cart-suggest-list::-webkit-scrollbar{display:none}
-.cart-suggest-item{
-  flex-shrink:0;display:flex;align-items:center;gap:8px;
-  background:var(--gris-light);border-radius:var(--radius-sm);padding:8px 12px;
-  cursor:pointer;transition:all .2s;font-size:.82rem;
-}
-.cart-suggest-item:hover{background:#e8e8e8;transform:translateY(-1px)}
-.cart-suggest-item:active{background:#ddd;transform:scale(.97)}
-.cart-suggest-item .suggest-emoji{font-size:1.2rem}
-.cart-suggest-item .suggest-name{font-weight:600;white-space:nowrap}
-.cart-suggest-item .suggest-price{color:var(--gris);font-size:.75rem;white-space:nowrap}
-.cart-suggest-item .suggest-add{
-  width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;
-  font-size:.9rem;display:flex;align-items:center;justify-content:center;font-weight:700;
-}
-
-/* Upsell bubble toast */
-.upsell-bubble{
-  position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(120px);
-  z-index:160;background:var(--noir);color:#fff;
-  padding:14px 20px;border-radius:16px;
-  box-shadow:0 8px 32px rgba(0,0,0,.25);
-  display:flex;align-items:center;gap:12px;
-  max-width:min(400px,calc(100vw - 32px));
-  transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .3s;
-  opacity:0;pointer-events:none;
-}
-.upsell-bubble.show{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto}
-.upsell-bubble-emoji{font-size:1.6rem;flex-shrink:0}
-.upsell-bubble-text{flex:1;font-size:.85rem;line-height:1.35}
-.upsell-bubble-text strong{color:var(--green);font-weight:700}
-.upsell-bubble-btn{
-  background:var(--green);color:#fff;padding:8px 16px;border-radius:20px;
-  font-size:.8rem;font-weight:700;white-space:nowrap;transition:all .2s;flex-shrink:0;
-}
-.upsell-bubble-btn:hover{background:var(--green-dark);transform:scale(1.05)}
-.upsell-bubble-close{
-  position:absolute;top:-8px;right:-8px;width:24px;height:24px;
-  background:#555;color:#fff;border-radius:50%;font-size:.75rem;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;transition:background .2s;
-}
-.upsell-bubble-close:hover{background:#777}
-
-/* ========= CONFIRMATION MODAL ========= */
-.modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;
-  display:none;align-items:center;justify-content:center;padding:24px;
-}
-.modal-overlay.open{display:flex}
-.modal{
-  background:var(--blanc);border-radius:var(--radius);padding:32px;
-  max-width:400px;width:100%;text-align:center;
-  animation:modalIn .3s ease-out;
-}
-@keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:none}}
-.modal-icon{font-size:3rem;margin-bottom:12px}
-.modal h3{font-size:1.2rem;font-weight:800;margin-bottom:4px}
-.modal-order-num{font-size:1.8rem;font-weight:800;color:var(--bordeaux);margin:8px 0}
-.modal p{color:var(--gris);font-size:.9rem;margin-bottom:16px}
-.modal-btn{
-  display:inline-block;padding:12px 28px;background:var(--noir);
-  color:#fff;border-radius:var(--radius-sm);font-weight:700;font-size:.9rem;transition:background .2s;
-}
-.modal-btn:hover{background:#333}
-
-/* ========= FOOTER ========= */
-.footer{background:var(--noir);color:#fff;padding:24px;text-align:center;font-size:.8rem;opacity:.6}
-
-/* ========= RESPONSIVE ========= */
 @media(max-width:640px){
-  .header{padding:12px 16px}
-  .header-inner{flex-direction:column;align-items:flex-start;gap:4px}
-  .header-left h1{font-size:1.2rem}
-  .timing-inner{flex-wrap:wrap;gap:6px;padding:8px 16px}
-  .timing-tagline{width:100%;margin-right:0;font-size:.75rem}
-  .timing-btn{padding:7px 16px;font-size:.8rem}
-  .nav-inner{padding:0 12px}
-  .nav-cat{padding:12px 14px;font-size:.82rem}
+  .header{padding:16px}
+  .header-inner{flex-wrap:wrap;gap:8px}
+  .brand{font-size:1.3rem}
+  .info-inner{padding:8px 16px;gap:10px}
+  .info-address{font-size:.78rem}
+  .nav-inner{padding:6px 12px}
+  .nav-cat{padding:7px 14px;font-size:.78rem}
   .menu-section{padding:10px 10px calc(90px + env(safe-area-inset-bottom,0px))}
-  .menu-cat-title{font-size:1.05rem;margin:16px 0 8px}
+  .menu-cat-title{font-size:1rem;margin:20px 0 10px}
   .menu-grid{gap:8px}
-  .menu-card-body{padding:6px 8px 8px}
+  .menu-card-body{padding:8px 10px 10px}
   .menu-card-name{font-size:.82rem}
   .menu-card-desc{display:none}
-  .menu-card-price{font-size:.88rem}
-  .menu-card-add{width:38px;height:38px;font-size:1.2rem}
-  .menu-card-stepper button{width:32px;height:32px;font-size:1rem}
+  .menu-card-price{font-size:.85rem}
+  .menu-card-add{width:34px;height:34px;font-size:1.1rem}
+  .menu-card-stepper button{width:30px;height:30px;font-size:.9rem}
   .bottom-bar{padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
   .cart-panel{width:100vw}
   .cart-footer{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
   .cart-form .form-row{flex-direction:column;gap:8px}
 }
-
-/* Petits écrans (iPhone SE, 375px) */
 @media(max-width:380px){
   .menu-grid{gap:6px}
-  .menu-card-body{padding:5px 6px 7px}
+  .menu-card-body{padding:6px 8px 8px}
   .menu-card-name{font-size:.78rem}
   .menu-card-price{font-size:.82rem}
-  .timing-btn{padding:6px 12px;font-size:.75rem}
 }
 </style>
 </head>
 <body>
 
-<!-- ===== HEADER COMPACT ===== -->
+<!-- HEADER -->
 <header class="header">
   <div class="header-inner">
-    <div class="header-left">
-      <h1>A Beyrouth <span>Express</span></h1>
-      <p>Click & Collect — Commande, on prépare, tu récupères</p>
-    </div>
+    <h1 class="brand">A Beyrouth</h1>
     <div class="header-right">
-      <div class="header-status" id="headerStatus"><span class="dot"></span> <span id="statusText">Ouvert</span></div>
-      <div class="header-hours" id="headerHours"></div>
+      <span class="header-badge">Click & Collect</span>
+      <div class="header-status" id="headerStatus">
+        <span class="dot"></span>
+        <span id="statusText">Ouvert</span>
+        <span id="headerHours" class="header-sub"></span>
+      </div>
     </div>
   </div>
 </header>
 
-<!-- ===== TIMING BAR ===== -->
-<div class="timing-bar">
-  <div class="timing-inner">
-    <div class="timing-info">
-      <span class="timing-dot" id="timingDot"></span>
-      <span class="timing-text" id="timingText">Ouvert <small>· Lun-Ven 11h–15h</small></span>
-    </div>
-    <div class="timing-pick" onclick="openTimePicker()">
-      <span>🕐</span>
+<!-- INFO BAR -->
+<div class="info-bar">
+  <div class="info-inner">
+    <a class="info-address" href="https://www.google.com/maps/search/A+Beyrouth+1+Esplanade+du+General+de+Gaulle+92800+Puteaux" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      La Défense — Sortie 4 Métro
+    </a>
+    <button class="info-time" onclick="openTimePicker()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
       <span id="timingPickLabel">Dès que possible</span>
-      <span style="font-size:.7rem;opacity:.5">▼</span>
-    </div>
+      <span style="font-size:.65rem;opacity:.4">&#9662;</span>
+    </button>
   </div>
 </div>
 
-<!-- ===== TIME PICKER BOTTOM SHEET ===== -->
+<!-- Hidden elements for JS compatibility -->
+<span id="timingDot" hidden></span>
+<span id="timingText" hidden></span>
+
+<!-- TIME PICKER -->
 <div class="timepicker-overlay" id="tpOverlay" onclick="closeTimePicker()"></div>
 <div class="timepicker-sheet" id="tpSheet">
   <div class="timepicker-handle"></div>
-  <div class="timepicker-title">Quand voulez-vous manger ?</div>
+  <div class="timepicker-title">Heure de retrait</div>
   <button class="timepicker-asap" id="tpAsap" onclick="selectTime('asap')">
-    ⚡ Dès que possible (~15 min)
+    Dès que possible
+    <span class="timepicker-asap-sub">~15 min de préparation</span>
   </button>
+  <div class="timepicker-divider">ou choisir un créneau</div>
   <div class="timepicker-days" id="tpDays"></div>
   <div class="timepicker-slots" id="tpSlots"></div>
 </div>
 
-<!-- ===== NAV CATEGORIES ===== -->
+<!-- NAV -->
 <nav class="nav" id="nav">
   <div class="nav-inner" id="navCats"></div>
 </nav>
 
-<!-- ===== MENU ===== -->
+<!-- MENU -->
 <section class="menu-section" id="menu">
   <div id="menuContent"></div>
 </section>
 
-<!-- ===== BOTTOM CART BAR ===== -->
+<!-- BOTTOM BAR -->
 <div class="bottom-bar" id="bottomBar">
   <div class="bottom-bar-inner">
     <button class="bottom-bar-btn" onclick="toggleCart()">
@@ -474,7 +315,7 @@ a{color:inherit;text-decoration:none}
   </div>
 </div>
 
-<!-- ===== CART PANEL ===== -->
+<!-- CART -->
 <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
 <div class="cart-panel" id="cartPanel">
   <div class="cart-header">
@@ -482,43 +323,43 @@ a{color:inherit;text-decoration:none}
     <button class="cart-close" onclick="toggleCart()">&times;</button>
   </div>
   <div class="cart-body">
-  <div class="cart-items" id="cartItems">
-    <div class="cart-empty" id="cartEmpty">Votre panier est vide</div>
-  </div>
-  <div class="cart-suggest" id="cartSuggest" style="display:none">
-    <div class="cart-suggest-title">Vous aimerez peut-être aussi</div>
-    <div class="cart-suggest-list" id="cartSuggestList"></div>
-  </div>
-  <div class="cart-footer" id="cartFooter" style="display:none">
-    <div class="cart-subtotal">
-      <span>Total</span>
-      <strong id="cartTotal">0,00 €</strong>
+    <div class="cart-items" id="cartItems">
+      <div class="cart-empty" id="cartEmpty">Votre panier est vide</div>
     </div>
-    <div class="cart-form">
-      <select id="pickupTime" style="display:none">
-        <option value="asap">Dès que possible (~15 min)</option>
-      </select>
-      <input type="text" id="clientName" placeholder="Prénom" required>
-      <div class="form-row">
-        <input type="tel" id="clientPhone" placeholder="Téléphone" required>
-        <input type="email" id="clientEmail" placeholder="Email" required>
+    <div class="cart-suggest" id="cartSuggest" style="display:none">
+      <div class="cart-suggest-title">Vous aimerez aussi</div>
+      <div class="cart-suggest-list" id="cartSuggestList"></div>
+    </div>
+    <div class="cart-footer" id="cartFooter" style="display:none">
+      <div class="cart-subtotal">
+        <span>Total</span>
+        <strong id="cartTotal">0,00 €</strong>
       </div>
-      <textarea id="clientNote" placeholder="Note : allergies, sans oignon, etc."></textarea>
-      <p class="cart-form-info">📩 On vous envoie un email quand c'est prêt !</p>
-      <label class="cart-optin">
-        <input type="checkbox" id="optinPromos">
-        <span>Me tenir informé des offres et promotions</span>
-      </label>
+      <div class="cart-form">
+        <select id="pickupTime" style="display:none">
+          <option value="asap">Dès que possible (~15 min)</option>
+        </select>
+        <input type="text" id="clientName" placeholder="Prénom" required>
+        <div class="form-row">
+          <input type="tel" id="clientPhone" placeholder="Téléphone" required>
+          <input type="email" id="clientEmail" placeholder="Email" required>
+        </div>
+        <textarea id="clientNote" placeholder="Note : allergies, sans oignon, etc."></textarea>
+        <p class="cart-form-info">On vous envoie un email quand c'est prêt</p>
+        <label class="cart-optin">
+          <input type="checkbox" id="optinPromos">
+          <span>Me tenir informé des offres et promotions</span>
+        </label>
+      </div>
+      <button class="cart-checkout-btn" id="cartSubmit" onclick="submitOrder()">
+        Passer la commande
+      </button>
+      <p class="cart-pay-info">Paiement en ligne sécurisé (CB, carte restaurant)</p>
     </div>
-    <button class="cart-checkout-btn" id="cartSubmit" onclick="submitOrder()">
-      Passer la commande
-    </button>
-    <p class="cart-pay-info">Paiement en ligne sécurisé (CB, carte resto)</p>
   </div>
-  </div><!-- /cart-body -->
 </div>
 
-<!-- ===== CONFIRMATION MODAL ===== -->
+<!-- MODAL -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal">
     <div class="modal-icon">&#10003;</div>
@@ -529,7 +370,7 @@ a{color:inherit;text-decoration:none}
   </div>
 </div>
 
-<!-- ===== UPSELL BUBBLE ===== -->
+<!-- UPSELL -->
 <div class="upsell-bubble" id="upsellBubble">
   <span class="upsell-bubble-emoji" id="upsellEmoji"></span>
   <div class="upsell-bubble-text" id="upsellText"></div>
@@ -537,10 +378,18 @@ a{color:inherit;text-decoration:none}
   <div class="upsell-bubble-close" onclick="dismissUpsell()">&times;</div>
 </div>
 
-<!-- ===== FOOTER ===== -->
-<footer class="footer">A Beyrouth — La Défense — beyrouth.express</footer>
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <p class="footer-brand">A Beyrouth</p>
+    <p class="footer-sub">Cuisine libanaise authentique</p>
+    <p class="footer-address">1 Esplanade du Général de Gaulle, 92800 Puteaux</p>
+    <p class="footer-hours">Lun–Ven 11h–15h</p>
+    <p class="footer-link">beyrouth.express</p>
+  </div>
+</footer>
 
-<!-- ===== SUPABASE ===== -->
+<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 // ===== CONFIG =====
@@ -555,7 +404,7 @@ let menuItems = [];
 let ingredients = [];
 let cart = JSON.parse(localStorage.getItem('be_cart') || '[]');
 
-// ===== DEMO DATA (menu réel A Beyrouth) =====
+// ===== DEMO DATA =====
 const DEMO_CATEGORIES = [
   {id:2, nom:'Formules', ordre:1, emoji:'🍽️'},
   {id:1, nom:'Sandwichs', ordre:2, emoji:'🌯'},
@@ -568,7 +417,6 @@ const DEMO_CATEGORIES = [
 ];
 
 const DEMO_ITEMS = [
-  // === SANDWICHS (tous à 6.90€) ===
   {id:1, categorie_id:1, nom:'Shawarma Poulet', description:'Émincé de poulet mariné, crudités, sauce maison', prix:6.90, emoji:'🌯', image_url:'img/sandwich-shawarma.jpg', disponible:true},
   {id:2, categorie_id:1, nom:'Chich Taouk', description:'Brochette de blanc de poulet mariné', prix:6.90, emoji:'🌯', image_url:'img/sandwich-chich-taouk.jpg', disponible:true},
   {id:3, categorie_id:1, nom:'Shawarma Boeuf', description:'Émincé de boeuf mariné, crudités, sauce maison', prix:6.90, emoji:'🌯', image_url:'img/sandwich-boeuf.jpg', disponible:true},
@@ -577,51 +425,37 @@ const DEMO_ITEMS = [
   {id:6, categorie_id:1, nom:'Foie de Volaille', description:'Mariné au citron', prix:6.90, emoji:'🍗', image_url:'img/sandwich-foie-volaille.jpg', disponible:true},
   {id:7, categorie_id:1, nom:'Kafta', description:'Brochette de boeuf hachée persillée', prix:6.90, emoji:'🍢', image_url:'img/sandwich-kafta.jpg', disponible:true},
   {id:8, categorie_id:1, nom:'Soujouk', description:'Saucisses de boeuf épicées', prix:6.90, emoji:'🌭', image_url:'img/sandwich-soujouk.jpg', disponible:true},
-
-  // === FORMULES ===
   {id:10, categorie_id:2, nom:'Formule 1', description:'Sandwich + 2 feuilletés + boisson', prix:10.90, emoji:'1️⃣', disponible:true},
   {id:11, categorie_id:2, nom:'Formule 2', description:'Sandwich + entrée froide + boisson', prix:11.90, emoji:'2️⃣', disponible:true},
   {id:12, categorie_id:2, nom:'Formule 3', description:'Sandwich + dessert + boisson', prix:11.90, emoji:'3️⃣', disponible:true},
   {id:13, categorie_id:2, nom:'Formule 4', description:'2 sandwiches au choix + boisson', prix:14.90, emoji:'4️⃣', disponible:true},
   {id:14, categorie_id:2, nom:'Formule Plat du Jour', description:'Plat du jour + boisson', prix:13.90, emoji:'🍽️', disponible:true},
-
-  // === GRILLADES ===
   {id:20, categorie_id:3, nom:'Kafta Méchoui', description:'2 brochettes boeuf, riz, crudités', prix:13.00, emoji:'🍢', disponible:true},
   {id:21, categorie_id:3, nom:'Chich Taouk', description:'2 brochettes poulet, riz, crudités', prix:13.00, emoji:'🍗', disponible:true},
   {id:22, categorie_id:3, nom:'Shawarma Poulet ou Boeuf', description:'Émincé mariné grillé à la broche, riz, crudités', prix:15.00, emoji:'🌯', disponible:true},
   {id:24, categorie_id:3, nom:'Grillade Mixte', description:'Shawarma poulet, kafta, chich taouk, riz, crudités', prix:16.00, emoji:'🔥', disponible:true},
-
-  // === PLATEAUX ===
   {id:30, categorie_id:4, nom:'Beyrouth Poulet', description:'Houmous, moutabal, taboulé, shawarma poulet, riz', prix:14.00, emoji:'🥘', disponible:true},
   {id:31, categorie_id:4, nom:'Beyrouth Boeuf', description:'Houmous, moutabal, taboulé, shawarma boeuf, riz', prix:15.00, emoji:'🥘', disponible:true},
   {id:32, categorie_id:4, nom:'Végétarienne', description:'Houmous, moutabal, moussaka, crudités, 3 feuilletés végétariens', prix:14.00, emoji:'🥬', disponible:true},
   {id:33, categorie_id:4, nom:'Falafel', description:'Houmous, moutabal, taboulé, crudités, 3 falafels', prix:14.00, emoji:'🧆', disponible:true},
   {id:34, categorie_id:4, nom:'Liban', description:'Houmous, moutabal, chich taouk, riz, crudités, 2 feuilletés végétariens', prix:16.00, emoji:'🇱🇧', disponible:true},
   {id:35, categorie_id:4, nom:'Byblos', description:'Houmous, moutabal, taboulé, 3 feuilletés végétariens, kafta, chich taouk, shawarma poulet, riz', prix:18.00, emoji:'👑', disponible:true},
-
-  // === ENTRÉES FROIDES ===
   {id:40, categorie_id:5, nom:'Houmous', description:'Purée de pois chiches au tahini, parfumée au citron et à l\'huile d\'olive', prix:6.00, emoji:'🫘', image_url:'img/houmous.jpg', disponible:true},
   {id:41, categorie_id:5, nom:'Moutabal', description:'Caviar d\'aubergines rôties à la crème de sésame, jus de citron', prix:6.00, emoji:'🍆', image_url:'img/moutabal.jpg', disponible:true},
   {id:42, categorie_id:5, nom:'Taboulé', description:'Salade de persil, tomates, oignons, blé concassé, huile d\'olive, citron', prix:6.00, emoji:'🥗', image_url:'img/taboule.jpg', disponible:true},
   {id:43, categorie_id:5, nom:'Salade du Moine', description:'Aubergines grillées, tomates, persil, poivrons, huile d\'olive, jus de citron', prix:6.00, emoji:'🥗', image_url:'img/salade-moine.jpg', disponible:true},
   {id:44, categorie_id:5, nom:'Moussaka', description:'Aubergines au four, cuisinées à la sauce tomate, pois chiches', prix:7.50, emoji:'🍲', image_url:'img/plat-jour.jpg', disponible:true},
   {id:45, categorie_id:5, nom:'Feuilles de Vignes', description:'Farcies de riz, huile d\'olive, citron', prix:6.00, emoji:'🌿', image_url:'img/feuilles-vigne.jpg', disponible:true},
-
-  // === ENTRÉES CHAUDES ===
   {id:70, categorie_id:13, nom:'Falafel (pièce)', description:'Fèves et pois chiches à la coriandre', prix:1.50, emoji:'🧆', image_url:'img/falafel.jpg', disponible:true},
   {id:71, categorie_id:13, nom:'Fattayer', description:'Chaussons aux épinards acidulés', prix:1.50, emoji:'🥟', image_url:'img/fattayer.jpg', disponible:true},
   {id:72, categorie_id:13, nom:'Samboussek Fromage', description:'Fromage de feta', prix:1.50, emoji:'🥟', image_url:'img/sambousek-fromage.jpg', disponible:true},
   {id:73, categorie_id:13, nom:'Rikakat Fromage', description:'Fromage de feta', prix:2.00, emoji:'🧀', image_url:'img/rkakat.jpg', disponible:true},
   {id:74, categorie_id:13, nom:'Samboussek Viande', description:'Viande de boeuf haché', prix:1.50, emoji:'🥟', image_url:'img/sambousek-viande.jpg', disponible:true},
   {id:75, categorie_id:13, nom:'Kebbé', description:'Boulette de blé concassé farcies de viande hachée', prix:2.50, emoji:'🍡', image_url:'img/kebbe.jpg', disponible:true},
-
-  // === DESSERTS ===
   {id:50, categorie_id:6, nom:'Mouhalabieh', description:'Flan fleur d\'oranger, pistaches (fait maison)', prix:4.00, emoji:'🍮', image_url:'img/mouhalabieh.jpg', disponible:true},
   {id:51, categorie_id:6, nom:'Namoura', description:'Gâteau de semoule, sirop fleur d\'oranger', prix:4.00, emoji:'🍰', image_url:'img/namoura.jpg', disponible:true},
   {id:52, categorie_id:6, nom:'Baklawas', description:'Boîte de 3 pièces', prix:4.50, emoji:'🍯', image_url:'img/baklawas.jpg', disponible:true},
   {id:53, categorie_id:6, nom:'Duo Sablés', description:'2 sablés : pistaches, amandes, noix ou dattes', prix:5.00, emoji:'🍪', image_url:'img/duo-sables.jpg', disponible:true},
-
-  // === BOISSONS ===
   {id:60, categorie_id:7, nom:'Coca-Cola', description:'Canette 33cl', prix:2.00, emoji:'🥤', image_url:'img/coca.jpg', disponible:true},
   {id:61, categorie_id:7, nom:'Fanta', description:'Canette 33cl', prix:2.00, emoji:'🥤', image_url:'img/fanta.jpg', disponible:true},
   {id:62, categorie_id:7, nom:'Oasis Tropical', description:'Canette 33cl', prix:2.00, emoji:'🥤', image_url:'img/oasis.jpg', disponible:true},
@@ -635,13 +469,11 @@ const DEMO_ITEMS = [
 
 // ===== HORAIRES =====
 const BUSINESS_HOURS = [
-  // [jour (0=dim), ouverture_h, ouverture_m, fermeture_h, fermeture_m]
-  [1, 11, 0, 15, 0], // Lundi
-  [2, 11, 0, 15, 0], // Mardi
-  [3, 11, 0, 15, 0], // Mercredi
-  [4, 11, 0, 15, 0], // Jeudi
-  [5, 11, 0, 15, 0], // Vendredi
-  // Samedi & Dimanche : fermé
+  [1, 11, 0, 15, 0],
+  [2, 11, 0, 15, 0],
+  [3, 11, 0, 15, 0],
+  [4, 11, 0, 15, 0],
+  [5, 11, 0, 15, 0],
 ];
 const JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 
@@ -660,12 +492,10 @@ function getNextOpenSlot() {
   const day = now.getDay();
   const h = now.getHours(), m = now.getMinutes();
   const nowMin = h * 60 + m;
-  // Check today (not yet open?)
   const today = BUSINESS_HOURS.find(s => s[0] === day);
   if (today && nowMin < today[1] * 60 + today[2]) {
     return {jour: JOURS[day], h: today[1], m: today[2]};
   }
-  // Check next days
   for (let i = 1; i <= 7; i++) {
     const d = (day + i) % 7;
     const slot = BUSINESS_HOURS.find(s => s[0] === d);
@@ -684,12 +514,12 @@ function updateOpenStatus() {
     textEl.textContent = 'Ouvert';
     const now = new Date();
     const slot = BUSINESS_HOURS.find(s => s[0] === now.getDay());
-    hoursEl.textContent = `Jusqu'à ${slot[3]}h${slot[4] ? String(slot[4]).padStart(2,'0') : '00'}`;
+    hoursEl.textContent = `· Jusqu'à ${slot[3]}h${slot[4] ? String(slot[4]).padStart(2,'0') : '00'}`;
   } else {
     statusEl.classList.add('closed');
     textEl.textContent = 'Fermé';
     const next = getNextOpenSlot();
-    hoursEl.textContent = next ? `Ouvre ${next.jour} ${next.h}h${next.m ? String(next.m).padStart(2,'0') : '00'}` : '';
+    hoursEl.textContent = next ? `· Ouvre ${next.jour} ${next.h}h${next.m ? String(next.m).padStart(2,'0') : '00'}` : '';
   }
   return open;
 }
@@ -700,7 +530,7 @@ document.addEventListener('DOMContentLoaded', init);
 async function init() {
   generateTimeSlots();
   const open = updateOpenStatus();
-  setInterval(updateOpenStatus, 60000); // refresh chaque minute
+  setInterval(updateOpenStatus, 60000);
   if (sb) {
     await loadFromSupabase();
     subscribeRealtime();
@@ -817,7 +647,6 @@ function addToCart(itemId) {
     cart.push({id: item.id, nom: item.nom, prix: item.prix, emoji: item.emoji || '🍽️', qty: 1});
   }
   saveCart(); updateCartUI(); renderMenu();
-  // Smart upsell bubble on first add
   if (isNew) showUpsellBubble(itemId);
 }
 
@@ -832,20 +661,15 @@ function changeQty(itemId, delta) {
 function updateCartUI() {
   const total = cart.reduce((s, c) => s + c.prix * c.qty, 0);
   const count = cart.reduce((s, c) => s + c.qty, 0);
-
-  // Bottom bar
   const bar = document.getElementById('bottomBar');
   bar.classList.toggle('show', count > 0);
   document.getElementById('bottomCount').textContent = count;
   document.getElementById('bottomTotal').textContent = formatPrice(total);
-
-  // Cart panel
   const itemsEl = document.getElementById('cartItems');
   const emptyEl = document.getElementById('cartEmpty');
   const footerEl = document.getElementById('cartFooter');
   const totalEl = document.getElementById('cartTotal');
   const suggestEl = document.getElementById('cartSuggest');
-
   if (cart.length === 0) {
     emptyEl.style.display = '';
     footerEl.style.display = 'none';
@@ -856,7 +680,6 @@ function updateCartUI() {
   emptyEl.style.display = 'none';
   footerEl.style.display = '';
   totalEl.textContent = formatPrice(total);
-
   const existing = itemsEl.querySelectorAll('.cart-item');
   existing.forEach(el => el.remove());
   cart.forEach(c => {
@@ -875,8 +698,6 @@ function updateCartUI() {
       </div>`;
     itemsEl.appendChild(div);
   });
-
-  // Suggestions upsell
   renderSuggestions();
 }
 
@@ -888,36 +709,25 @@ function renderSuggestions() {
     const item = menuItems.find(i => i.id === c.id);
     return item ? item.categorie_id : 0;
   }));
-
-  // Smart suggestions: prioritize what pairs with cart content
   let suggestions = [];
-
-  // Has sandwich/grillade/plateau but no drink → push drinks first
   if ((cartCatIds.has(1) || cartCatIds.has(3) || cartCatIds.has(4)) && !cartCatIds.has(7)) {
     suggestions.push(...menuItems.filter(i => i.categorie_id === 7 && i.disponible && !cartIds.has(i.id)).slice(0, 3));
   }
-  // Has main course but no dessert → push desserts
   if ((cartCatIds.has(1) || cartCatIds.has(2) || cartCatIds.has(3) || cartCatIds.has(4)) && !cartCatIds.has(6)) {
     suggestions.push(...menuItems.filter(i => i.categorie_id === 6 && i.disponible && !cartIds.has(i.id)).slice(0, 3));
   }
-  // Has main but no entrée → push entrées chaudes (small items, easy add)
   if ((cartCatIds.has(1) || cartCatIds.has(3)) && !cartCatIds.has(13)) {
     suggestions.push(...menuItems.filter(i => i.categorie_id === 13 && i.disponible && !cartIds.has(i.id)).slice(0, 2));
   }
-  // Dedupe and limit
   suggestions = [...new Map(suggestions.map(s => [s.id, s])).values()].slice(0, 6);
-
   if (suggestions.length === 0 || cart.length === 0) {
     suggestEl.style.display = 'none';
     return;
   }
-
-  // Dynamic title based on what's missing
   const titleEl = suggestEl.querySelector('.cart-suggest-title');
   if (!cartCatIds.has(7)) titleEl.textContent = 'Une boisson avec ça ?';
-  else if (!cartCatIds.has(6)) titleEl.textContent = 'Une petite douceur pour finir ?';
-  else titleEl.textContent = 'Vous aimerez peut-être aussi';
-
+  else if (!cartCatIds.has(6)) titleEl.textContent = 'Un dessert pour finir ?';
+  else titleEl.textContent = 'Vous aimerez aussi';
   suggestEl.style.display = '';
   listEl.innerHTML = suggestions.map(s => `
     <div class="cart-suggest-item" onclick="addToCart(${s.id});updateCartUI();renderMenu()">
@@ -931,7 +741,7 @@ function renderSuggestions() {
   `).join('');
 }
 
-// ===== SMART UPSELL BUBBLE =====
+// ===== UPSELL =====
 let upsellTimeout = null;
 let pendingUpsell = null;
 
@@ -942,22 +752,17 @@ function getSmartUpsell(addedItem) {
     const mi = menuItems.find(i => i.id === c.id);
     return mi ? mi.categorie_id : 0;
   }));
-
-  // Sandwich seul → pousse formule
   if (item.categorie_id === 1 && !cartCatIds.has(2)) {
     const formule1 = menuItems.find(i => i.id === 10 && i.disponible);
     if (formule1) {
-      const savings = item.prix + 2.00 + 1.50 + 1.50 - formule1.prix; // sandwich + boisson + 2 feuilletés - formule
       return {
         emoji: '💡',
-        text: `<strong>Formule 1 à ${formatPrice(formule1.prix)}</strong> — sandwich + 2 feuilletés + boisson. Vous économisez !`,
+        text: `<strong>Formule 1 à ${formatPrice(formule1.prix)}</strong> — sandwich + 2 feuilletés + boisson`,
         action: () => { cart = cart.filter(c => c.id !== addedItem); addToCart(formule1.id); },
         btn: 'Passer en formule'
       };
     }
   }
-
-  // Formule → pousse dessert
   if (item.categorie_id === 2 && !cartCatIds.has(6)) {
     const desserts = menuItems.filter(i => i.categorie_id === 6 && i.disponible);
     if (desserts.length) {
@@ -970,8 +775,6 @@ function getSmartUpsell(addedItem) {
       };
     }
   }
-
-  // Grillade/Plateau sans boisson
   if ([3, 4].includes(item.categorie_id) && !cartCatIds.has(7)) {
     return {
       emoji: '🥤',
@@ -980,8 +783,6 @@ function getSmartUpsell(addedItem) {
       btn: 'Voir les boissons'
     };
   }
-
-  // Dessert seul → pousse boisson (Ayran par ex)
   if (item.categorie_id === 6 && !cartCatIds.has(7)) {
     const ayran = menuItems.find(i => i.nom === 'Ayran' && i.disponible);
     if (ayran) {
@@ -993,7 +794,6 @@ function getSmartUpsell(addedItem) {
       };
     }
   }
-
   return null;
 }
 
@@ -1049,9 +849,7 @@ function loadClientInfo() {
   } catch(e) {}
 }
 
-function generateTimeSlots() {
-  // Time slots are now handled by the custom time picker sheet
-}
+function generateTimeSlots() {}
 
 // ===== ORDER =====
 async function submitOrder() {
@@ -1059,23 +857,18 @@ async function submitOrder() {
   const email = document.getElementById('clientEmail').value.trim();
   const phone = document.getElementById('clientPhone').value.trim();
   const pickup = document.getElementById('pickupTime').value;
-
   if (!name) { alert('Entrez votre prénom'); return; }
   if (!phone) { alert('Entrez votre téléphone'); return; }
   if (!email || !email.includes('@')) { alert('Entrez un email valide'); return; }
   if (!pickup) { alert('Choisissez une heure de retrait'); return; }
   if (!cart.length) return;
-
   const btn = document.getElementById('cartSubmit');
   btn.disabled = true; btn.textContent = 'Envoi...';
   saveClientInfo();
-
   const total = cart.reduce((s, c) => s + c.prix * c.qty, 0);
   const orderNum = 'BE-' + String(Math.floor(Math.random()*9000)+1000);
-
   const note = document.getElementById('clientNote').value.trim();
   const optin = document.getElementById('optinPromos').checked;
-
   const orderData = {
     numero: orderNum,
     items: cart.map(c => ({id:c.id, nom:c.nom, prix:c.prix, qty:c.qty})),
@@ -1087,7 +880,6 @@ async function submitOrder() {
     note: note || null,
     created_at: new Date().toISOString(),
   };
-
   if (sb) {
     try {
       await sb.from('clients').upsert({
@@ -1116,7 +908,6 @@ function showConfirmation(orderNum) {
   document.getElementById('cartSubmit').disabled = false;
   document.getElementById('cartSubmit').textContent = 'Passer la commande';
   ['clientNote'].forEach(id => document.getElementById(id).value = '');
-  // Garder prénom/email/tel en mémoire pour la prochaine commande
   document.getElementById('optinPromos').checked = false;
 }
 
@@ -1137,7 +928,6 @@ function setupScrollSpy() {
       if (e.isIntersecting) {
         const id = e.target.id.replace('cat-','');
         document.querySelectorAll('.nav-cat').forEach(b => b.classList.toggle('active', b.dataset.cat === id));
-        // Auto-scroll nav to active cat
         const active = document.querySelector('.nav-cat.active');
         if (active) active.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
       }
@@ -1156,16 +946,15 @@ function updateTimingBar() {
   const open = isOpenNow();
   const dot = document.getElementById('timingDot');
   const text = document.getElementById('timingText');
-
   if (open) {
-    dot.classList.remove('closed');
+    if (dot) dot.classList.remove('closed');
     const now = new Date();
     const slot = BUSINESS_HOURS.find(s => s[0] === now.getDay());
-    text.innerHTML = `Ouvert <small>· Ferme à ${slot[3]}h${slot[4] ? String(slot[4]).padStart(2,'0') : '00'}</small>`;
+    if (text) text.innerHTML = `Ouvert <small>· Ferme à ${slot[3]}h${slot[4] ? String(slot[4]).padStart(2,'0') : '00'}</small>`;
   } else {
-    dot.classList.add('closed');
+    if (dot) dot.classList.add('closed');
     const next = getNextOpenSlot();
-    text.innerHTML = next ? `Fermé <small>· Ouvre ${next.jour} ${next.h}h${next.m ? String(next.m).padStart(2,'0') : '00'}</small>` : 'Fermé';
+    if (text) text.innerHTML = next ? `Fermé <small>· Ouvre ${next.jour} ${next.h}h${next.m ? String(next.m).padStart(2,'0') : '00'}</small>` : 'Fermé';
     if (selectedPickup === 'asap') {
       selectedPickup = '';
       document.getElementById('timingPickLabel').textContent = 'Choisir un créneau';
@@ -1174,7 +963,7 @@ function updateTimingBar() {
   document.getElementById('pickupTime').value = selectedPickup;
 }
 
-// Time picker sheet
+// ===== TIME PICKER =====
 let tpDays = [];
 let tpSelectedDay = 0;
 
@@ -1193,8 +982,6 @@ function buildTimePicker() {
   const now = new Date();
   const open = isOpenNow();
   document.getElementById('tpAsap').disabled = !open;
-
-  // Build days
   tpDays = [];
   for (let d = 0; d <= 7; d++) {
     const date = new Date(now);
@@ -1209,14 +996,12 @@ function buildTimePicker() {
     });
     if (tpDays.length >= 4) break;
   }
-
   const daysEl = document.getElementById('tpDays');
   daysEl.innerHTML = tpDays.map((day, i) => `
     <div class="timepicker-day ${i === tpSelectedDay ? 'active' : ''}" onclick="selectPickerDay(${i})">
       ${day.label}<small>${day.sub}</small>
     </div>
   `).join('');
-
   renderTimeSlots();
 }
 
@@ -1256,12 +1041,11 @@ function selectTime(value) {
 // ===== UTILS =====
 function formatPrice(n) { return n.toFixed(2).replace('.', ',') + ' €'; }
 
-// ===== SCROLL REVEAL (first load only) =====
+// ===== SCROLL REVEAL =====
 let revealDone = false;
 function setupScrollReveal() {
   if (revealDone) return;
   revealDone = true;
-  // Add reveal class only on first load
   document.querySelectorAll('.menu-card').forEach(card => card.classList.add('reveal'));
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {

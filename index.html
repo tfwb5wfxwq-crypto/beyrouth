@@ -60,11 +60,47 @@ a{color:inherit;text-decoration:none}
   font-size:.82rem;font-weight:600;color:var(--noir);transition:all .2s;cursor:pointer;
 }
 .timing-pick:hover{background:#e0e0e0}
-.timing-pick select{
-  border:none;background:transparent;font-family:inherit;font-size:.82rem;
-  font-weight:600;color:var(--noir);cursor:pointer;outline:none;
-  -webkit-appearance:none;appearance:none;
+
+/* ========= TIME PICKER SHEET ========= */
+.timepicker-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;
+  opacity:0;pointer-events:none;transition:opacity .3s;
 }
+.timepicker-overlay.open{opacity:1;pointer-events:auto}
+.timepicker-sheet{
+  position:fixed;bottom:0;left:0;right:0;z-index:301;
+  background:var(--blanc);border-radius:20px 20px 0 0;
+  padding:24px 20px calc(24px + env(safe-area-inset-bottom,0px));
+  transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);
+  max-height:70vh;overflow-y:auto;
+}
+.timepicker-sheet.open{transform:translateY(0)}
+.timepicker-handle{width:40px;height:4px;border-radius:2px;background:#ddd;margin:0 auto 16px}
+.timepicker-title{font-size:1.1rem;font-weight:800;text-align:center;margin-bottom:16px;letter-spacing:-.3px}
+.timepicker-days{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
+.timepicker-days::-webkit-scrollbar{display:none}
+.timepicker-day{
+  flex-shrink:0;padding:10px 18px;border-radius:12px;font-size:.85rem;font-weight:600;
+  background:var(--gris-light);color:var(--noir);cursor:pointer;transition:all .2s;
+  text-align:center;min-width:80px;
+}
+.timepicker-day.active{background:var(--bordeaux);color:#fff}
+.timepicker-day small{display:block;font-size:.7rem;font-weight:400;opacity:.7;margin-top:2px}
+.timepicker-slots{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.timepicker-slot{
+  padding:12px 8px;border-radius:10px;font-size:.9rem;font-weight:600;
+  background:var(--gris-light);color:var(--noir);cursor:pointer;
+  text-align:center;transition:all .2s;
+}
+.timepicker-slot:hover{background:#e0e0e0;transform:scale(1.03)}
+.timepicker-slot.active{background:var(--bordeaux);color:#fff}
+.timepicker-slot.disabled{opacity:.3;pointer-events:none}
+.timepicker-asap{
+  width:100%;padding:14px;border-radius:12px;font-size:.95rem;font-weight:700;
+  background:var(--green);color:#fff;margin-bottom:12px;transition:all .2s;
+}
+.timepicker-asap:hover{background:var(--green-dark)}
+.timepicker-asap:disabled{opacity:.4;cursor:not-allowed}
 
 /* ========= NAV CATEGORIES ========= */
 .nav{
@@ -202,35 +238,43 @@ a{color:inherit;text-decoration:none}
 
 .cart-header{
   padding:20px 20px 16px;display:flex;align-items:center;justify-content:space-between;
-  border-bottom:1px solid var(--gris-light);
+  border-bottom:1px solid var(--gris-light);flex-shrink:0;
 }
-.cart-header h3{font-size:1.15rem;font-weight:800}
-.cart-close{background:var(--gris-light);width:44px;height:44px;border-radius:50%;font-size:1.4rem;display:flex;align-items:center;justify-content:center}
+.cart-header h3{font-size:1.15rem;font-weight:800;letter-spacing:-.3px}
+.cart-close{background:var(--gris-light);width:44px;height:44px;border-radius:50%;font-size:1.4rem;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.cart-close:hover{background:#ddd}
 
 .cart-body{flex:1;overflow-y:auto}
 .cart-items{padding:12px 20px}
 .cart-empty{text-align:center;padding:48px 20px;color:var(--gris);font-size:.9rem}
 .cart-item{
-  display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--gris-light);
+  display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--gris-light);
   align-items:center;
 }
-.cart-item-emoji{font-size:1.5rem;width:36px;text-align:center;flex-shrink:0}
+.cart-item:last-child{border-bottom:none}
+.cart-item-emoji{font-size:1.6rem;width:40px;height:40px;
+  background:var(--gris-light);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .cart-item-info{flex:1;min-width:0}
-.cart-item-name{font-weight:600;font-size:.9rem}
-.cart-item-price{font-size:.8rem;color:var(--gris);font-weight:500}
-.cart-item-qty{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.cart-item-name{font-weight:700;font-size:.9rem;letter-spacing:-.2px}
+.cart-item-price{font-size:.78rem;color:var(--gris);font-weight:500;margin-top:1px}
+.cart-item-qty{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .cart-item-qty button{
-  width:36px;height:36px;border-radius:50%;background:var(--gris-light);
+  width:34px;height:34px;border-radius:50%;background:var(--gris-light);
   font-size:1.1rem;display:flex;align-items:center;justify-content:center;
-  transition:background .2s;font-weight:600;
+  transition:all .2s;font-weight:600;
 }
-.cart-item-qty button:hover{background:#ddd}
-.cart-item-qty span{font-weight:700;min-width:20px;text-align:center;font-size:.9rem}
+.cart-item-qty button:hover{background:#ddd;transform:scale(1.08)}
+.cart-item-qty span{font-weight:800;min-width:22px;text-align:center;font-size:.9rem}
 
 /* ========= CHECKOUT ========= */
 .cart-footer{padding:16px 20px;background:var(--blanc)}
-.cart-subtotal{display:flex;justify-content:space-between;margin-bottom:12px;font-size:.9rem;color:var(--gris)}
-.cart-subtotal strong{color:var(--noir);font-size:1.1rem}
+.cart-subtotal{
+  display:flex;justify-content:space-between;margin-bottom:16px;
+  padding:14px 16px;background:var(--gris-light);border-radius:var(--radius-sm);
+  font-size:.9rem;color:var(--gris);
+}
+.cart-subtotal strong{color:var(--noir);font-size:1.15rem}
 .cart-form{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
 .cart-form input,.cart-form select{
   padding:12px 14px;border:1.5px solid var(--gris-light);border-radius:var(--radius-sm);
@@ -390,13 +434,24 @@ a{color:inherit;text-decoration:none}
       <span class="timing-dot" id="timingDot"></span>
       <span class="timing-text" id="timingText">Ouvert <small>· Lun-Ven 11h–15h</small></span>
     </div>
-    <div class="timing-pick">
+    <div class="timing-pick" onclick="openTimePicker()">
       <span>🕐</span>
-      <select id="pickupTimeBar" onchange="onPickupChange(this.value)">
-        <option value="asap">Dès que possible</option>
-      </select>
+      <span id="timingPickLabel">Dès que possible</span>
+      <span style="font-size:.7rem;opacity:.5">▼</span>
     </div>
   </div>
+</div>
+
+<!-- ===== TIME PICKER BOTTOM SHEET ===== -->
+<div class="timepicker-overlay" id="tpOverlay" onclick="closeTimePicker()"></div>
+<div class="timepicker-sheet" id="tpSheet">
+  <div class="timepicker-handle"></div>
+  <div class="timepicker-title">Quand voulez-vous manger ?</div>
+  <button class="timepicker-asap" id="tpAsap" onclick="selectTime('asap')">
+    ⚡ Dès que possible (~15 min)
+  </button>
+  <div class="timepicker-days" id="tpDays"></div>
+  <div class="timepicker-slots" id="tpSlots"></div>
 </div>
 
 <!-- ===== NAV CATEGORIES ===== -->
@@ -834,15 +889,23 @@ function renderSuggestions() {
     return item ? item.categorie_id : 0;
   }));
 
-  // Intelligent suggestions based on what's in cart
-  const suggestCats = [];
-  if (!cartCatIds.has(7)) suggestCats.push(7); // boisson en premier (le plus vendu en cross-sell)
-  if (!cartCatIds.has(6)) suggestCats.push(6); // desserts
-  if (!cartCatIds.has(13) && !cartCatIds.has(5)) suggestCats.push(13, 5); // entrées
+  // Smart suggestions: prioritize what pairs with cart content
+  let suggestions = [];
 
-  const suggestions = menuItems
-    .filter(i => suggestCats.includes(i.categorie_id) && i.disponible && !cartIds.has(i.id))
-    .slice(0, 6);
+  // Has sandwich/grillade/plateau but no drink → push drinks first
+  if ((cartCatIds.has(1) || cartCatIds.has(3) || cartCatIds.has(4)) && !cartCatIds.has(7)) {
+    suggestions.push(...menuItems.filter(i => i.categorie_id === 7 && i.disponible && !cartIds.has(i.id)).slice(0, 3));
+  }
+  // Has main course but no dessert → push desserts
+  if ((cartCatIds.has(1) || cartCatIds.has(2) || cartCatIds.has(3) || cartCatIds.has(4)) && !cartCatIds.has(6)) {
+    suggestions.push(...menuItems.filter(i => i.categorie_id === 6 && i.disponible && !cartIds.has(i.id)).slice(0, 3));
+  }
+  // Has main but no entrée → push entrées chaudes (small items, easy add)
+  if ((cartCatIds.has(1) || cartCatIds.has(3)) && !cartCatIds.has(13)) {
+    suggestions.push(...menuItems.filter(i => i.categorie_id === 13 && i.disponible && !cartIds.has(i.id)).slice(0, 2));
+  }
+  // Dedupe and limit
+  suggestions = [...new Map(suggestions.map(s => [s.id, s])).values()].slice(0, 6);
 
   if (suggestions.length === 0 || cart.length === 0) {
     suggestEl.style.display = 'none';
@@ -986,55 +1049,8 @@ function loadClientInfo() {
   } catch(e) {}
 }
 
-// ===== TIME SLOTS (today + next open days) =====
 function generateTimeSlots() {
-  const barSel = document.getElementById('pickupTimeBar');
-  const formSel = document.getElementById('pickupTime');
-  const now = new Date();
-
-  // Generate slots for today and next 3 open days
-  for (let d = 0; d <= 7; d++) {
-    const date = new Date(now);
-    date.setDate(date.getDate() + d);
-    const dayOfWeek = date.getDay();
-    const slot = BUSINESS_HOURS.find(s => s[0] === dayOfWeek);
-    if (!slot) continue;
-
-    const isToday = d === 0;
-    const dayLabel = isToday ? "Aujourd'hui" :
-      d === 1 ? 'Demain' :
-      JOURS[dayOfWeek] + ' ' + date.getDate() + '/' + (date.getMonth()+1);
-
-    // Separator
-    const sep1 = document.createElement('option');
-    sep1.disabled = true;
-    sep1.textContent = `── ${dayLabel} ──`;
-    barSel.appendChild(sep1);
-
-    const startMin = slot[1] * 60 + slot[2];
-    const endMin = slot[3] * 60 + slot[4];
-
-    for (let m = startMin; m <= endMin; m += 15) {
-      const h = Math.floor(m / 60), min = m % 60;
-      const label = `${h}h${min.toString().padStart(2, '0')}`;
-      const value = isToday ? label : `${dayLabel} ${label}`;
-
-      const isPast = isToday && (now.getHours() * 60 + now.getMinutes()) >= m;
-
-      const opt1 = document.createElement('option');
-      opt1.value = value; opt1.textContent = `${isToday ? '' : dayLabel + ' '}${label}`;
-      if (isPast) opt1.disabled = true;
-      barSel.appendChild(opt1);
-
-      const opt2 = document.createElement('option');
-      opt2.value = value; opt2.textContent = opt1.textContent;
-      if (isPast) opt2.disabled = true;
-      formSel.appendChild(opt2);
-    }
-
-    // Max 3 future days
-    if (!isToday && d >= 5) break;
-  }
+  // Time slots are now handled by the custom time picker sheet
 }
 
 // ===== ORDER =====
@@ -1134,34 +1150,107 @@ function setupScrollSpy() {
 }
 
 // ===== TIMING =====
-function onPickupChange(val) {
-  // Sync with cart form hidden field
-  document.getElementById('pickupTime').value = val;
-}
+let selectedPickup = 'asap';
 
 function updateTimingBar() {
   const open = isOpenNow();
   const dot = document.getElementById('timingDot');
   const text = document.getElementById('timingText');
-  const sel = document.getElementById('pickupTimeBar');
 
   if (open) {
     dot.classList.remove('closed');
     const now = new Date();
     const slot = BUSINESS_HOURS.find(s => s[0] === now.getDay());
     text.innerHTML = `Ouvert <small>· Ferme à ${slot[3]}h${slot[4] ? String(slot[4]).padStart(2,'0') : '00'}</small>`;
-    // Enable "asap"
-    sel.options[0].disabled = false;
-    sel.value = 'asap';
   } else {
     dot.classList.add('closed');
     const next = getNextOpenSlot();
     text.innerHTML = next ? `Fermé <small>· Ouvre ${next.jour} ${next.h}h${next.m ? String(next.m).padStart(2,'0') : '00'}</small>` : 'Fermé';
-    // Disable "asap" when closed
-    sel.options[0].disabled = true;
-    if (sel.value === 'asap' && sel.options.length > 1) sel.selectedIndex = 1;
+    if (selectedPickup === 'asap') {
+      selectedPickup = '';
+      document.getElementById('timingPickLabel').textContent = 'Choisir un créneau';
+    }
   }
-  onPickupChange(sel.value);
+  document.getElementById('pickupTime').value = selectedPickup;
+}
+
+// Time picker sheet
+let tpDays = [];
+let tpSelectedDay = 0;
+
+function openTimePicker() {
+  buildTimePicker();
+  document.getElementById('tpOverlay').classList.add('open');
+  document.getElementById('tpSheet').classList.add('open');
+}
+
+function closeTimePicker() {
+  document.getElementById('tpOverlay').classList.remove('open');
+  document.getElementById('tpSheet').classList.remove('open');
+}
+
+function buildTimePicker() {
+  const now = new Date();
+  const open = isOpenNow();
+  document.getElementById('tpAsap').disabled = !open;
+
+  // Build days
+  tpDays = [];
+  for (let d = 0; d <= 7; d++) {
+    const date = new Date(now);
+    date.setDate(date.getDate() + d);
+    const dayOfWeek = date.getDay();
+    const slot = BUSINESS_HOURS.find(s => s[0] === dayOfWeek);
+    if (!slot) continue;
+    tpDays.push({
+      date, dayOfWeek, slot, isToday: d === 0,
+      label: d === 0 ? "Aujourd'hui" : d === 1 ? 'Demain' : JOURS[dayOfWeek],
+      sub: `${date.getDate()}/${date.getMonth()+1}`
+    });
+    if (tpDays.length >= 4) break;
+  }
+
+  const daysEl = document.getElementById('tpDays');
+  daysEl.innerHTML = tpDays.map((day, i) => `
+    <div class="timepicker-day ${i === tpSelectedDay ? 'active' : ''}" onclick="selectPickerDay(${i})">
+      ${day.label}<small>${day.sub}</small>
+    </div>
+  `).join('');
+
+  renderTimeSlots();
+}
+
+function selectPickerDay(idx) {
+  tpSelectedDay = idx;
+  document.querySelectorAll('.timepicker-day').forEach((el, i) => el.classList.toggle('active', i === idx));
+  renderTimeSlots();
+}
+
+function renderTimeSlots() {
+  const day = tpDays[tpSelectedDay];
+  if (!day) return;
+  const now = new Date();
+  const slotsEl = document.getElementById('tpSlots');
+  const startMin = day.slot[1] * 60 + day.slot[2];
+  const endMin = day.slot[3] * 60 + day.slot[4];
+  let html = '';
+  for (let m = startMin; m <= endMin; m += 15) {
+    const h = Math.floor(m / 60), min = m % 60;
+    const label = `${h}h${min.toString().padStart(2, '0')}`;
+    const isPast = day.isToday && (now.getHours() * 60 + now.getMinutes()) >= m;
+    const value = day.isToday ? label : `${day.label} ${label}`;
+    html += `<div class="timepicker-slot ${isPast ? 'disabled' : ''} ${selectedPickup === value ? 'active' : ''}"
+      onclick="selectTime('${value}')">${label}</div>`;
+  }
+  slotsEl.innerHTML = html;
+}
+
+function selectTime(value) {
+  selectedPickup = value;
+  document.getElementById('pickupTime').value = value;
+  const label = value === 'asap' ? 'Dès que possible' : value;
+  document.getElementById('timingPickLabel').textContent = label;
+  closeTimePicker();
 }
 
 // ===== UTILS =====

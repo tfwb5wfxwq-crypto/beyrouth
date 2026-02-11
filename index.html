@@ -40,26 +40,30 @@ a{color:inherit;text-decoration:none}
 .header-status.closed .dot{background:#E74C3C}
 .header-hours{font-size:.7rem;opacity:.5;margin-top:1px}
 
-/* ========= TIMING PICKER ========= */
+/* ========= TIMING BAR ========= */
 .timing-bar{
   background:var(--blanc);border-bottom:1px solid var(--gris-light);
 }
 .timing-inner{
-  max-width:1000px;margin:0 auto;padding:14px 24px;
+  max-width:1000px;margin:0 auto;padding:12px 24px;
   display:flex;align-items:center;gap:10px;
 }
-.timing-tagline{font-size:.8rem;color:var(--gris);margin-right:auto;font-weight:500}
-.timing-hours{
-  font-size:.72rem;color:var(--gris);background:var(--gris-light);
-  padding:4px 10px;border-radius:12px;white-space:nowrap;
+.timing-info{display:flex;align-items:center;gap:8px;margin-right:auto}
+.timing-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0}
+.timing-dot.closed{background:#E74C3C}
+.timing-text{font-size:.85rem;font-weight:600;color:var(--noir)}
+.timing-text small{font-weight:400;color:var(--gris);font-size:.78rem}
+.timing-pick{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 16px;border-radius:20px;background:var(--gris-light);
+  font-size:.82rem;font-weight:600;color:var(--noir);transition:all .2s;cursor:pointer;
 }
-.timing-btn{
-  padding:10px 22px;border-radius:24px;font-size:.85rem;font-weight:700;
-  transition:all .25s cubic-bezier(.4,0,.2,1);background:var(--gris-light);color:var(--noir);
+.timing-pick:hover{background:#e0e0e0}
+.timing-pick select{
+  border:none;background:transparent;font-family:inherit;font-size:.82rem;
+  font-weight:600;color:var(--noir);cursor:pointer;outline:none;
+  -webkit-appearance:none;appearance:none;
 }
-.timing-btn.active{background:var(--noir);color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.15)}
-.timing-btn:hover:not(.active){background:#e0e0e0;transform:translateY(-1px)}
-.timing-btn:active{transform:scale(.96)}
 
 /* ========= NAV CATEGORIES ========= */
 .nav{
@@ -91,11 +95,11 @@ a{color:inherit;text-decoration:none}
 .menu-card{
   position:relative;border-radius:var(--radius);overflow:hidden;
   background:var(--blanc);box-shadow:var(--shadow);cursor:pointer;
-  transition:transform .25s cubic-bezier(.4,0,.2,1),box-shadow .25s,opacity .5s;
+  transition:transform .25s cubic-bezier(.4,0,.2,1),box-shadow .25s;
   -webkit-tap-highlight-color:transparent;
-  opacity:0;transform:translateY(20px);
 }
-.menu-card.visible{opacity:1;transform:translateY(0)}
+.menu-card.reveal{opacity:0;transform:translateY(20px);transition:transform .5s cubic-bezier(.4,0,.2,1),box-shadow .25s,opacity .5s}
+.menu-card.reveal.visible{opacity:1;transform:translateY(0)}
 .menu-card:active{transform:scale(.97)}
 @media(hover:hover){.menu-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-3px)}}
 
@@ -372,13 +376,19 @@ a{color:inherit;text-decoration:none}
   </div>
 </header>
 
-<!-- ===== TIMING PICKER ===== -->
+<!-- ===== TIMING BAR ===== -->
 <div class="timing-bar">
   <div class="timing-inner">
-    <span class="timing-tagline">Retrait sur place — La Défense (Sortie 4 métro)</span>
-    <span class="timing-hours" id="timingHours">Lun-Ven 11h-15h</span>
-    <button class="timing-btn active" id="btnNow" onclick="setTiming('now')">J'ai faim !</button>
-    <button class="timing-btn" id="btnLater" onclick="setTiming('later')">Choisir l'heure</button>
+    <div class="timing-info">
+      <span class="timing-dot" id="timingDot"></span>
+      <span class="timing-text" id="timingText">Ouvert <small>· Lun-Ven 11h–15h</small></span>
+    </div>
+    <div class="timing-pick">
+      <span>🕐</span>
+      <select id="pickupTimeBar" onchange="onPickupChange(this.value)">
+        <option value="asap">Dès que possible</option>
+      </select>
+    </div>
   </div>
 </div>
 
@@ -422,8 +432,7 @@ a{color:inherit;text-decoration:none}
       <strong id="cartTotal">0,00 €</strong>
     </div>
     <div class="cart-form">
-      <select id="pickupTime">
-        <option value="">Heure de retrait...</option>
+      <select id="pickupTime" style="display:none">
         <option value="asap">Dès que possible (~15 min)</option>
       </select>
       <input type="text" id="clientName" placeholder="Prénom" required>
@@ -441,7 +450,7 @@ a{color:inherit;text-decoration:none}
     <button class="cart-checkout-btn" id="cartSubmit" onclick="submitOrder()">
       Passer la commande
     </button>
-    <p class="cart-pay-info">Paiement sur place (CB, espèces, carte resto)</p>
+    <p class="cart-pay-info">Paiement en ligne sécurisé (CB, carte resto)</p>
   </div>
 </div>
 
@@ -640,7 +649,8 @@ async function init() {
   updateCartUI();
   setupScrollSpy();
   setupScrollReveal();
-  setTiming(open ? 'now' : 'later');
+  updateTimingBar();
+  loadClientInfo();
 }
 
 // ===== SUPABASE =====
@@ -722,12 +732,6 @@ function renderMenu() {
     html += '</div>';
   });
   container.innerHTML = html;
-  // Re-reveal cards already in view (after re-render)
-  document.querySelectorAll('.menu-card').forEach(card => {
-    const rect = card.getBoundingClientRect();
-    if (rect.top < window.innerHeight) card.classList.add('visible');
-  });
-  if (typeof setupScrollReveal === 'function') setupScrollReveal();
 }
 
 function renderNavCats() {
@@ -953,9 +957,31 @@ function toggleCart() {
 
 function saveCart() { localStorage.setItem('be_cart', JSON.stringify(cart)); }
 
+// ===== CLIENT MEMORY =====
+function saveClientInfo() {
+  const info = {
+    prenom: document.getElementById('clientName').value.trim(),
+    email: document.getElementById('clientEmail').value.trim(),
+    telephone: document.getElementById('clientPhone').value.trim(),
+  };
+  if (info.prenom || info.email) localStorage.setItem('be_client', JSON.stringify(info));
+}
+
+function loadClientInfo() {
+  try {
+    const info = JSON.parse(localStorage.getItem('be_client'));
+    if (!info) return;
+    if (info.prenom) document.getElementById('clientName').value = info.prenom;
+    if (info.email) document.getElementById('clientEmail').value = info.email;
+    if (info.telephone) document.getElementById('clientPhone').value = info.telephone;
+  } catch(e) {}
+}
+
 // ===== TIME SLOTS =====
 function generateTimeSlots() {
-  const sel = document.getElementById('pickupTime');
+  // Populate both selects (bar + cart form)
+  const barSel = document.getElementById('pickupTimeBar');
+  const formSel = document.getElementById('pickupTime');
   const now = new Date();
   const day = now.getDay();
   const slot = BUSINESS_HOURS.find(s => s[0] === day);
@@ -964,11 +990,17 @@ function generateTimeSlots() {
   for (let m = startMin; m <= endMin; m += 15) {
     const h = Math.floor(m / 60), min = m % 60;
     const label = `${h}h${min.toString().padStart(2, '0')}`;
-    const opt = document.createElement('option');
-    opt.value = label; opt.textContent = label;
     const t = new Date(); t.setHours(h, min, 0);
-    if (t <= now) opt.disabled = true;
-    sel.appendChild(opt);
+    // Bar select
+    const opt1 = document.createElement('option');
+    opt1.value = label; opt1.textContent = label;
+    if (t <= now) opt1.disabled = true;
+    barSel.appendChild(opt1);
+    // Form select (hidden)
+    const opt2 = document.createElement('option');
+    opt2.value = label; opt2.textContent = label;
+    if (t <= now) opt2.disabled = true;
+    formSel.appendChild(opt2);
   }
 }
 
@@ -982,11 +1014,12 @@ async function submitOrder() {
   if (!name) { alert('Entrez votre prénom'); return; }
   if (!phone) { alert('Entrez votre téléphone'); return; }
   if (!email || !email.includes('@')) { alert('Entrez un email valide'); return; }
-  if (timingMode === 'later' && !pickup) { alert('Choisissez une heure de retrait'); return; }
+  if (!pickup) { alert('Choisissez une heure de retrait'); return; }
   if (!cart.length) return;
 
   const btn = document.getElementById('cartSubmit');
   btn.disabled = true; btn.textContent = 'Envoi...';
+  saveClientInfo();
 
   const total = cart.reduce((s, c) => s + c.prix * c.qty, 0);
   const orderNum = 'BE-' + String(Math.floor(Math.random()*9000)+1000);
@@ -1033,7 +1066,8 @@ function showConfirmation(orderNum) {
   cart = []; saveCart(); updateCartUI(); renderMenu();
   document.getElementById('cartSubmit').disabled = false;
   document.getElementById('cartSubmit').textContent = 'Passer la commande';
-  ['clientName','clientEmail','clientPhone','pickupTime','clientNote'].forEach(id => document.getElementById(id).value = '');
+  ['clientNote'].forEach(id => document.getElementById(id).value = '');
+  // Garder prénom/email/tel en mémoire pour la prochaine commande
   document.getElementById('optinPromos').checked = false;
 }
 
@@ -1066,36 +1100,50 @@ function setupScrollSpy() {
   });
 }
 
-// ===== TIMING PICKER =====
-let timingMode = 'now';
-function setTiming(mode) {
+// ===== TIMING =====
+function onPickupChange(val) {
+  // Sync with cart form hidden field
+  document.getElementById('pickupTime').value = val;
+}
+
+function updateTimingBar() {
   const open = isOpenNow();
-  if (mode === 'now' && !open) mode = 'later';
-  timingMode = mode;
-  const btnNow = document.getElementById('btnNow');
-  btnNow.classList.toggle('active', mode === 'now');
-  document.getElementById('btnLater').classList.toggle('active', mode === 'later');
-  btnNow.disabled = !open;
-  btnNow.style.opacity = open ? '1' : '.4';
-  const sel = document.getElementById('pickupTime');
-  if (mode === 'now') {
+  const dot = document.getElementById('timingDot');
+  const text = document.getElementById('timingText');
+  const sel = document.getElementById('pickupTimeBar');
+
+  if (open) {
+    dot.classList.remove('closed');
+    const now = new Date();
+    const slot = BUSINESS_HOURS.find(s => s[0] === now.getDay());
+    text.innerHTML = `Ouvert <small>· Ferme à ${slot[3]}h${slot[4] ? String(slot[4]).padStart(2,'0') : '00'}</small>`;
+    // Enable "asap"
+    sel.options[0].disabled = false;
     sel.value = 'asap';
-    sel.style.display = 'none';
   } else {
-    sel.value = '';
-    sel.style.display = '';
+    dot.classList.add('closed');
+    const next = getNextOpenSlot();
+    text.innerHTML = next ? `Fermé <small>· Ouvre ${next.jour} ${next.h}h${next.m ? String(next.m).padStart(2,'0') : '00'}</small>` : 'Fermé';
+    // Disable "asap" when closed
+    sel.options[0].disabled = true;
+    if (sel.value === 'asap' && sel.options.length > 1) sel.selectedIndex = 1;
   }
+  onPickupChange(sel.value);
 }
 
 // ===== UTILS =====
 function formatPrice(n) { return n.toFixed(2).replace('.', ',') + ' €'; }
 
-// ===== SCROLL REVEAL =====
+// ===== SCROLL REVEAL (first load only) =====
+let revealDone = false;
 function setupScrollReveal() {
+  if (revealDone) return;
+  revealDone = true;
+  // Add reveal class only on first load
+  document.querySelectorAll('.menu-card').forEach(card => card.classList.add('reveal'));
   const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry, i) => {
+    entries.forEach((entry) => {
       if (entry.isIntersecting) {
-        // Stagger animation per card in grid
         const card = entry.target;
         const siblings = [...card.parentElement.children];
         const idx = siblings.indexOf(card);
@@ -1104,8 +1152,7 @@ function setupScrollReveal() {
       }
     });
   }, {threshold: 0.1, rootMargin: '0px 0px -40px 0px'});
-
-  document.querySelectorAll('.menu-card').forEach(card => observer.observe(card));
+  document.querySelectorAll('.menu-card.reveal').forEach(card => observer.observe(card));
 }
 
 document.getElementById('confirmModal').addEventListener('click', function(e) {

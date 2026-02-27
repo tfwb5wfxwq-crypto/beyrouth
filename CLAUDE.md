@@ -1,5 +1,29 @@
 # Beyrouth Express
 
+## ⚠️ ARCHITECTURE CRITIQUE - LIRE EN PREMIER
+
+**SOURCE DES DONNÉES :**
+- ❌ Le site NE CHARGE PAS depuis `DEMO_ITEMS` dans index.html
+- ✅ Le site CHARGE DEPUIS SUPABASE (table `menu_items`)
+- Le code `DEMO_ITEMS` sert uniquement de fallback si Supabase est down
+
+**POUR MODIFIER LE MENU (PRIX, IMAGES, DESCRIPTIONS) :**
+1. Aller sur https://supabase.com/dashboard/project/xbuftfwcyontgqbbrrjt
+2. SQL Editor → Exécuter UPDATE sur `menu_items`
+3. Les changements sont INSTANTANÉS (pas besoin de rebuild)
+
+**POUR AJOUTER UNE IMAGE À UN PLAT :**
+```sql
+UPDATE menu_items SET image_url = 'img/nom-image.jpg' WHERE id = XX;
+```
+
+**CACHE :**
+- GitHub Pages : peut prendre 2-3 min pour déployer les images
+- Cloudflare : purger sur dashboard (Caching → Purge Everything)
+- Navigateur : Cmd+Shift+R pour hard refresh
+
+---
+
 ## Projet
 Site click & collect pour le restaurant libanais "A Beyrouth" à La Défense.
 - **Site** : beyrouth.express

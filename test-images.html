@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Test Images Formules</title>
+<style>
+body { font-family: sans-serif; padding: 20px; }
+img { width: 300px; margin: 10px; border: 2px solid #ccc; }
+.error { color: red; }
+.success { color: green; }
+</style>
+</head>
+<body>
+<h1>Test Chargement Images Formules</h1>
+<p>Timestamp: <strong><?php echo date('Y-m-d H:i:s'); ?></strong></p>
+
+<div>
+<h2>Formule 1</h2>
+<img src="img/formule-1.jpg?v=<?php echo time(); ?>"
+     onerror="this.nextElementSibling.innerHTML='❌ ERREUR CHARGEMENT'"
+     onload="this.nextElementSibling.innerHTML='✅ Chargée'">
+<p class="status"></p>
+</div>
+
+<div>
+<h2>Formule 2</h2>
+<img src="img/formule-2.jpg?v=<?php echo time(); ?>"
+     onerror="this.nextElementSibling.innerHTML='❌ ERREUR CHARGEMENT'"
+     onload="this.nextElementSibling.innerHTML='✅ Chargée'">
+<p class="status"></p>
+</div>
+
+<div>
+<h2>Formule 3</h2>
+<img src="img/formule-3.jpg?v=<?php echo time(); ?>"
+     onerror="this.nextElementSibling.innerHTML='❌ ERREUR CHARGEMENT'"
+     onload="this.nextElementSibling.innerHTML='✅ Chargée'">
+<p class="status"></p>
+</div>
+
+<script>
+const timestamp = Date.now();
+console.log('Test images timestamp:', timestamp);
+console.log('Formule 1:', 'img/formule-1.jpg?v=' + timestamp);
+console.log('Formule 2:', 'img/formule-2.jpg?v=' + timestamp);
+console.log('Formule 3:', 'img/formule-3.jpg?v=' + timestamp);
+</script>
+</body>
+</html>

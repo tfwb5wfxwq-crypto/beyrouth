@@ -601,7 +601,7 @@ function renderMenu() {
         <div class="menu-card ${!item.disponible ? 'menu-card-unavailable' : ''}" data-id="${item.id}" onclick="${item.disponible ? `addToCart(${item.id})` : ''}">
           <div class="menu-card-visual">
             ${item.image_url
-              ? `<img src="${item.image_url}" alt="${item.nom}" loading="lazy">`
+              ? `<img src="${item.image_url}?v=${Date.now()}" alt="${item.nom}" loading="lazy">`
               : `<span class="emoji-placeholder">${item.emoji || '🍽️'}</span>`
             }
           </div>

@@ -347,6 +347,10 @@ a{color:inherit;text-decoration:none}
         <textarea id="clientNote" placeholder="Note : allergies, sans oignon, etc."></textarea>
         <p class="cart-form-info">On vous envoie un email quand c'est prêt</p>
         <label class="cart-optin">
+          <input type="checkbox" id="wantReceipt" checked>
+          <span>Recevoir mon reçu par email</span>
+        </label>
+        <label class="cart-optin">
           <input type="checkbox" id="optinPromos">
           <span>Me tenir informé des offres et promotions</span>
         </label>
@@ -974,15 +978,35 @@ function closePaymentModal() {
   }
 }
 
-function showConfirmation(orderNum) {
+async function showConfirmation(orderNum) {
   toggleCart();
   document.getElementById('confirmOrderNum').textContent = orderNum;
   document.getElementById('confirmTrackBtn').href = `commande.html?num=${orderNum}`;
   document.getElementById('confirmModal').classList.add('open');
+
+  // Envoyer le reçu par email si demandé
+  const wantReceipt = document.getElementById('wantReceipt').checked;
+  if (wantReceipt && sb) {
+    const email = document.getElementById('clientEmail').value.trim();
+    const name = document.getElementById('clientName').value.trim();
+    const pickup = document.getElementById('pickupTime').value;
+    const total = cart.reduce((s, c) => s + c.prix * c.qty, 0);
+
+    try {
+      await sb.functions.invoke('send-receipt', {
+        body: { email, name, orderNum, items: cart, total, pickup }
+      });
+    } catch (e) {
+      console.error('Erreur envoi reçu:', e);
+      // Ne pas bloquer si l'email échoue
+    }
+  }
+
   cart = []; saveCart(); updateCartUI(); renderMenu();
   document.getElementById('cartSubmit').disabled = false;
   document.getElementById('cartSubmit').textContent = 'Passer la commande';
   ['clientNote'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('wantReceipt').checked = true; // Reset à checked par défaut
   document.getElementById('optinPromos').checked = false;
 }
 

@@ -243,9 +243,21 @@ a{color:inherit;text-decoration:none}
   .menu-card-name{font-size:.78rem}
   .menu-card-price{font-size:.82rem}
 }
+
+/* ===== TOAST NOTIFICATIONS ===== */
+#toastContainer{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:10000;display:flex;flex-direction:column;gap:12px;pointer-events:none;width:calc(100% - 32px);max-width:400px}
+.toast{background:var(--dark);color:#fff;padding:16px 20px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.2),0 0 0 1px rgba(255,255,255,.1) inset;font-size:.9rem;font-weight:500;pointer-events:auto;transform:translateY(-100px);opacity:0;transition:all .4s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;gap:12px;line-height:1.4}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.hide{transform:translateY(-20px);opacity:0}
+.toast-icon{font-size:1.3rem;flex-shrink:0}
+.toast-message{flex:1}
+.toast.error{background:linear-gradient(135deg,#DC2626,#B91C1C)}
+.toast.success{background:linear-gradient(135deg,#1B8C3E,#157A33)}
+.toast.warning{background:linear-gradient(135deg,#F59E0B,#D97706)}
 </style>
 </head>
 <body>
+<div id="toastContainer"></div>
 
 <!-- HEADER -->
 <header class="header">
@@ -598,6 +610,37 @@ function subscribeRealtime() {
     .subscribe();
 }
 
+// ===== TOAST NOTIFICATIONS =====
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+
+  const icons = {
+    error: '❌',
+    success: '✅',
+    warning: '⚠️',
+    info: 'ℹ️'
+  };
+
+  toast.innerHTML = `
+    <span class="toast-icon">${icons[type] || icons.info}</span>
+    <span class="toast-message">${message}</span>
+  `;
+
+  container.appendChild(toast);
+
+  // Animation d'entrée
+  setTimeout(() => toast.classList.add('show'), 10);
+
+  // Animation de sortie et suppression
+  setTimeout(() => {
+    toast.classList.add('hide');
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400);
+  }, 3500);
+}
+
 // ===== RENDER =====
 function renderMenu() {
   const container = document.getElementById('menuContent');
@@ -869,10 +912,10 @@ async function submitOrder() {
   const email = document.getElementById('clientEmail').value.trim();
   const phone = document.getElementById('clientPhone').value.trim();
   const pickup = document.getElementById('pickupTime').value;
-  if (!name) { alert('Entrez votre prénom'); return; }
-  if (!phone) { alert('Entrez votre téléphone'); return; }
-  if (!email || !email.includes('@')) { alert('Entrez un email valide'); return; }
-  if (!pickup) { alert('Choisissez une heure de retrait'); return; }
+  if (!name) { showToast('Entrez votre prénom', 'error'); return; }
+  if (!phone) { showToast('Entrez votre téléphone', 'error'); return; }
+  if (!email || !email.includes('@')) { showToast('Entrez un email valide', 'error'); return; }
+  if (!pickup) { showToast('Choisissez une heure de retrait', 'error'); return; }
   if (!cart.length) return;
   const btn = document.getElementById('cartSubmit');
   btn.disabled = true; btn.textContent = 'Redirection paiement...';
@@ -932,7 +975,7 @@ async function submitOrder() {
     }
   } catch (e) {
     console.error('Erreur:', e);
-    alert(`Erreur lors du paiement: ${e.message || 'Réessayez'}`);
+    showToast(`Erreur lors du paiement: ${e.message || 'Réessayez'}`, 'error');
     btn.disabled = false;
     btn.textContent = 'Passer la commande';
     if (sb) await sb.from('orders').delete().eq('numero', orderNum);
@@ -969,7 +1012,7 @@ function openPaymentModal(paymentUrl, orderNum, codeRetrait) {
         showConfirmation(orderNum, codeRetrait);
       } else if (event.data.status === 'cancel') {
         closePaymentModal();
-        alert('Paiement annulé');
+        showToast('Paiement annulé', 'warning');
       }
     }
   });

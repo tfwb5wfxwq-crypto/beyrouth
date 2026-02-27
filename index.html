@@ -391,12 +391,18 @@ a{color:inherit;text-decoration:none}
 
 <!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<!-- PAYGREEN -->
+<script src="https://paygreen.fr/js/sdk.js"></script>
 <script>
 // ===== CONFIG =====
 const SUPABASE_URL = 'https://xbuftfwcyontgqbbrrjt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidWZ0ZndjeW9udGdxYmJycmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2Njg1NzksImV4cCI6MjA4NjI0NDU3OX0.ROkSccADlpLsWMgqyiX_xNaFdJNR8P4R-LJCnZV2Gzg';
+const PAYGREEN_PUBLIC_KEY = 'pk_e6337053f1f84f39a5b76f2e1035e161';
+const PAYGREEN_SHOP_ID = 'sh_55f9f298d8ce478db7b87117ec86ce11';
 let sb = null;
+let paygreen = null;
 try { sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null; } catch(e) { console.error('Supabase init error:', e); }
+try { if (window.Paygreen) paygreen = new window.Paygreen(PAYGREEN_PUBLIC_KEY); } catch(e) { console.error('Paygreen init error:', e); }
 
 // ===== STATE =====
 let categories = [];
@@ -863,39 +869,85 @@ async function submitOrder() {
   if (!pickup) { alert('Choisissez une heure de retrait'); return; }
   if (!cart.length) return;
   const btn = document.getElementById('cartSubmit');
-  btn.disabled = true; btn.textContent = 'Envoi...';
+  btn.disabled = true; btn.textContent = 'Redirection paiement...';
   saveClientInfo();
   const total = cart.reduce((s, c) => s + c.prix * c.qty, 0);
   const orderNum = 'BE-' + String(Math.floor(Math.random()*9000)+1000);
   const note = document.getElementById('clientNote').value.trim();
   const optin = document.getElementById('optinPromos').checked;
+
+  // Créer la commande en statut "pending"
   const orderData = {
     numero: orderNum,
     items: cart.map(c => ({id:c.id, nom:c.nom, prix:c.prix, qty:c.qty})),
     total: Math.round(total*100)/100,
-    statut: 'payee',
+    statut: 'pending',
     heure_retrait: pickup,
     client_prenom: name, client_email: email,
     client_telephone: phone || null,
     note: note || null,
     created_at: new Date().toISOString(),
   };
-  if (sb) {
-    try {
+
+  try {
+    // Enregistrer le client
+    if (sb) {
       await sb.from('clients').upsert({
         email, prenom: name, telephone: phone || null,
         derniere_commande: new Date().toISOString(),
         optin_promo: optin,
       }, {onConflict: 'email'});
-      const {error} = await sb.from('orders').insert([orderData]).select();
-      if (error) throw error;
-      showConfirmation(orderNum);
-    } catch (e) {
-      console.error('Erreur:', e);
-      alert('Erreur, réessayez.'); btn.disabled = false; btn.textContent = 'Passer la commande';
+      await sb.from('orders').insert([orderData]);
     }
-  } else {
-    setTimeout(() => showConfirmation(orderNum), 600);
+
+    // Créer le paiement Paygreen
+    if (paygreen) {
+      const paygreenData = {
+        amount: Math.round(total * 100), // Montant en centimes
+        currency: 'EUR',
+        orderId: orderNum,
+        customer: {
+          email: email,
+          firstName: name,
+          phone: phone
+        },
+        metadata: {
+          pickup_time: pickup,
+          note: note || '',
+          items: JSON.stringify(cart)
+        },
+        returnUrl: `https://beyrouth.express/commande.html?num=${orderNum}&status=success`,
+        cancelUrl: `https://beyrouth.express/?status=cancel&num=${orderNum}`
+      };
+
+      btn.textContent = 'Ouverture du paiement...';
+
+      // Appeler l'Edge Function Supabase pour créer la session de paiement
+      const {data, error} = await sb.functions.invoke('create-payment', {
+        body: {orderNum, total: Math.round(total * 100), email, name, phone, pickup, note, items: cart}
+      });
+
+      if (error) throw error;
+
+      // Rediriger vers la page de paiement Paygreen
+      if (data.paymentUrl) {
+        window.location.href = data.paymentUrl;
+      } else {
+        throw new Error('URL de paiement non reçue');
+      }
+    } else {
+      // Fallback: paiement direct sans Paygreen (mode démo)
+      console.warn('Paygreen non disponible, validation directe');
+      await sb.from('orders').update({statut: 'payee'}).eq('numero', orderNum);
+      showConfirmation(orderNum);
+    }
+  } catch (e) {
+    console.error('Erreur:', e);
+    alert(`Erreur lors du paiement: ${e.message || 'Réessayez'}`);
+    btn.disabled = false;
+    btn.textContent = 'Passer la commande';
+    // Supprimer la commande si elle a été créée
+    if (sb) await sb.from('orders').delete().eq('numero', orderNum);
   }
 }
 

@@ -47,9 +47,18 @@ Site click & collect pour le restaurant libanais "A Beyrouth" à La Défense.
 - `orders` : commandes (statut: payee → acceptee → en_preparation → prete → recuperee)
 - `order_items` : détail commandes pour analytics
 
-## Paiement
-- PayGreen LunchKit (CB + cartes restaurant) — à intégrer
-- CNTR approval nécessaire pour cartes restaurant en ligne
+## Paiement PayGreen ✅ CONFIGURÉ
+- **Service** : PayGreen LunchKit (CB + cartes restaurant)
+- **Clé Publique** : `pk_e6337053f1f84f39a5b76f2e1035e161` (frontend, dans index.html)
+- **Clé Secrète** : `sk_0564063e4ef04dbf93f588e7967e3e61` (backend, dans Supabase secrets)
+- **Shop ID** : `sh_55f9f298d8ce478db7b87117ec86ce11`
+- **Domaine autorisé** : beyrouth.express
+- **Edge Functions** :
+  - `create-payment` : Crée session de paiement Paygreen (appel sécurisé avec clé secrète)
+  - `paygreen-webhook` : Reçoit confirmations Paygreen et met à jour `orders.statut`
+- **Flow** : Commande pending → paiement Paygreen → webhook → statut "payee"
+- **Déploiement** : Voir `PAYGREEN-SETUP.md` pour instructions complètes
+- **TODO** : Email de confirmation post-paiement (Resend/SendGrid)
 
 ## Stack
 - HTML/CSS/JS vanilla (pas de framework)

@@ -13,7 +13,40 @@ serve(async (req) => {
   }
 
   try {
-    const webhookData = await req.json()
+    // Vérifier la signature HMAC
+    const signature = req.headers.get('x-paygreen-signature')
+    const webhookHmac = Deno.env.get('PAYGREEN_WEBHOOK_HMAC')
+
+    if (webhookHmac && signature) {
+      const body = await req.text()
+      const encoder = new TextEncoder()
+      const key = await crypto.subtle.importKey(
+        'raw',
+        encoder.encode(webhookHmac),
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['verify']
+      )
+      const signatureBuffer = Uint8Array.from(signature.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)))
+      const isValid = await crypto.subtle.verify(
+        'HMAC',
+        key,
+        signatureBuffer,
+        encoder.encode(body)
+      )
+
+      if (!isValid) {
+        console.error('Signature HMAC invalide')
+        return new Response(
+          JSON.stringify({ error: 'Invalid signature' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      var webhookData = JSON.parse(body)
+    } else {
+      var webhookData = await req.json()
+    }
 
     console.log('Webhook Paygreen reçu:', JSON.stringify(webhookData))
 

@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, name, orderNum, items, total, pickup } = await req.json()
+    const { email, name, orderNum, codeRetrait, items, total, pickup } = await req.json()
 
     // Validation
     if (!email || !orderNum || !items || !total) {
@@ -71,6 +71,10 @@ serve(async (req) => {
         <h2 style="margin: 0 0 8px; font-size: 20px; font-weight: 600;">Commande confirmée</h2>
         <p style="margin: 0; color: #6B6B6B; font-size: 14px;">Numéro de commande</p>
         <p style="margin: 8px 0 0; font-size: 28px; font-weight: 700; color: #1A1A1A; letter-spacing: 1px;">${orderNum}</p>
+        ${codeRetrait ? `
+        <p style="margin: 16px 0 0; color: #6B6B6B; font-size: 14px;">Code de retrait</p>
+        <p style="margin: 4px 0 0; font-size: 40px; font-weight: 700; color: #1B8C3E; letter-spacing: 8px;">${codeRetrait}</p>
+        ` : ''}
       </div>
 
       <!-- Info Client -->

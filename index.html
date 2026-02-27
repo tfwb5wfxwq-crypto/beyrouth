@@ -369,6 +369,8 @@ a{color:inherit;text-decoration:none}
     <div class="modal-icon">&#10003;</div>
     <h3>Commande envoyée !</h3>
     <div class="modal-order-num" id="confirmOrderNum">BE-0001</div>
+    <p style="font-size:.82rem;color:#6B6B6B;margin:8px 0 0;">Code de retrait</p>
+    <div id="confirmCode" style="font-size:2.5rem;font-weight:700;color:#1B8C3E;margin:8px 0 12px;letter-spacing:6px;display:none;">----</div>
     <p id="confirmText">On prépare votre commande.<br>Vous serez prévenu quand c'est prêt.</p>
     <a class="modal-btn" id="confirmTrackBtn" href="commande.html">Suivre ma commande</a>
   </div>
@@ -895,13 +897,22 @@ async function submitOrder() {
 
   try {
     // Enregistrer le client
+    let codeRetrait = null;
     if (sb) {
       await sb.from('clients').upsert({
         email, prenom: name, telephone: phone || null,
         derniere_commande: new Date().toISOString(),
         optin_promo: optin,
       }, {onConflict: 'email'});
-      await sb.from('orders').insert([orderData]);
+
+      // Insérer la commande et récupérer le code_retrait généré
+      const {data: insertData, error: insertError} = await sb.from('orders')
+        .insert([orderData])
+        .select('code_retrait')
+        .single();
+
+      if (insertError) throw insertError;
+      codeRetrait = insertData?.code_retrait;
     }
 
     btn.textContent = 'Ouverture du paiement...';
@@ -915,7 +926,7 @@ async function submitOrder() {
 
     // Ouvrir le paiement dans un modal (mode embedded)
     if (data.paymentUrl) {
-      openPaymentModal(data.paymentUrl, orderNum);
+      openPaymentModal(data.paymentUrl, orderNum, codeRetrait);
     } else {
       throw new Error('URL de paiement non reçue');
     }
@@ -929,7 +940,7 @@ async function submitOrder() {
 }
 
 // ===== PAYMENT MODAL =====
-function openPaymentModal(paymentUrl, orderNum) {
+function openPaymentModal(paymentUrl, orderNum, codeRetrait) {
   const modal = document.createElement('div');
   modal.id = 'paymentModal';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
@@ -955,7 +966,7 @@ function openPaymentModal(paymentUrl, orderNum) {
       if (event.data.status === 'success') {
         closePaymentModal();
         toggleCart();
-        showConfirmation(orderNum);
+        showConfirmation(orderNum, codeRetrait);
       } else if (event.data.status === 'cancel') {
         closePaymentModal();
         alert('Paiement annulé');
@@ -978,9 +989,13 @@ function closePaymentModal() {
   }
 }
 
-async function showConfirmation(orderNum) {
+async function showConfirmation(orderNum, codeRetrait) {
   toggleCart();
   document.getElementById('confirmOrderNum').textContent = orderNum;
+  if (codeRetrait) {
+    document.getElementById('confirmCode').textContent = codeRetrait;
+    document.getElementById('confirmCode').style.display = 'block';
+  }
   document.getElementById('confirmTrackBtn').href = `commande.html?num=${orderNum}`;
   document.getElementById('confirmModal').classList.add('open');
 
@@ -994,7 +1009,7 @@ async function showConfirmation(orderNum) {
 
     try {
       await sb.functions.invoke('send-receipt', {
-        body: { email, name, orderNum, items: cart, total, pickup }
+        body: { email, name, orderNum, codeRetrait, items: cart, total, pickup }
       });
     } catch (e) {
       console.error('Erreur envoi reçu:', e);

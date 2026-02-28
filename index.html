@@ -889,8 +889,15 @@ function selectFormuleOption(compIdx, optIdx, maxQty) {
       selections[0] = selectedOpt;
     }
   } else {
-    // Max > 1 : permet doublons (ex: 2 feuilletés bœuf)
-    if (selections.length < maxQty) {
+    // Max > 1 : permet doublons + clic retire la dernière occurrence
+    const count = selections.filter(s => s.nom === selectedOpt.nom).length;
+
+    if (count >= maxQty || (count > 0 && selections.length >= maxQty)) {
+      // Au max pour cet item OU plus de place → retirer dernière occurrence
+      const lastIdx = selections.map(s => s.nom).lastIndexOf(selectedOpt.nom);
+      selections.splice(lastIdx, 1);
+    } else if (selections.length < maxQty) {
+      // Place disponible → ajouter
       selections.push(selectedOpt);
     }
   }

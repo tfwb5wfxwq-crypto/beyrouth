@@ -1372,8 +1372,10 @@ function openPaymentModal(paymentOrderId, objectSecret, orderNum, codeRetrait) {
   setTimeout(() => {
     try {
       window.paygreenjs.init({
-        paymentOrderID: paymentOrderId,
-        objectSecret: objectSecret,
+        paymentOrder: {
+          id: paymentOrderId,
+          objectSecret: objectSecret
+        },
         publicKey: PAYGREEN_PUBLIC_KEY,
         mode: 'payment',
         style: {

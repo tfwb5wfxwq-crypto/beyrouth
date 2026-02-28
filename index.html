@@ -314,7 +314,7 @@ a{color:inherit;text-decoration:none}
     </a>
     <button class="info-time" onclick="openTimePicker()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-      <span id="timingPickLabel">Dès que possible</span>
+      <span id="timingPickLabel">Choisir un créneau</span>
       <span style="font-size:.65rem;opacity:.4">&#9662;</span>
     </button>
   </div>
@@ -1324,120 +1324,189 @@ async function submitOrder() {
   }
 }
 
-// ===== PAYMENT MODAL =====
+// ===== PAYMENT INLINE =====
+let currentPaymentData = null;
+
 function openPaymentModal(paymentOrderId, objectSecret, orderNum, codeRetrait) {
-  const modal = document.createElement('div');
-  modal.id = 'paymentModal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn 0.2s ease;';
+  currentPaymentData = { paymentOrderId, objectSecret, orderNum, codeRetrait };
 
-  const container = document.createElement('div');
-  container.style.cssText = 'background:#fff;border-radius:20px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 25px 80px rgba(0,0,0,0.3);animation:slideUp 0.3s ease;';
+  // Cacher le panier et afficher la section paiement
+  document.getElementById('cart').style.display = 'none';
 
-  const header = document.createElement('div');
-  header.style.cssText = 'padding:24px 24px 20px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;';
-  header.innerHTML = `
-    <div>
-      <h3 style="margin:0;font-size:1.2rem;font-weight:700;color:var(--dark);">Paiement sécurisé</h3>
-      <p style="margin:4px 0 0;font-size:0.85rem;color:var(--text-soft);">Commande ${orderNum}</p>
+  // Créer la section paiement inline
+  const paymentSection = document.createElement('div');
+  paymentSection.id = 'paymentSection';
+  paymentSection.style.cssText = 'animation:slideUp 0.3s ease;';
+  paymentSection.innerHTML = `
+    <div style="max-width:500px;margin:0 auto;padding:0 20px;">
+      <button onclick="cancelPayment()" style="background:none;border:none;color:var(--text-soft);font-size:0.9rem;padding:12px 0;cursor:pointer;display:flex;align-items:center;gap:6px;margin-bottom:16px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Retour au panier
+      </button>
+
+      <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:var(--shadow-lg);margin-bottom:20px;">
+        <h2 style="margin:0 0 8px;font-size:1.3rem;font-weight:700;">Paiement sécurisé</h2>
+        <p style="margin:0 0 24px;color:var(--text-soft);font-size:0.9rem;">Commande ${orderNum}</p>
+
+        <div id="paymentMethods" style="margin-bottom:24px;">
+          <p style="font-size:0.85rem;font-weight:600;margin:0 0 12px;color:var(--text-soft);">MOYEN DE PAIEMENT</p>
+
+          <div onclick="selectPaymentMethod('bank_card')" id="method_bank_card" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;">
+            <div style="width:48px;height:32px;display:flex;align-items:center;justify-content:center;background:#f9fafb;border-radius:6px;">
+              <svg width="32" height="20" viewBox="0 0 32 20" fill="none"><rect width="32" height="20" rx="3" fill="#1a1f71"/><path d="M11 10L14 13L21 6" stroke="white" stroke-width="2"/></svg>
+            </div>
+            <div style="flex:1;">
+              <div style="font-weight:600;margin-bottom:2px;">Carte bancaire</div>
+              <div style="font-size:0.75rem;color:var(--text-soft);">Visa, Mastercard, CB</div>
+            </div>
+            <div id="check_bank_card" style="width:20px;height:20px;border-radius:50%;border:2px solid #e5e7eb;"></div>
+          </div>
+
+          <div onclick="selectPaymentMethod('swile')" id="method_swile" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;">
+            <div style="width:48px;height:32px;display:flex;align-items:center;justify-content:center;background:#f0fdf4;border-radius:6px;">
+              <span style="font-size:24px;">🍽️</span>
+            </div>
+            <div style="flex:1;">
+              <div style="font-weight:600;margin-bottom:2px;">Swile</div>
+              <div style="font-size:0.75rem;color:var(--text-soft);">Carte restaurant</div>
+            </div>
+            <div id="check_swile" style="width:20px;height:20px;border-radius:50%;border:2px solid #e5e7eb;"></div>
+          </div>
+
+          <div onclick="selectPaymentMethod('restoflash')" id="method_restoflash" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;">
+            <div style="width:48px;height:32px;display:flex;align-items:center;justify-content:center;background:#fef3c7;border-radius:6px;">
+              <span style="font-size:20px;">🎫</span>
+            </div>
+            <div style="flex:1;">
+              <div style="font-weight:600;margin-bottom:2px;">Restoflash</div>
+              <div style="font-size:0.75rem;color:var(--text-soft);">Carte restaurant</div>
+            </div>
+            <div id="check_restoflash" style="width:20px;height:20px;border-radius:50%;border:2px solid #e5e7eb;"></div>
+          </div>
+        </div>
+
+        <div id="paymentForm" style="display:none;">
+          <div id="paygreen-container"></div>
+          <div id="paygreen-pan-frame" style="margin-bottom:12px;"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+            <div id="paygreen-exp-frame"></div>
+            <div id="paygreen-cvv-frame"></div>
+          </div>
+
+          <button id="payBtn" style="width:100%;padding:16px;background:var(--green);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='var(--green-dark)'" onmouseout="this.style.background='var(--green)'">
+            Payer maintenant
+          </button>
+        </div>
+
+        <p style="margin-top:20px;font-size:0.75rem;color:var(--text-muted);text-align:center;display:flex;align-items:center;justify-content:center;gap:4px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+          Paiement 100% sécurisé - Données cryptées end-to-end
+        </p>
+      </div>
     </div>
-    <button onclick="closePaymentModal()" style="background:none;border:none;font-size:1.8rem;cursor:pointer;color:#999;line-height:1;padding:4px 8px;border-radius:8px;transition:all 0.2s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='none'">&times;</button>
   `;
 
-  const content = document.createElement('div');
-  content.style.cssText = 'padding:24px;';
-  content.innerHTML = `
-    <div id="paygreen-container"></div>
-    <div id="paygreen-methods-container"></div>
-    <div id="paygreen-pan-frame" style="margin-bottom:12px;"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-      <div id="paygreen-exp-frame"></div>
-      <div id="paygreen-cvv-frame"></div>
-    </div>
-    <button id="payBtn" style="width:100%;padding:16px;background:var(--green);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:none;" onmouseover="this.style.background='var(--green-dark)'" onmouseout="this.style.background='var(--green)'">
-      Payer maintenant
-    </button>
-    <p style="margin-top:16px;font-size:0.8rem;color:var(--text-muted);text-align:center;">
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" style="vertical-align:-1px;margin-right:4px;"><path d="M6 0C2.7 0 0 2.7 0 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6zm0 1.5c.4 0 .8.3.8.8 0 .4-.3.8-.8.8s-.8-.3-.8-.8c0-.4.4-.8.8-.8zM7.5 9h-3V8h1V6h-1V5h2v3h1v1z"/></svg>
-      Paiement 100% sécurisé - Vos données ne sont jamais stockées
-    </p>
-  `;
+  document.getElementById('cartFull').insertAdjacentElement('afterend', paymentSection);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  container.appendChild(header);
-  container.appendChild(content);
-  modal.appendChild(container);
-  document.body.appendChild(modal);
-  document.body.style.overflow = 'hidden';
-
-  // Initialiser PayGreenJS
-  setTimeout(() => {
-    try {
-      window.paygreenjs.init({
-        paymentOrder: {
-          id: paymentOrderId,
-          objectSecret: objectSecret
-        },
-        publicKey: PAYGREEN_PUBLIC_KEY,
-        mode: 'payment',
-        style: {
-          input: {
-            base: {
-              color: '#1A1A1A',
-              fontSize: '15px',
-              fontFamily: 'Inter, system-ui, sans-serif',
-              '::placeholder': { color: '#ABABAB' }
-            },
-            invalid: { color: '#DC2626' }
-          }
-        }
-      });
-
-      // Écouter les changements de flow
-      window.paygreenjs.attachEventListener(window.paygreenjs.Events.PAYMENT_FLOW_ONCHANGE, (event) => {
-        const payBtn = document.getElementById('payBtn');
-        if (event.lastFlow && event.lastFlow.method) {
-          payBtn.style.display = 'block';
-        }
-      });
-
-      // Écouter la fin du paiement
-      window.paygreenjs.attachEventListener(window.paygreenjs.Events.FULL_PAYMENT_DONE, (event) => {
-        closePaymentModal();
-        toggleCart();
-        showConfirmation(orderNum, codeRetrait);
-      });
-
-      // Écouter les erreurs
-      window.paygreenjs.attachEventListener(window.paygreenjs.Events.ERROR, (event) => {
-        console.error('PayGreen error:', event);
-        showToast('Erreur de paiement : ' + (event.message || 'Réessayez'), 'error');
-      });
-
-      // Gérer le clic sur le bouton
-      document.getElementById('payBtn').onclick = () => {
-        document.getElementById('payBtn').textContent = 'Traitement...';
-        document.getElementById('payBtn').disabled = true;
-        window.paygreenjs.submitPayment();
-      };
-
-      // Réactiver le bouton de commande
-      document.getElementById('cartSubmit').disabled = false;
-      document.getElementById('cartSubmit').textContent = 'Passer la commande';
-
-    } catch (e) {
-      console.error('Erreur init PayGreen:', e);
-      showToast('Erreur d\'initialisation du paiement', 'error');
-      closePaymentModal();
-    }
-  }, 300);
+  // Auto-sélectionner CB par défaut
+  setTimeout(() => selectPaymentMethod('bank_card'), 300);
 }
 
-function closePaymentModal() {
-  const modal = document.getElementById('paymentModal');
-  if (modal) {
-    modal.remove();
-    document.body.style.overflow = '';
+function selectPaymentMethod(method) {
+  // Reset tous les styles
+  ['bank_card', 'swile', 'restoflash'].forEach(m => {
+    const el = document.getElementById(`method_${m}`);
+    const check = document.getElementById(`check_${m}`);
+    if (el && check) {
+      el.style.borderColor = '#e5e7eb';
+      el.style.background = 'transparent';
+      check.style.background = 'transparent';
+      check.style.borderColor = '#e5e7eb';
+    }
+  });
+
+  // Highlight sélection
+  const selected = document.getElementById(`method_${method}`);
+  const selectedCheck = document.getElementById(`check_${method}`);
+  if (selected && selectedCheck) {
+    selected.style.borderColor = 'var(--green)';
+    selected.style.background = 'var(--green-light)';
+    selectedCheck.style.background = 'var(--green)';
+    selectedCheck.innerHTML = '<svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5l3 3 7-7" stroke="white" stroke-width="2"/></svg>';
+  }
+
+  // Afficher le formulaire
+  document.getElementById('paymentForm').style.display = 'block';
+
+  // Init PayGreenJS avec la méthode sélectionnée
+  initPayGreen(method);
+}
+
+function initPayGreen(method) {
+  if (!currentPaymentData) return;
+
+  try {
+    window.paygreenjs.init({
+      paymentOrder: {
+        id: currentPaymentData.paymentOrderId,
+        objectSecret: currentPaymentData.objectSecret
+      },
+      publicKey: PAYGREEN_PUBLIC_KEY,
+      mode: 'payment',
+      paymentMethod: method,
+      style: {
+        input: {
+          base: {
+            color: '#1A1A1A',
+            fontSize: '15px',
+            fontFamily: 'Inter, system-ui, sans-serif',
+            lineHeight: '48px',
+            '::placeholder': { color: '#9CA3AF' }
+          },
+          invalid: { color: '#DC2626' }
+        }
+      }
+    });
+
+    // Écouter les events
+    window.paygreenjs.attachEventListener(window.paygreenjs.Events.FULL_PAYMENT_DONE, (event) => {
+      cancelPayment();
+      showConfirmation(currentPaymentData.orderNum, currentPaymentData.codeRetrait);
+    });
+
+    window.paygreenjs.attachEventListener(window.paygreenjs.Events.ERROR, (event) => {
+      console.error('PayGreen error:', event);
+      showToast('Erreur : ' + (event.message || 'Réessayez'), 'error');
+    });
+
+    // Bouton payer
+    document.getElementById('payBtn').onclick = () => {
+      const btn = document.getElementById('payBtn');
+      btn.textContent = 'Traitement en cours...';
+      btn.disabled = true;
+      window.paygreenjs.submitPayment();
+    };
+
+    // Réactiver bouton commande
+    document.getElementById('cartSubmit').disabled = false;
+    document.getElementById('cartSubmit').textContent = 'Passer la commande';
+
+  } catch (e) {
+    console.error('Erreur init PayGreen:', e);
+    showToast('Erreur d\'initialisation', 'error');
   }
 }
+
+function cancelPayment() {
+  const section = document.getElementById('paymentSection');
+  if (section) section.remove();
+  document.getElementById('cart').style.display = 'block';
+  document.body.style.overflow = '';
+  currentPaymentData = null;
+}
+
+// Ancienne fonction modal supprimée (remplacée par cancelPayment)
 
 async function showConfirmation(orderNum, codeRetrait) {
   toggleCart();

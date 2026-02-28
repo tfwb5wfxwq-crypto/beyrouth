@@ -259,10 +259,13 @@ function displayOrder(order) {
     const imgHtml = item.image_url
       ? `<img src="${item.image_url}" alt="${item.nom}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-right:8px;">`
       : '';
+    const componentsHtml = item.isFormule && item.components
+      ? `<div style="font-size:.7rem;color:#666;padding-left:48px;margin-top:2px;">→ ${item.components.join(', ')}</div>`
+      : '';
     html += `<div class="detail-item" style="align-items:center;">
       <span style="display:flex;align-items:center;">${imgHtml}${item.qty}x ${item.nom}</span>
       <span>${(item.prix * item.qty).toFixed(2).replace('.',',')} €</span>
-    </div>`;
+    </div>${componentsHtml}`;
   });
   html += `<div class="detail-item"><span>Total</span><span>${(order.total || 0).toFixed(2).replace('.',',')} €</span></div>`;
   details.innerHTML = html;

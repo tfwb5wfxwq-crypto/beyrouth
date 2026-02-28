@@ -368,7 +368,10 @@ function renderOrders() {
             const imgHtml = i.image_url
               ? `<img src="${i.image_url}" alt="${i.nom}" style="width:32px;height:32px;object-fit:cover;border-radius:4px;margin-right:6px;">`
               : '';
-            return `<div class="order-item-line" style="align-items:center;"><span style="display:flex;align-items:center;">${imgHtml}${i.qty}x ${i.nom}</span><span>${(i.prix * i.qty).toFixed(2).replace('.',',')} €</span></div>`;
+            const componentsHtml = i.isFormule && i.components
+              ? `<div style="font-size:.65rem;color:#666;padding-left:38px;margin-top:-2px;">→ ${i.components.join(', ')}</div>`
+              : '';
+            return `<div class="order-item-line" style="align-items:center;"><span style="display:flex;align-items:center;">${imgHtml}${i.qty}x ${i.nom}</span><span>${(i.prix * i.qty).toFixed(2).replace('.',',')} €</span></div>${componentsHtml}`;
           }).join('')}
           <div class="order-item-line order-total-line"><span>Total</span><span>${(order.total || 0).toFixed(2).replace('.',',')} €</span></div>
         </div>

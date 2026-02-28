@@ -72,6 +72,19 @@ a{color:inherit;text-decoration:none}
 .timepicker-slot.active{background:var(--dark);color:#fff}
 .timepicker-slot.disabled{opacity:.3;pointer-events:none}
 @media(min-width:640px){.timepicker-slots{grid-template-columns:repeat(4,1fr)}}
+
+/* ===== FORMULE CUSTOMIZER ===== */
+.formule-component{margin-bottom:20px}
+.formule-component-title{font-size:.85rem;font-weight:600;color:var(--text-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.formule-options{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.formule-option{display:flex;align-items:center;gap:8px;padding:10px;border:2px solid var(--border);border-radius:var(--r-sm);cursor:pointer;transition:all .15s;background:var(--white)}
+.formule-option:hover{background:var(--border-light);transform:scale(1.02)}
+.formule-option.selected{border-color:var(--green);background:var(--green);color:#fff}
+.formule-option img{width:32px;height:32px;object-fit:cover;border-radius:6px;flex-shrink:0}
+.formule-option-info{flex:1;min-width:0}
+.formule-option-name{font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.formule-option-price{font-size:.7rem;opacity:.7}
+@media(min-width:500px){.formule-options{grid-template-columns:repeat(3,1fr)}}
 .timepicker-slot.disabled{opacity:.2;pointer-events:none}
 
 /* ===== NAV ===== */
@@ -310,6 +323,17 @@ a{color:inherit;text-decoration:none}
   <div class="timepicker-slots" id="tpSlots"></div>
 </div>
 
+<!-- FORMULE CUSTOMIZER -->
+<div class="timepicker-overlay" id="formuleOverlay" onclick="closeFormuleModal()"></div>
+<div class="timepicker-sheet" id="formuleSheet">
+  <div class="timepicker-handle"></div>
+  <div class="timepicker-title" id="formuleTitle">Personnalisez votre formule</div>
+  <div id="formuleComponents" style="padding:10px 0"></div>
+  <button class="cart-submit" id="formuleAddBtn" onclick="addFormuleToCart()" style="width:100%;margin-top:16px;">
+    Ajouter au panier
+  </button>
+</div>
+
 <!-- NAV -->
 <nav class="nav" id="nav">
   <div class="nav-inner" id="navCats"></div>
@@ -440,6 +464,29 @@ let categories = [];
 let menuItems = [];
 let ingredients = [];
 let cart = JSON.parse(localStorage.getItem('be_cart') || '[]');
+
+// ===== FORMULE CONFIGS =====
+const FORMULE_CONFIG = {
+  'Formule 1': [
+    { name: 'Sandwich', category: 1, qty: 1 },
+    { name: 'Feuilletés', items: ['Fromage', 'Boeuf', 'Épinard', 'Falafel'], qty: 2 },
+    { name: 'Boisson', category: 7, qty: 1 }
+  ],
+  'Formule 2': [
+    { name: 'Sandwich', category: 1, qty: 1 },
+    { name: 'Entrée froide', items: ['Houmous', 'Moutabal', 'Taboulé'], qty: 1 },
+    { name: 'Boisson', category: 7, qty: 1 }
+  ],
+  'Formule 3': [
+    { name: 'Sandwich', category: 1, qty: 1 },
+    { name: 'Dessert', category: 6, qty: 1 },
+    { name: 'Boisson', category: 7, qty: 1 }
+  ],
+  'Formule 4': [
+    { name: 'Sandwich', category: 1, qty: 2 },
+    { name: 'Boisson', category: 7, qty: 1 }
+  ]
+};
 
 // ===== DEMO DATA =====
 const DEMO_CATEGORIES = [
@@ -709,6 +756,13 @@ function getCartQty(id) { const c = cart.find(c => c.id === id); return c ? c.qt
 function addToCart(itemId) {
   const item = menuItems.find(i => i.id === itemId);
   if (!item || !item.disponible) return;
+
+  // Si c'est une formule, ouvrir le modal de personnalisation
+  if (FORMULE_CONFIG[item.nom]) {
+    openFormuleModal(item);
+    return;
+  }
+
   const existing = cart.find(c => c.id === itemId);
   const isNew = !existing;
   if (existing) { existing.qty++; } else {
@@ -723,6 +777,108 @@ function addToCart(itemId) {
   }
   saveCart(); updateCartUI(); renderMenu();
   if (isNew) showUpsellBubble(itemId);
+}
+
+// ===== FORMULE CUSTOMIZER =====
+let currentFormule = null;
+let formuleSelections = {};
+
+function openFormuleModal(formuleItem) {
+  currentFormule = formuleItem;
+  formuleSelections = {};
+  const config = FORMULE_CONFIG[formuleItem.nom];
+  document.getElementById('formuleTitle').textContent = formuleItem.nom;
+  const container = document.getElementById('formuleComponents');
+  container.innerHTML = config.map((comp, idx) => {
+    const options = comp.category
+      ? menuItems.filter(it => it.categorie_id === comp.category && it.disponible)
+      : comp.items.map(name => ({ nom: name, emoji: '✓', image_url: null }));
+    return `
+      <div class="formule-component">
+        <div class="formule-component-title">${comp.name} ${comp.qty > 1 ? `(${comp.qty})` : ''}</div>
+        <div class="formule-options" id="formuleComp${idx}">
+          ${options.map((opt, optIdx) => `
+            <div class="formule-option" onclick="selectFormuleOption(${idx}, ${optIdx}, ${comp.qty})">
+              ${opt.image_url ? `<img src="${opt.image_url}" alt="${opt.nom}">` : `<span style="font-size:1.2rem">${opt.emoji || '🍽️'}</span>`}
+              <div class="formule-option-info">
+                <div class="formule-option-name">${opt.nom}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('formuleOverlay').classList.add('open');
+  document.getElementById('formuleSheet').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeFormuleModal() {
+  document.getElementById('formuleOverlay').classList.remove('open');
+  document.getElementById('formuleSheet').classList.remove('open');
+  document.body.style.overflow = '';
+  currentFormule = null;
+  formuleSelections = {};
+}
+
+function selectFormuleOption(compIdx, optIdx, maxQty) {
+  const config = FORMULE_CONFIG[currentFormule.nom];
+  const comp = config[compIdx];
+  const options = comp.category
+    ? menuItems.filter(it => it.categorie_id === comp.category && it.disponible)
+    : comp.items.map(name => ({ nom: name }));
+  const selectedOpt = options[optIdx];
+
+  if (!formuleSelections[compIdx]) formuleSelections[compIdx] = [];
+  const selections = formuleSelections[compIdx];
+  const existingIdx = selections.findIndex(s => s.nom === selectedOpt.nom);
+
+  if (existingIdx >= 0) {
+    // Déjà sélectionné → retirer
+    selections.splice(existingIdx, 1);
+  } else {
+    // Ajouter
+    if (selections.length < maxQty) {
+      selections.push(selectedOpt);
+    } else if (maxQty === 1) {
+      // Si max 1, remplacer
+      selections[0] = selectedOpt;
+    }
+  }
+
+  // Update UI
+  const container = document.getElementById(`formuleComp${compIdx}`);
+  Array.from(container.children).forEach((el, i) => {
+    el.classList.toggle('selected', selections.some(s => s.nom === options[i].nom));
+  });
+
+  // Enable/disable add button
+  const allSelected = config.every((c, i) => formuleSelections[i] && formuleSelections[i].length === c.qty);
+  document.getElementById('formuleAddBtn').disabled = !allSelected;
+}
+
+function addFormuleToCart() {
+  if (!currentFormule) return;
+  const config = FORMULE_CONFIG[currentFormule.nom];
+  const components = config.map((c, i) => formuleSelections[i] || []).flat();
+
+  cart.push({
+    id: currentFormule.id,
+    nom: currentFormule.nom,
+    prix: currentFormule.prix,
+    emoji: currentFormule.emoji || '🍽️',
+    image_url: currentFormule.image_url || null,
+    qty: 1,
+    isFormule: true,
+    components: components.map(c => c.nom)
+  });
+
+  saveCart();
+  updateCartUI();
+  renderMenu();
+  closeFormuleModal();
+  showToast('Formule ajoutée au panier !', 'success');
 }
 
 function changeQty(itemId, delta) {
@@ -788,11 +944,18 @@ function updateCartUI() {
     const visual = c.image_url
       ? `<img src="${c.image_url}" alt="${c.nom}" style="width:40px;height:40px;object-fit:cover;border-radius:10px;">`
       : `<div class="cart-item-emoji">${c.emoji}</div>`;
+
+    // Si c'est une formule, afficher les composants
+    const componentsHtml = c.isFormule && c.components
+      ? `<div style="font-size:.7rem;color:var(--text-soft);margin-top:2px;">→ ${c.components.join(', ')}</div>`
+      : '';
+
     div.innerHTML = `
       ${visual}
       <div class="cart-item-info">
         <div class="cart-item-name">${c.nom}</div>
         <div class="cart-item-price">${formatPrice(c.prix)} chacun</div>
+        ${componentsHtml}
       </div>
       <div class="cart-item-qty">
         <button onclick="changeQty(${c.id},-1)">&minus;</button>
@@ -991,7 +1154,9 @@ async function submitOrder() {
       nom: c.nom,
       prix: c.prix,
       qty: c.qty,
-      image_url: c.image_url || null
+      image_url: c.image_url || null,
+      isFormule: c.isFormule || false,
+      components: c.components || null
     })),
     total: Math.round(total*100)/100,
     statut: 'pending',

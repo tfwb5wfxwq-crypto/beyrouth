@@ -61,8 +61,26 @@ serve(async (req) => {
 
     if (!paygreenResponse.ok) {
       const errorText = await paygreenResponse.text()
-      console.error('Erreur Paygreen:', errorText)
-      throw new Error(`Erreur Paygreen: ${paygreenResponse.status}`)
+      console.error('Erreur Paygreen:', paygreenResponse.status, errorText)
+
+      // Essayer de parser l'erreur JSON de Paygreen
+      let paygreenError = errorText
+      try {
+        const errorJson = JSON.parse(errorText)
+        paygreenError = errorJson.message || errorJson.error || errorText
+      } catch (e) {
+        // Si pas JSON, utiliser le texte brut
+      }
+
+      return new Response(
+        JSON.stringify({
+          error: `Paygreen (${paygreenResponse.status}): ${paygreenError}`
+        }),
+        {
+          status: paygreenResponse.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
     }
 
     const paygreenData = await paygreenResponse.json()

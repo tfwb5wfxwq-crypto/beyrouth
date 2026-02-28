@@ -66,10 +66,12 @@ a{color:inherit;text-decoration:none}
 .timepicker-day{flex-shrink:0;padding:10px 20px;border-radius:20px;font-size:.85rem;font-weight:600;background:var(--border-light);color:var(--dark);cursor:pointer;transition:all .15s;text-align:center}
 .timepicker-day.active{background:var(--dark);color:#fff}
 .timepicker-day small{display:block;font-size:.7rem;font-weight:400;opacity:.6;margin-top:2px}
-.timepicker-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.timepicker-slot{padding:14px 8px;border-radius:var(--r-xs);font-size:.9rem;font-weight:600;background:var(--border-light);color:var(--dark);cursor:pointer;text-align:center;transition:all .15s}
+.timepicker-slots{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.timepicker-slot{padding:16px 12px;border-radius:var(--r-sm);font-size:1rem;font-weight:600;background:var(--border-light);color:var(--dark);cursor:pointer;text-align:center;transition:all .15s}
 .timepicker-slot:hover{background:var(--border);transform:scale(1.02)}
 .timepicker-slot.active{background:var(--dark);color:#fff}
+.timepicker-slot.disabled{opacity:.3;pointer-events:none}
+@media(min-width:640px){.timepicker-slots{grid-template-columns:repeat(4,1fr)}}
 .timepicker-slot.disabled{opacity:.2;pointer-events:none}
 
 /* ===== NAV ===== */
@@ -362,9 +364,7 @@ a{color:inherit;text-decoration:none}
       </div>
 
       <div class="cart-form">
-        <select id="pickupTime" style="display:none">
-          <option value="asap">Dès que possible (~20 min)</option>
-        </select>
+        <input type="hidden" id="pickupTime" value="">
         <input type="text" id="clientName" placeholder="Prénom" required>
         <div class="form-row">
           <input type="tel" id="clientPhone" placeholder="Téléphone" required>
@@ -1183,7 +1183,7 @@ function buildTimePicker() {
       label: d === 0 ? "Aujourd'hui" : d === 1 ? 'Demain' : JOURS[dayOfWeek],
       sub: `${date.getDate()}/${date.getMonth()+1}`
     });
-    if (tpDays.length >= 4) break;
+    if (tpDays.length >= 2) break; // Seulement aujourd'hui + demain
   }
   const daysEl = document.getElementById('tpDays');
   daysEl.innerHTML = tpDays.map((day, i) => `
@@ -1208,13 +1208,17 @@ function renderTimeSlots() {
   const startMin = day.slot[1] * 60 + day.slot[2];
   const endMin = day.slot[3] * 60 + day.slot[4];
   let html = '';
-  for (let m = startMin; m <= endMin; m += 15) {
+  let count = 0;
+  for (let m = startMin; m <= endMin; m += 30) { // Créneaux toutes les 30 min
     const h = Math.floor(m / 60), min = m % 60;
     const label = `${h}h${min.toString().padStart(2, '0')}`;
     const isPast = day.isToday && (now.getHours() * 60 + now.getMinutes()) >= m;
+    if (isPast) continue; // Ne pas afficher les créneaux passés
     const value = day.isToday ? label : `${day.label} ${label}`;
-    html += `<div class="timepicker-slot ${isPast ? 'disabled' : ''} ${selectedPickup === value ? 'active' : ''}"
+    html += `<div class="timepicker-slot ${selectedPickup === value ? 'active' : ''}"
       onclick="selectTime('${value}')">${label}</div>`;
+    count++;
+    if (count >= 8) break; // Max 8 créneaux affichés
   }
   slotsEl.innerHTML = html;
 }

@@ -228,7 +228,10 @@ a{color:inherit;text-decoration:none}
 .footer-sub{font-size:.78rem;opacity:.5;margin-bottom:16px}
 .footer-address{font-size:.78rem;opacity:.4;margin-bottom:4px}
 .footer-hours{font-size:.78rem;opacity:.4;margin-bottom:16px}
-.footer-link{font-size:.72rem;opacity:.3}
+.footer-links{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:12px}
+.footer-link{font-size:.8rem;opacity:.5;transition:opacity .2s;text-decoration:none}
+.footer-link:hover{opacity:.8}
+.footer-separator{opacity:.3;font-size:.8rem}
 
 /* ===== RESPONSIVE ===== */
 @media(min-width:640px){
@@ -448,11 +451,15 @@ a{color:inherit;text-decoration:none}
 <!-- FOOTER -->
 <footer class="footer">
   <div class="footer-inner">
-    <p class="footer-brand">A Beyrouth</p>
-    <p class="footer-sub">Cuisine libanaise authentique</p>
+    <p class="footer-brand">Beyrouth Express</p>
+    <p class="footer-sub">Service en ligne de A Beyrouth · Cuisine libanaise authentique</p>
     <p class="footer-address">1 Esplanade du Général de Gaulle, 92800 Puteaux</p>
     <p class="footer-hours">Lun–Ven 11h–15h</p>
-    <p class="footer-link">beyrouth.express</p>
+    <div class="footer-links">
+      <a href="/" class="footer-link">Click & Collect</a>
+      <span class="footer-separator">·</span>
+      <a href="/traiteur.html" class="footer-link">Service Traiteur</a>
+    </div>
   </div>
 </footer>
 

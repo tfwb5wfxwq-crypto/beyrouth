@@ -466,6 +466,7 @@ const SUPABASE_URL = 'https://xbuftfwcyontgqbbrrjt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidWZ0ZndjeW9udGdxYmJycmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2Njg1NzksImV4cCI6MjA4NjI0NDU3OX0.ROkSccADlpLsWMgqyiX_xNaFdJNR8P4R-LJCnZV2Gzg';
 const PAYGREEN_PUBLIC_KEY = 'pk_28b9dcb7b9604b3d9efb03c2e2a2bd45';
 const PAYGREEN_SHOP_ID = 'sh_55f9f298d8ce478db7b87117ec86ce11';
+const IMAGE_VERSION = Date.now(); // Cache busting version - défini une seule fois au chargement
 let sb = null;
 let paygreen = null;
 try { sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null; } catch(e) { console.error('Supabase init error:', e); }
@@ -740,7 +741,7 @@ function renderMenu() {
         <div class="menu-card ${!item.disponible ? 'menu-card-unavailable' : ''}" data-id="${item.id}" onclick="${item.disponible ? `addToCart(${item.id})` : ''}">
           <div class="menu-card-visual">
             ${item.image_url
-              ? `<img src="${item.image_url}?v=${Date.now()}" alt="${item.nom}" loading="lazy">`
+              ? `<img src="${item.image_url}?v=${IMAGE_VERSION}" alt="${item.nom}" loading="lazy">`
               : `<span class="emoji-placeholder">${item.emoji || '🍽️'}</span>`
             }
           </div>

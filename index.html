@@ -749,22 +749,23 @@ function updateCartUI() {
   footerEl.style.display = '';
   totalEl.textContent = formatPrice(total);
 
-  // Initialiser l'heure si pas encore sélectionnée
+  // Initialiser l'heure si pas encore sélectionnée : toujours proposer le créneau le plus proche
   if (!selectedPickup) {
     if (isOpenNow()) {
+      // Si ouvert : créneau ASAP (dans ~15 min)
       selectedPickup = 'asap';
       const asapTime = getAsapTime();
-      document.getElementById('timingPickLabel').textContent = `Dès que possible (${asapTime})`;
-      document.getElementById('cartPickupDisplay').innerHTML = `Dès que possible<br><span style="font-size:.85rem;opacity:.8;">${asapTime}</span>`;
+      document.getElementById('timingPickLabel').textContent = `Aujourd'hui ${asapTime}`;
+      document.getElementById('cartPickupDisplay').innerHTML = `Aujourd'hui ${asapTime}<br><span style="font-size:.85rem;opacity:.8;">Créneau le plus proche</span>`;
       document.getElementById('pickupTime').value = 'asap';
     } else {
-      // Si fermé, proposer la prochaine ouverture
+      // Si fermé : prochaine ouverture
       const next = getNextOpenSlot();
       if (next) {
         const nextSlot = `${next.jour} ${next.h}h${next.m ? String(next.m).padStart(2,'0') : '00'}`;
         selectedPickup = nextSlot;
-        document.getElementById('timingPickLabel').textContent = `Prochaine ouverture : ${nextSlot}`;
-        document.getElementById('cartPickupDisplay').innerHTML = `${nextSlot}<br><span style="font-size:.85rem;opacity:.8;">Prochaine ouverture</span>`;
+        document.getElementById('timingPickLabel').textContent = nextSlot;
+        document.getElementById('cartPickupDisplay').innerHTML = `${nextSlot}<br><span style="font-size:.85rem;opacity:.8;">Créneau le plus proche</span>`;
         document.getElementById('pickupTime').value = nextSlot;
       } else {
         document.getElementById('timingPickLabel').textContent = 'Choisir un créneau';
@@ -1186,23 +1187,25 @@ function buildTimePicker() {
   const open = isOpenNow();
   const asapBtn = document.getElementById('tpAsap');
 
-  // Si ouvert : "Dès que possible"
-  // Si fermé : proposer la prochaine ouverture
+  // Toujours proposer le créneau le plus proche (ouvert ou fermé)
   if (open) {
+    // Si ouvert : proposer dans 15 min
+    const asapTime = getAsapTime();
+    const slot = `Aujourd'hui ${asapTime}`;
     asapBtn.disabled = false;
     asapBtn.onclick = () => selectTime('asap');
-    const asapTime = getAsapTime();
-    asapBtn.innerHTML = `Dès que possible<span class="timepicker-asap-sub">Prêt vers ${asapTime}</span>`;
+    asapBtn.innerHTML = `Créneau le plus proche<span class="timepicker-asap-sub">${slot}</span>`;
   } else {
+    // Si fermé : proposer la prochaine ouverture
     const next = getNextOpenSlot();
     if (next) {
       asapBtn.disabled = false;
       const nextSlot = `${next.jour} ${next.h}h${next.m ? String(next.m).padStart(2,'0') : '00'}`;
       asapBtn.onclick = () => selectTime(nextSlot);
-      asapBtn.innerHTML = `Prochaine ouverture<span class="timepicker-asap-sub">${nextSlot}</span>`;
+      asapBtn.innerHTML = `Créneau le plus proche<span class="timepicker-asap-sub">${nextSlot}</span>`;
     } else {
       asapBtn.disabled = true;
-      asapBtn.innerHTML = `Dès que possible<span class="timepicker-asap-sub">Restaurant fermé</span>`;
+      asapBtn.innerHTML = `Créneau le plus proche<span class="timepicker-asap-sub">Indisponible</span>`;
     }
   }
 
@@ -1279,8 +1282,8 @@ function selectTime(value) {
   let topLabel, cartLabel;
   if (value === 'asap') {
     const asapTime = getAsapTime();
-    topLabel = `Dès que possible (${asapTime})`;
-    cartLabel = `Dès que possible<br><span style="font-size:.85rem;opacity:.8;">${asapTime}</span>`;
+    topLabel = `Aujourd'hui ${asapTime}`;
+    cartLabel = `Aujourd'hui ${asapTime}<br><span style="font-size:.85rem;opacity:.8;">Créneau le plus proche</span>`;
   } else {
     topLabel = value;
     cartLabel = value;

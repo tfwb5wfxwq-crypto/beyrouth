@@ -815,10 +815,10 @@ function openFormuleModal(formuleItem) {
       ? menuItems.filter(it => it.categorie_id === comp.category && it.disponible)
       : comp.items.map(name => ({ nom: name, image_url: ITEM_IMAGES[name] || null, emoji: '🍽️' }));
 
-    // Formule 3 : exclure certains desserts
+    // Formule 3 : exclure certains desserts (garder Baklawas 3 pièces)
     if (formuleItem.nom === 'Formule 3' && comp.category === 6) {
       options = options.filter(it =>
-        !['Duo Sablés', 'Baklawas', 'Assortiment Baklawas 250g', 'Assortiment Baklawas 500g'].includes(it.nom)
+        !['Duo Sablés', 'Assortiment Baklawas 250g', 'Assortiment Baklawas 500g'].includes(it.nom)
       );
     }
     return `
@@ -866,10 +866,10 @@ function selectFormuleOption(compIdx, optIdx, maxQty) {
     ? menuItems.filter(it => it.categorie_id === comp.category && it.disponible)
     : comp.items.map(name => ({ nom: name }));
 
-  // Formule 3 : exclure certains desserts
+  // Formule 3 : exclure certains desserts (garder Baklawas 3 pièces)
   if (currentFormule.nom === 'Formule 3' && comp.category === 6) {
     options = options.filter(it =>
-      !['Duo Sablés', 'Baklawas', 'Assortiment Baklawas 250g', 'Assortiment Baklawas 500g'].includes(it.nom)
+      !['Duo Sablés', 'Assortiment Baklawas 250g', 'Assortiment Baklawas 500g'].includes(it.nom)
     );
   }
 

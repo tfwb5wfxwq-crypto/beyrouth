@@ -48,11 +48,12 @@ serve(async (req) => {
       }
     }
 
-    // Appeler l'API Paygreen
+    // Appeler l'API Paygreen (Basic Auth: secret_key comme username, vide comme password)
+    const authString = btoa(`${PAYGREEN_SECRET_KEY}:`)
     const paygreenResponse = await fetch(PAYGREEN_API_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${PAYGREEN_SECRET_KEY}`,
+        'Authorization': `Basic ${authString}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },

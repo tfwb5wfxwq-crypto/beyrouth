@@ -785,8 +785,11 @@ function updateCartUI() {
   cart.forEach(c => {
     const div = document.createElement('div');
     div.className = 'cart-item';
+    const visual = c.image_url
+      ? `<img src="${c.image_url}" alt="${c.nom}" style="width:40px;height:40px;object-fit:cover;border-radius:10px;">`
+      : `<div class="cart-item-emoji">${c.emoji}</div>`;
     div.innerHTML = `
-      <div class="cart-item-emoji">${c.emoji}</div>
+      ${visual}
       <div class="cart-item-info">
         <div class="cart-item-name">${c.nom}</div>
         <div class="cart-item-price">${formatPrice(c.prix)} chacun</div>
@@ -829,16 +832,21 @@ function renderSuggestions() {
   else if (!cartCatIds.has(6)) titleEl.textContent = 'Un dessert pour finir ?';
   else titleEl.textContent = 'Vous aimerez aussi';
   suggestEl.style.display = '';
-  listEl.innerHTML = suggestions.map(s => `
-    <div class="cart-suggest-item" onclick="addToCart(${s.id});updateCartUI();renderMenu()">
-      <span class="suggest-emoji">${s.emoji || '🍽️'}</span>
-      <div>
-        <div class="suggest-name">${s.nom}</div>
-        <div class="suggest-price">${formatPrice(s.prix)}</div>
+  listEl.innerHTML = suggestions.map(s => {
+    const visual = s.image_url
+      ? `<img src="${s.image_url}" alt="${s.nom}" style="width:32px;height:32px;object-fit:cover;border-radius:6px;" class="suggest-emoji">`
+      : `<span class="suggest-emoji">${s.emoji || '🍽️'}</span>`;
+    return `
+      <div class="cart-suggest-item" onclick="addToCart(${s.id});updateCartUI();renderMenu()">
+        ${visual}
+        <div>
+          <div class="suggest-name">${s.nom}</div>
+          <div class="suggest-price">${formatPrice(s.prix)}</div>
+        </div>
+        <span class="suggest-add">+</span>
       </div>
-      <span class="suggest-add">+</span>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 // ===== UPSELL =====

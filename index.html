@@ -279,6 +279,8 @@ a{color:inherit;text-decoration:none}
 .toast.success{background:linear-gradient(135deg,#1B8C3E,#157A33)}
 .toast.warning{background:linear-gradient(135deg,#F59E0B,#D97706)}
 @media(min-width:640px){#toastContainer{top:20px;bottom:auto}.toast{transform:translateY(-100px)}.toast.hide{transform:translateY(-20px)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
@@ -464,8 +466,9 @@ a{color:inherit;text-decoration:none}
 
 <!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<!-- PAYGREEN -->
-<script src="https://paygreen.fr/js/sdk.js"></script>
+<!-- PAYGREEN JS -->
+<link href="https://pgjs.paygreen.fr/latest/paygreen.min.css" rel="stylesheet">
+<script src="https://pgjs.paygreen.fr/latest/paygreen.min.js"></script>
 <script>
 // ===== CONFIG =====
 const SUPABASE_URL = 'https://xbuftfwcyontgqbbrrjt.supabase.co';
@@ -1306,11 +1309,11 @@ async function submitOrder() {
       throw new Error(data?.error || error.message || 'Erreur de paiement');
     }
 
-    // Ouvrir le paiement dans un modal (mode embedded)
-    if (data.paymentUrl) {
-      openPaymentModal(data.paymentUrl, orderNum, codeRetrait);
+    // Ouvrir le paiement dans un modal (mode inline PayGreenJS)
+    if (data.paymentOrderId && data.objectSecret) {
+      openPaymentModal(data.paymentOrderId, data.objectSecret, orderNum, codeRetrait);
     } else {
-      throw new Error('URL de paiement non reçue');
+      throw new Error('Données de paiement non reçues');
     }
   } catch (e) {
     console.error('Erreur:', e);
@@ -1322,45 +1325,108 @@ async function submitOrder() {
 }
 
 // ===== PAYMENT MODAL =====
-function openPaymentModal(paymentUrl, orderNum, codeRetrait) {
+function openPaymentModal(paymentOrderId, objectSecret, orderNum, codeRetrait) {
   const modal = document.createElement('div');
   modal.id = 'paymentModal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn 0.2s ease;';
 
   const container = document.createElement('div');
-  container.style.cssText = 'background:#fff;border-radius:16px;width:100%;max-width:500px;max-height:90vh;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);';
+  container.style.cssText = 'background:#fff;border-radius:20px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 25px 80px rgba(0,0,0,0.3);animation:slideUp 0.3s ease;';
 
   const header = document.createElement('div');
-  header.style.cssText = 'padding:20px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;';
-  header.innerHTML = '<h3 style="margin:0;font-size:1.1rem;font-weight:700;">Paiement sécurisé</h3><button onclick="closePaymentModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#999;">&times;</button>';
+  header.style.cssText = 'padding:24px 24px 20px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;';
+  header.innerHTML = `
+    <div>
+      <h3 style="margin:0;font-size:1.2rem;font-weight:700;color:var(--dark);">Paiement sécurisé</h3>
+      <p style="margin:4px 0 0;font-size:0.85rem;color:var(--text-soft);">Commande ${orderNum}</p>
+    </div>
+    <button onclick="closePaymentModal()" style="background:none;border:none;font-size:1.8rem;cursor:pointer;color:#999;line-height:1;padding:4px 8px;border-radius:8px;transition:all 0.2s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='none'">&times;</button>
+  `;
 
-  const iframe = document.createElement('iframe');
-  iframe.src = paymentUrl;
-  iframe.style.cssText = 'width:100%;height:600px;border:none;';
-  iframe.onload = () => {
-    document.getElementById('cartSubmit').disabled = false;
-    document.getElementById('cartSubmit').textContent = 'Passer la commande';
-  };
-
-  // Écouter les messages du paiement (succès/échec)
-  window.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'payment') {
-      if (event.data.status === 'success') {
-        closePaymentModal();
-        toggleCart();
-        showConfirmation(orderNum, codeRetrait);
-      } else if (event.data.status === 'cancel') {
-        closePaymentModal();
-        showToast('Paiement annulé', 'warning');
-      }
-    }
-  });
+  const content = document.createElement('div');
+  content.style.cssText = 'padding:24px;';
+  content.innerHTML = `
+    <div id="paygreen-container"></div>
+    <div id="paygreen-methods-container"></div>
+    <div id="paygreen-pan-frame" style="margin-bottom:12px;"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div id="paygreen-exp-frame"></div>
+      <div id="paygreen-cvv-frame"></div>
+    </div>
+    <button id="payBtn" style="width:100%;padding:16px;background:var(--green);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:none;" onmouseover="this.style.background='var(--green-dark)'" onmouseout="this.style.background='var(--green)'">
+      Payer maintenant
+    </button>
+    <p style="margin-top:16px;font-size:0.8rem;color:var(--text-muted);text-align:center;">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" style="vertical-align:-1px;margin-right:4px;"><path d="M6 0C2.7 0 0 2.7 0 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6zm0 1.5c.4 0 .8.3.8.8 0 .4-.3.8-.8.8s-.8-.3-.8-.8c0-.4.4-.8.8-.8zM7.5 9h-3V8h1V6h-1V5h2v3h1v1z"/></svg>
+      Paiement 100% sécurisé - Vos données ne sont jamais stockées
+    </p>
+  `;
 
   container.appendChild(header);
-  container.appendChild(iframe);
+  container.appendChild(content);
   modal.appendChild(container);
   document.body.appendChild(modal);
   document.body.style.overflow = 'hidden';
+
+  // Initialiser PayGreenJS
+  setTimeout(() => {
+    try {
+      window.paygreenjs.init({
+        paymentOrderID: paymentOrderId,
+        objectSecret: objectSecret,
+        publicKey: PAYGREEN_PUBLIC_KEY,
+        mode: 'payment',
+        style: {
+          input: {
+            base: {
+              color: '#1A1A1A',
+              fontSize: '15px',
+              fontFamily: 'Inter, system-ui, sans-serif',
+              '::placeholder': { color: '#ABABAB' }
+            },
+            invalid: { color: '#DC2626' }
+          }
+        }
+      });
+
+      // Écouter les changements de flow
+      window.paygreenjs.attachEventListener(window.paygreenjs.Events.PAYMENT_FLOW_ONCHANGE, (event) => {
+        const payBtn = document.getElementById('payBtn');
+        if (event.lastFlow && event.lastFlow.method) {
+          payBtn.style.display = 'block';
+        }
+      });
+
+      // Écouter la fin du paiement
+      window.paygreenjs.attachEventListener(window.paygreenjs.Events.FULL_PAYMENT_DONE, (event) => {
+        closePaymentModal();
+        toggleCart();
+        showConfirmation(orderNum, codeRetrait);
+      });
+
+      // Écouter les erreurs
+      window.paygreenjs.attachEventListener(window.paygreenjs.Events.ERROR, (event) => {
+        console.error('PayGreen error:', event);
+        showToast('Erreur de paiement : ' + (event.message || 'Réessayez'), 'error');
+      });
+
+      // Gérer le clic sur le bouton
+      document.getElementById('payBtn').onclick = () => {
+        document.getElementById('payBtn').textContent = 'Traitement...';
+        document.getElementById('payBtn').disabled = true;
+        window.paygreenjs.submitPayment();
+      };
+
+      // Réactiver le bouton de commande
+      document.getElementById('cartSubmit').disabled = false;
+      document.getElementById('cartSubmit').textContent = 'Passer la commande';
+
+    } catch (e) {
+      console.error('Erreur init PayGreen:', e);
+      showToast('Erreur d\'initialisation du paiement', 'error');
+      closePaymentModal();
+    }
+  }, 300);
 }
 
 function closePaymentModal() {

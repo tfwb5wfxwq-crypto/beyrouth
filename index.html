@@ -329,7 +329,7 @@ a{color:inherit;text-decoration:none}
   <div class="timepicker-handle"></div>
   <div class="timepicker-title" id="formuleTitle">Personnalisez votre formule</div>
   <div id="formuleComponents" style="padding:10px 0"></div>
-  <button class="cart-submit" id="formuleAddBtn" onclick="addFormuleToCart()" style="width:100%;margin-top:16px;">
+  <button class="cart-checkout-btn" id="formuleAddBtn" onclick="addFormuleToCart()" disabled>
     Ajouter au panier
   </button>
 </div>
@@ -486,6 +486,17 @@ const FORMULE_CONFIG = {
     { name: 'Sandwich', category: 1, qty: 2 },
     { name: 'Boisson', category: 7, qty: 1 }
   ]
+};
+
+// ===== IMAGE MAPPINGS FOR FEUILLETÉS & ENTRÉES =====
+const ITEM_IMAGES = {
+  'Fromage': 'img/sambousek-fromage.jpg',
+  'Boeuf': 'img/sambousek-viande.jpg',
+  'Épinard': 'img/feuillete-epinard.jpg',
+  'Falafel': 'img/falafel.jpg',
+  'Houmous': 'img/houmous.jpg',
+  'Moutabal': 'img/moutabal.jpg',
+  'Taboulé': 'img/taboule.jpg'
 };
 
 // ===== DEMO DATA =====
@@ -792,7 +803,7 @@ function openFormuleModal(formuleItem) {
   container.innerHTML = config.map((comp, idx) => {
     const options = comp.category
       ? menuItems.filter(it => it.categorie_id === comp.category && it.disponible)
-      : comp.items.map(name => ({ nom: name, emoji: '✓', image_url: null }));
+      : comp.items.map(name => ({ nom: name, image_url: ITEM_IMAGES[name] || null, emoji: '🍽️' }));
     return `
       <div class="formule-component">
         <div class="formule-component-title">${comp.name} ${comp.qty > 1 ? `(${comp.qty})` : ''}</div>
@@ -971,10 +982,27 @@ function renderSuggestions() {
   const suggestEl = document.getElementById('cartSuggest');
   const listEl = document.getElementById('cartSuggestList');
   const cartIds = new Set(cart.map(c => c.id));
+
+  // Build set of categories présentes dans le panier (y compris dans les formules)
   const cartCatIds = new Set(cart.map(c => {
     const item = menuItems.find(i => i.id === c.id);
     return item ? item.categorie_id : 0;
   }));
+
+  // Pour les formules, ajouter les catégories de leurs composants
+  cart.forEach(c => {
+    if (c.isFormule) {
+      const item = menuItems.find(i => i.id === c.id);
+      if (item && FORMULE_CONFIG[item.nom]) {
+        FORMULE_CONFIG[item.nom].forEach(comp => {
+          if (comp.category) {
+            cartCatIds.add(comp.category); // Ajouter la catégorie du composant (ex: 7 pour Boisson)
+          }
+        });
+      }
+    }
+  });
+
   let suggestions = [];
   if ((cartCatIds.has(1) || cartCatIds.has(3) || cartCatIds.has(4)) && !cartCatIds.has(7)) {
     suggestions.push(...menuItems.filter(i => i.categorie_id === 7 && i.disponible && !cartIds.has(i.id)).slice(0, 3));

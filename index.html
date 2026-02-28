@@ -376,7 +376,7 @@ a{color:inherit;text-decoration:none}
           <span>Recevoir mon reçu par email</span>
         </label>
         <label class="cart-optin">
-          <input type="checkbox" id="optinPromos">
+          <input type="checkbox" id="optinPromos" checked>
           <span>Me tenir informé des offres et promotions</span>
         </label>
       </div>
@@ -1096,7 +1096,7 @@ async function showConfirmation(orderNum, codeRetrait) {
   document.getElementById('cartSubmit').textContent = 'Passer la commande';
   ['clientNote'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('wantReceipt').checked = true; // Reset à checked par défaut
-  document.getElementById('optinPromos').checked = false;
+  document.getElementById('optinPromos').checked = true; // Optin promos par défaut
 }
 
 // ===== NAV =====

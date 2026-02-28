@@ -811,9 +811,16 @@ function openFormuleModal(formuleItem) {
   document.getElementById('formuleTitle').textContent = formuleItem.nom;
   const container = document.getElementById('formuleComponents');
   container.innerHTML = config.map((comp, idx) => {
-    const options = comp.category
+    let options = comp.category
       ? menuItems.filter(it => it.categorie_id === comp.category && it.disponible)
       : comp.items.map(name => ({ nom: name, image_url: ITEM_IMAGES[name] || null, emoji: '🍽️' }));
+
+    // Formule 3 : exclure certains desserts
+    if (formuleItem.nom === 'Formule 3' && comp.category === 6) {
+      options = options.filter(it =>
+        !['Duo Sablés', 'Baklawas', 'Assortiment Baklawas 250g', 'Assortiment Baklawas 500g'].includes(it.nom)
+      );
+    }
     return `
       <div class="formule-component">
         <div class="formule-component-title">
@@ -855,9 +862,17 @@ function closeFormuleModal() {
 function selectFormuleOption(compIdx, optIdx, maxQty) {
   const config = FORMULE_CONFIG[currentFormule.nom];
   const comp = config[compIdx];
-  const options = comp.category
+  let options = comp.category
     ? menuItems.filter(it => it.categorie_id === comp.category && it.disponible)
     : comp.items.map(name => ({ nom: name }));
+
+  // Formule 3 : exclure certains desserts
+  if (currentFormule.nom === 'Formule 3' && comp.category === 6) {
+    options = options.filter(it =>
+      !['Duo Sablés', 'Baklawas', 'Assortiment Baklawas 250g', 'Assortiment Baklawas 500g'].includes(it.nom)
+    );
+  }
+
   const selectedOpt = options[optIdx];
 
   if (!formuleSelections[compIdx]) formuleSelections[compIdx] = [];

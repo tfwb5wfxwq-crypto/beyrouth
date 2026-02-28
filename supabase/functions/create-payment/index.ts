@@ -2,7 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const PAYGREEN_API_URL = 'https://api.paygreen.fr/api/payins'
+const PAYGREEN_API_URL = 'https://api.paygreen.fr/payment/payment-orders'
 const PAYGREEN_SECRET_KEY = 'sk_0564063e4ef04dbf93f588e7967e3e61'
 const PAYGREEN_SHOP_ID = 'sh_55f9f298d8ce478db7b87117ec86ce11'
 

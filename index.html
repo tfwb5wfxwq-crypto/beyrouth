@@ -712,7 +712,14 @@ function addToCart(itemId) {
   const existing = cart.find(c => c.id === itemId);
   const isNew = !existing;
   if (existing) { existing.qty++; } else {
-    cart.push({id: item.id, nom: item.nom, prix: item.prix, emoji: item.emoji || '🍽️', qty: 1});
+    cart.push({
+      id: item.id,
+      nom: item.nom,
+      prix: item.prix,
+      emoji: item.emoji || '🍽️',
+      image_url: item.image_url || null,
+      qty: 1
+    });
   }
   saveCart(); updateCartUI(); renderMenu();
   if (isNew) showUpsellBubble(itemId);
@@ -971,7 +978,13 @@ async function submitOrder() {
   // Créer la commande en statut "pending"
   const orderData = {
     numero: orderNum,
-    items: cart.map(c => ({id:c.id, nom:c.nom, prix:c.prix, qty:c.qty})),
+    items: cart.map(c => ({
+      id: c.id,
+      nom: c.nom,
+      prix: c.prix,
+      qty: c.qty,
+      image_url: c.image_url || null
+    })),
     total: Math.round(total*100)/100,
     statut: 'pending',
     heure_retrait: pickup,

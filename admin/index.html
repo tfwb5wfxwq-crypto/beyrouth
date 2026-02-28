@@ -364,7 +364,12 @@ function renderOrders() {
           ${order.client_telephone ? ' — ' + order.client_telephone : ''}
         </div>
         <div class="order-items">
-          ${items.map(i => `<div class="order-item-line"><span>${i.qty}x ${i.nom}</span><span>${(i.prix * i.qty).toFixed(2).replace('.',',')} €</span></div>`).join('')}
+          ${items.map(i => {
+            const imgHtml = i.image_url
+              ? `<img src="${i.image_url}" alt="${i.nom}" style="width:32px;height:32px;object-fit:cover;border-radius:4px;margin-right:6px;">`
+              : '';
+            return `<div class="order-item-line" style="align-items:center;"><span style="display:flex;align-items:center;">${imgHtml}${i.qty}x ${i.nom}</span><span>${(i.prix * i.qty).toFixed(2).replace('.',',')} €</span></div>`;
+          }).join('')}
           <div class="order-item-line order-total-line"><span>Total</span><span>${(order.total || 0).toFixed(2).replace('.',',')} €</span></div>
         </div>
         <div class="order-actions">

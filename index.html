@@ -37,6 +37,8 @@ a{color:inherit;text-decoration:none}
 .brand-express::after{content:'';position:absolute;left:-8px;top:50%;width:6px;height:2px;background:var(--gold);transform:translateY(-50%)}
 .brand-express::before{content:'';position:absolute;left:-14px;top:50%;width:4px;height:2px;background:var(--gold);opacity:.6;transform:translateY(-50%)}
 .header-right{display:flex;align-items:center;gap:12px}
+.header-link{font-size:.85rem;font-weight:500;padding:8px 16px;background:rgba(255,255,255,.08);border-radius:8px;transition:all .2s;border:1px solid rgba(255,255,255,.15)}
+.header-link:hover{background:rgba(255,255,255,.15);transform:translateY(-1px)}
 .header-badge{font-size:.6rem;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;padding:5px 12px;border:1px solid rgba(255,255,255,.2);border-radius:20px;color:rgba(255,255,255,.6)}
 .header-status{display:flex;align-items:center;gap:6px;font-size:.82rem;font-weight:500}
 .header-status .dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
@@ -292,6 +294,7 @@ a{color:inherit;text-decoration:none}
       <span class="brand-express">EXPRESS</span>
     </h1>
     <div class="header-right">
+      <a href="traiteur.html" class="header-link">🍽️ Traiteur</a>
       <span class="header-badge">Click & Collect</span>
       <div class="header-status" id="headerStatus">
         <span class="dot"></span>

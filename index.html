@@ -751,11 +751,26 @@ function updateCartUI() {
 
   // Initialiser l'heure si pas encore sélectionnée
   if (!selectedPickup) {
-    selectedPickup = 'asap';
-    const asapTime = getAsapTime();
-    document.getElementById('timingPickLabel').textContent = `Dès que possible (${asapTime})`;
-    document.getElementById('cartPickupDisplay').innerHTML = `Dès que possible<br><span style="font-size:.85rem;opacity:.8;">${asapTime}</span>`;
-    document.getElementById('pickupTime').value = 'asap';
+    if (isOpenNow()) {
+      selectedPickup = 'asap';
+      const asapTime = getAsapTime();
+      document.getElementById('timingPickLabel').textContent = `Dès que possible (${asapTime})`;
+      document.getElementById('cartPickupDisplay').innerHTML = `Dès que possible<br><span style="font-size:.85rem;opacity:.8;">${asapTime}</span>`;
+      document.getElementById('pickupTime').value = 'asap';
+    } else {
+      // Si fermé, proposer la prochaine ouverture
+      const next = getNextOpenSlot();
+      if (next) {
+        const nextSlot = `${next.jour} ${next.h}h${next.m ? String(next.m).padStart(2,'0') : '00'}`;
+        selectedPickup = nextSlot;
+        document.getElementById('timingPickLabel').textContent = `Prochaine ouverture : ${nextSlot}`;
+        document.getElementById('cartPickupDisplay').innerHTML = `${nextSlot}<br><span style="font-size:.85rem;opacity:.8;">Prochaine ouverture</span>`;
+        document.getElementById('pickupTime').value = nextSlot;
+      } else {
+        document.getElementById('timingPickLabel').textContent = 'Choisir un créneau';
+        document.getElementById('cartPickupDisplay').textContent = 'Choisir un créneau';
+      }
+    }
   }
   const existing = itemsEl.querySelectorAll('.cart-item');
   existing.forEach(el => el.remove());
@@ -938,7 +953,7 @@ async function submitOrder() {
   if (!phone) { showToast('Entrez votre téléphone', 'error'); return; }
   if (!email || !email.includes('@')) { showToast('Entrez un email valide', 'error'); return; }
   if (!pickup) { showToast('Choisissez une heure de retrait', 'error'); return; }
-  // Vérifier que ASAP n'est pas choisi quand le restaurant est fermé
+  // Vérifier que ASAP n'est pas choisi quand le restaurant est fermé (ne devrait plus arriver)
   if (pickup === 'asap' && !isOpenNow()) {
     showToast('Le restaurant est fermé. Choisissez un autre créneau.', 'error');
     return;
@@ -1170,14 +1185,25 @@ function buildTimePicker() {
   const now = new Date();
   const open = isOpenNow();
   const asapBtn = document.getElementById('tpAsap');
-  asapBtn.disabled = !open;
 
-  // Mettre à jour le texte du bouton ASAP avec l'heure calculée
+  // Si ouvert : "Dès que possible"
+  // Si fermé : proposer la prochaine ouverture
   if (open) {
+    asapBtn.disabled = false;
+    asapBtn.onclick = () => selectTime('asap');
     const asapTime = getAsapTime();
     asapBtn.innerHTML = `Dès que possible<span class="timepicker-asap-sub">Prêt vers ${asapTime}</span>`;
   } else {
-    asapBtn.innerHTML = `Dès que possible<span class="timepicker-asap-sub">Restaurant fermé</span>`;
+    const next = getNextOpenSlot();
+    if (next) {
+      asapBtn.disabled = false;
+      const nextSlot = `${next.jour} ${next.h}h${next.m ? String(next.m).padStart(2,'0') : '00'}`;
+      asapBtn.onclick = () => selectTime(nextSlot);
+      asapBtn.innerHTML = `Prochaine ouverture<span class="timepicker-asap-sub">${nextSlot}</span>`;
+    } else {
+      asapBtn.disabled = true;
+      asapBtn.innerHTML = `Dès que possible<span class="timepicker-asap-sub">Restaurant fermé</span>`;
+    }
   }
 
   tpDays = [];

@@ -77,10 +77,13 @@ a{color:inherit;text-decoration:none}
 .formule-component{margin-bottom:20px}
 .formule-component-title{font-size:.85rem;font-weight:600;color:var(--text-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
 .formule-options{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.formule-option{display:flex;align-items:center;gap:8px;padding:10px;border:2px solid var(--border);border-radius:var(--r-sm);cursor:pointer;transition:all .15s;background:var(--white)}
+.formule-option{display:flex;align-items:center;gap:10px;padding:12px;border:2px solid var(--border);border-radius:var(--r-sm);cursor:pointer;transition:all .15s;background:var(--white)}
 .formule-option:hover{background:var(--border-light);transform:scale(1.02)}
 .formule-option.selected{border-color:var(--green);background:var(--green);color:#fff}
-.formule-option img{width:32px;height:32px;object-fit:cover;border-radius:6px;flex-shrink:0}
+.formule-option img{width:48px;height:48px;object-fit:cover;border-radius:8px;flex-shrink:0;transform:scale(1.5)}
+.formule-option img.sandwich-img{object-position:center 30%;transform:scale(1.6)}
+.formule-option img.boisson-img{transform:scale(2.2)}
+.formule-option img.dessert-img{transform:scale(1.7)}
 .formule-option-info{flex:1;min-width:0}
 .formule-option-name{font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .formule-option-price{font-size:.7rem;opacity:.7}
@@ -806,11 +809,19 @@ function openFormuleModal(formuleItem) {
       : comp.items.map(name => ({ nom: name, image_url: ITEM_IMAGES[name] || null, emoji: '🍽️' }));
     return `
       <div class="formule-component">
-        <div class="formule-component-title">${comp.name} ${comp.qty > 1 ? `(${comp.qty})` : ''}</div>
+        <div class="formule-component-title">
+          ${comp.name}
+          <span id="formuleCounter${idx}" style="font-size:.75rem;color:var(--text-muted);font-weight:400;margin-left:6px;">0/${comp.qty}</span>
+        </div>
         <div class="formule-options" id="formuleComp${idx}">
-          ${options.map((opt, optIdx) => `
+          ${options.map((opt, optIdx) => {
+            let imgClass = '';
+            if (comp.category === 1) imgClass = 'sandwich-img';
+            else if (comp.category === 7) imgClass = 'boisson-img';
+            else if (comp.category === 6) imgClass = 'dessert-img';
+            return `
             <div class="formule-option" onclick="selectFormuleOption(${idx}, ${optIdx}, ${comp.qty})">
-              ${opt.image_url ? `<img src="${opt.image_url}" alt="${opt.nom}">` : `<span style="font-size:1.2rem">${opt.emoji || '🍽️'}</span>`}
+              ${opt.image_url ? `<img src="${opt.image_url}" alt="${opt.nom}" class="${imgClass}">` : `<span style="font-size:1.2rem">${opt.emoji || '🍽️'}</span>`}
               <div class="formule-option-info">
                 <div class="formule-option-name">${opt.nom}</div>
               </div>
@@ -863,6 +874,12 @@ function selectFormuleOption(compIdx, optIdx, maxQty) {
   Array.from(container.children).forEach((el, i) => {
     el.classList.toggle('selected', selections.some(s => s.nom === options[i].nom));
   });
+
+  // Update counter
+  const counter = document.getElementById(`formuleCounter${compIdx}`);
+  const isComplete = selections.length === maxQty;
+  counter.textContent = isComplete ? `${selections.length}/${maxQty} ✓` : `${selections.length}/${maxQty}`;
+  counter.style.color = isComplete ? 'var(--green)' : 'var(--text-muted)';
 
   // Enable/disable add button
   const allSelected = config.every((c, i) => formuleSelections[i] && formuleSelections[i].length === c.qty);

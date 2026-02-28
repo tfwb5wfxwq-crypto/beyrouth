@@ -938,6 +938,11 @@ async function submitOrder() {
   if (!phone) { showToast('Entrez votre téléphone', 'error'); return; }
   if (!email || !email.includes('@')) { showToast('Entrez un email valide', 'error'); return; }
   if (!pickup) { showToast('Choisissez une heure de retrait', 'error'); return; }
+  // Vérifier que ASAP n'est pas choisi quand le restaurant est fermé
+  if (pickup === 'asap' && !isOpenNow()) {
+    showToast('Le restaurant est fermé. Choisissez un autre créneau.', 'error');
+    return;
+  }
   if (!cart.length) return;
   const btn = document.getElementById('cartSubmit');
   btn.disabled = true; btn.textContent = 'Redirection paiement...';

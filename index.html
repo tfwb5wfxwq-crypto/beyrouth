@@ -992,7 +992,11 @@ async function submitOrder() {
       body: {orderNum, total: Math.round(total * 100), email, name, phone, pickup, note, items: cart}
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Edge Function error:', error);
+      console.error('Edge Function data:', data);
+      throw new Error(data?.error || error.message || 'Erreur de paiement');
+    }
 
     // Ouvrir le paiement dans un modal (mode embedded)
     if (data.paymentUrl) {

@@ -68,7 +68,7 @@ INSERT INTO menu_items (id, categorie_id, nom, description, prix, emoji, image_u
 
   -- === GRILLADES ===
   (20, 3, 'Kafta Méchoui', '2 brochettes boeuf, riz, crudités', 13.00, '🍢', 'img/kafta-mechoui.jpg', ARRAY['Boeuf','Riz'], true, true),
-  (21, 3, 'Chich Taouk', '2 brochettes poulet, riz, crudités', 13.00, '🍗', NULL, ARRAY['Poulet','Riz'], true, true),
+  (21, 3, 'Chich Taouk', '2 brochettes poulet, riz, crudités', 13.00, '🍗', 'img/chich-taouk.jpg', ARRAY['Poulet','Riz'], true, true),
   (22, 3, 'Shawarma Poulet ou Boeuf', 'Émincé mariné grillé à la broche, riz, crudités', 15.00, '🌯', NULL, ARRAY['Poulet','Boeuf','Riz'], true, true),
   (24, 3, 'Grillade Mixte', 'Shawarma poulet, kafta, chich taouk, riz, crudités', 16.00, '🔥', NULL, ARRAY['Poulet','Boeuf','Riz'], true, true),
 

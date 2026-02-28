@@ -46,9 +46,9 @@ serve(async (req) => {
 
     <!-- Header -->
     <div style="background: linear-gradient(135deg, #1B8C3E 0%, #157A33 100%); color: white; padding: 40px 24px; text-align: center;">
-      <div style="font-size: 64px; margin-bottom: 16px;">🎉</div>
-      <h1 style="margin: 0; font-size: 28px; font-weight: 600;">C'est prêt !</h1>
-      <p style="margin: 12px 0 0; opacity: 0.9; font-size: 16px;">Votre commande vous attend</p>
+      <div style="font-size: 64px; margin-bottom: 16px;">✅</div>
+      <h1 style="margin: 0; font-size: 28px; font-weight: 600;">Commande acceptée !</h1>
+      <p style="margin: 12px 0 0; opacity: 0.9; font-size: 16px;">En cours de préparation</p>
     </div>
 
     <!-- Body -->
@@ -56,8 +56,9 @@ serve(async (req) => {
 
       <!-- Code de retrait -->
       <div style="text-align: center; margin-bottom: 32px; padding: 32px 24px; background: linear-gradient(135deg, #E8F5EC 0%, #d4f1dc 100%); border-radius: 16px;">
-        <p style="margin: 0 0 12px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #157A33;">Présentez ce code au comptoir</p>
+        <p style="margin: 0 0 12px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #157A33;">Votre code de retrait</p>
         <p style="margin: 0; font-size: 56px; font-weight: 700; color: #1B8C3E; letter-spacing: 12px; line-height: 1;">${codeRetrait}</p>
+        <p style="margin: 16px 0 0; font-size: 14px; color: #6B6B6B;">À présenter au comptoir</p>
       </div>
 
       <!-- Infos -->
@@ -73,7 +74,7 @@ serve(async (req) => {
         <div style="display: flex; align-items: center; gap: 12px;">
           <div style="width: 48px; height: 48px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; font-size: 24px;">⏰</div>
           <div>
-            <p style="margin: 0; font-size: 12px; color: #6B6B6B; font-weight: 500;">Heure prévue</p>
+            <p style="margin: 0; font-size: 12px; color: #6B6B6B; font-weight: 500;">Sera prête pour</p>
             <p style="margin: 4px 0 0; font-size: 15px; font-weight: 600; color: #1A1A1A;">${pickup}</p>
           </div>
         </div>
@@ -90,7 +91,7 @@ serve(async (req) => {
 
       <!-- Info -->
       <div style="text-align: center; padding-top: 24px; border-top: 1px solid #EAEAE8;">
-        <p style="margin: 0; font-size: 14px; color: #1B8C3E; font-weight: 600;">✨ À tout de suite !</p>
+        <p style="margin: 0; font-size: 14px; color: #1B8C3E; font-weight: 600;">🍽️ On prépare votre commande avec soin</p>
         <p style="margin: 12px 0 0; font-size: 13px; color: #6B6B6B;">Commande ${orderNum}</p>
         <p style="margin: 8px 0 0; font-size: 12px; color: #ABABAB;">Des questions ? contact@beyrouth.express</p>
       </div>
@@ -118,7 +119,7 @@ serve(async (req) => {
       body: JSON.stringify({
         from: 'A Beyrouth <commande@beyrouth.express>',
         to: [email],
-        subject: `🎉 Commande ${orderNum} prête — A Beyrouth`,
+        subject: `✅ Commande ${orderNum} acceptée — A Beyrouth`,
         html: emailHtml,
       }),
     })

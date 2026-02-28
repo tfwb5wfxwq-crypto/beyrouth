@@ -1330,13 +1330,13 @@ let currentPaymentData = null;
 function openPaymentModal(paymentOrderId, objectSecret, orderNum, codeRetrait) {
   currentPaymentData = { paymentOrderId, objectSecret, orderNum, codeRetrait };
 
-  // Cacher le panier et afficher la section paiement
-  document.getElementById('cart').style.display = 'none';
+  // Fermer le panier et afficher la section paiement
+  toggleCart();
 
   // Créer la section paiement inline
   const paymentSection = document.createElement('div');
   paymentSection.id = 'paymentSection';
-  paymentSection.style.cssText = 'animation:slideUp 0.3s ease;';
+  paymentSection.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:#f5f5f7;z-index:10000;overflow-y:auto;animation:slideUp 0.3s ease;padding-top:20px;';
   paymentSection.innerHTML = `
     <div style="max-width:500px;margin:0 auto;padding:0 20px;">
       <button onclick="cancelPayment()" style="background:none;border:none;color:var(--text-soft);font-size:0.9rem;padding:12px 0;cursor:pointer;display:flex;align-items:center;gap:6px;margin-bottom:16px;">
@@ -1406,7 +1406,7 @@ function openPaymentModal(paymentOrderId, objectSecret, orderNum, codeRetrait) {
     </div>
   `;
 
-  document.getElementById('cartFull').insertAdjacentElement('afterend', paymentSection);
+  document.body.appendChild(paymentSection);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   // Auto-sélectionner CB par défaut
@@ -1501,8 +1501,7 @@ function initPayGreen(method) {
 function cancelPayment() {
   const section = document.getElementById('paymentSection');
   if (section) section.remove();
-  document.getElementById('cart').style.display = 'block';
-  document.body.style.overflow = '';
+  toggleCart(); // Rouvrir le panier
   currentPaymentData = null;
 }
 

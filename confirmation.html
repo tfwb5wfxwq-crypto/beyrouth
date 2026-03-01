@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Commande confirmée — Beyrouth Express</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧆</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --green: #10B981;
+  --dark: #1A1A1A;
+  --cream: #FFF8F0;
+  --gold: #D4A853;
+  --bordeaux: #8B1A1A;
+}
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #f5f5f5;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.container {
+  max-width: 500px;
+  width: 100%;
+  background: white;
+  border-radius: 20px;
+  padding: 40px 32px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+.icon {
+  background: var(--green);
+  color: white;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 2rem;
+}
+h1 {
+  color: var(--green);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.order-num {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--dark);
+  margin-bottom: 4px;
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+}
+.subtitle {
+  font-size: 0.85rem;
+  color: #6B6B6B;
+  margin: 0 0 20px;
+  text-align: center;
+}
+.section {
+  background: var(--cream);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.section-title {
+  font-size: 0.75rem;
+  color: #888;
+  margin: 0 0 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.section-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--dark);
+  margin: 0;
+}
+.item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+.item-price {
+  font-weight: 600;
+}
+.total-row {
+  border-top: 2px solid #ddd;
+  margin-top: 12px;
+  padding-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+.address-section {
+  background: #FFF3E0;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.address-title {
+  font-size: 0.75rem;
+  color: #E65100;
+  margin: 0 0 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.address-name {
+  font-weight: 600;
+  color: var(--dark);
+  margin: 0 0 4px;
+}
+.address-text {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0 0 8px;
+}
+.address-note {
+  font-size: 0.85rem;
+  color: #888;
+  margin: 0;
+}
+.email-section {
+  background: #E3F2FD;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.email-text {
+  font-size: 0.9rem;
+  color: #1976D2;
+  margin: 0;
+}
+.email-sub {
+  font-size: 0.8rem;
+  color: #666;
+}
+.btn {
+  display: block;
+  background: var(--green);
+  color: white;
+  padding: 14px;
+  border-radius: 12px;
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-decoration: none;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn:hover {
+  background: #0EA572;
+}
+.btn-secondary {
+  background: transparent;
+  border: 2px solid #ddd;
+  color: var(--dark);
+  padding: 12px;
+}
+.btn-secondary:hover {
+  background: #f5f5f5;
+}
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+</style>
+</head>
+<body>
+
+<div class="container" id="app">
+  <div class="loading" id="loading">
+    <div style="font-size:3rem;margin-bottom:16px;">⏳</div>
+    <p>Chargement de votre commande...</p>
+  </div>
+
+  <div id="content" style="display:none;">
+    <div class="icon">✓</div>
+    <h1>Paiement validé !</h1>
+    <div class="order-num" id="orderNum">BE-0001</div>
+    <p class="subtitle">Votre commande a été enregistrée</p>
+
+    <!-- Heure de retrait -->
+    <div class="section">
+      <p class="section-title">Retrait prévu</p>
+      <p class="section-value" id="pickupTime">12h30</p>
+    </div>
+
+    <!-- Détails commande -->
+    <div class="section">
+      <p class="section-title">Votre commande</p>
+      <div id="items"></div>
+      <div class="total-row">
+        <span>Total</span>
+        <span id="total">0,00 €</span>
+      </div>
+    </div>
+
+    <!-- Adresse récupération -->
+    <div class="address-section">
+      <p class="address-title">📍 Où récupérer</p>
+      <p class="address-name">A Beyrouth</p>
+      <p class="address-text">1 Esplanade du Général de Gaulle<br>92800 Puteaux (La Défense)</p>
+      <p class="address-note">Sortie 4 du métro La Défense</p>
+    </div>
+
+    <!-- Email confirmation -->
+    <div class="email-section">
+      <p class="email-text">
+        ✉️ <strong>Confirmation par email envoyée</strong><br>
+        <span class="email-sub">Vous recevrez un email avec l'heure de retrait et le récapitulatif</span>
+      </p>
+    </div>
+
+    <a class="btn" href="commande.html" id="trackBtn">Suivre ma commande en temps réel</a>
+    <a class="btn btn-secondary" href="/">Retour au menu</a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://xbuftfwcyontgqbbrrjt.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidWZ0ZndjeW9udGdxYmJycmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2Njg1NzksImV4cCI6MjA4NjI0NDU3OX0.ROkSccADlpLsWMgqyiX_xNaFdJNR8P4R-LJCnZV2Gzg';
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function loadOrder() {
+  const params = new URLSearchParams(window.location.search);
+  const orderNum = params.get('num');
+
+  if (!orderNum) {
+    window.location.href = '/';
+    return;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('numero', orderNum)
+      .single();
+
+    if (error) throw error;
+    if (!data) {
+      alert('Commande introuvable');
+      window.location.href = '/';
+      return;
+    }
+
+    // Remplir les infos
+    document.getElementById('orderNum').textContent = data.numero;
+    document.getElementById('pickupTime').textContent = data.heure_retrait || 'Dès que possible (~15-20 min)';
+
+    // Items
+    const itemsHtml = data.items.map(item => {
+      const total = (item.prix * item.qty).toFixed(2).replace('.', ',');
+      return `
+        <div class="item">
+          <span>${item.qty}x ${item.nom}</span>
+          <span class="item-price">${total} €</span>
+        </div>
+      `;
+    }).join('');
+    document.getElementById('items').innerHTML = itemsHtml;
+
+    // Total
+    const total = data.total.toFixed(2).replace('.', ',');
+    document.getElementById('total').textContent = total + ' €';
+
+    // Track link
+    document.getElementById('trackBtn').href = `commande.html?num=${data.numero}`;
+
+    // Afficher
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+
+  } catch (error) {
+    console.error('Erreur:', error);
+    alert('Erreur de chargement de la commande');
+    window.location.href = '/';
+  }
+}
+
+loadOrder();
+</script>
+
+</body>
+</html>

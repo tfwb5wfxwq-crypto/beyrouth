@@ -238,7 +238,7 @@ h1 {
 const SUPABASE_URL = 'https://xbuftfwcyontgqbbrrjt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidWZ0ZndjeW9udGdxYmJycmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2Njg1NzksImV4cCI6MjA4NjI0NDU3OX0.ROkSccADlpLsWMgqyiX_xNaFdJNR8P4R-LJCnZV2Gzg';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 async function loadOrder() {
   const params = new URLSearchParams(window.location.search);
@@ -250,7 +250,7 @@ async function loadOrder() {
   }
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from('orders')
       .select('*')
       .eq('numero', orderNum)

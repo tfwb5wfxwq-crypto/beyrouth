@@ -1361,52 +1361,72 @@ function openPaymentModal(paymentOrderId, objectSecret, orderNum, codeRetrait, t
         <p style="margin:8px 0 24px;font-size:1.5rem;font-weight:700;color:var(--dark);">${total.toFixed(2).replace('.', ',')} €</p>
 
         <div id="paymentMethods" style="margin-bottom:20px;">
-          <p style="font-size:0.85rem;font-weight:600;margin:0 0 10px;color:var(--text-soft);">MOYEN DE PAIEMENT</p>
-
-          <!-- Apple Pay (iOS/Safari uniquement) -->
-          ${(navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad') || navigator.userAgent.includes('Mac')) ? `
-          <div onclick="selectPaymentMethod('apple_pay')" id="method_apple_pay" style="border:2px solid #e5e7eb;border-radius:10px;padding:10px 14px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:10px;">
-            <img src="img/apple-pay-logo.svg" alt="Apple Pay" style="width:50px;height:auto;max-height:22px;object-fit:contain;">
-            <div style="flex:1;font-weight:600;font-size:0.95rem;">Apple Pay</div>
-            <div id="check_apple_pay" style="width:18px;height:18px;border-radius:50%;border:2px solid #e5e7eb;"></div>
-          </div>
-          ` : ''}
-
-          <!-- Google Pay (Android/Chrome uniquement) -->
-          ${(navigator.userAgent.includes('Android') || navigator.userAgent.includes('Chrome')) && !navigator.userAgent.includes('iPhone') ? `
-          <div onclick="selectPaymentMethod('google_pay')" id="method_google_pay" style="border:2px solid #e5e7eb;border-radius:10px;padding:10px 14px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:10px;">
-            <img src="img/google-pay-logo.svg" alt="Google Pay" style="width:52px;height:auto;max-height:22px;object-fit:contain;">
-            <div style="flex:1;font-weight:600;font-size:0.95rem;">Google Pay</div>
-            <div id="check_google_pay" style="width:18px;height:18px;border-radius:50%;border:2px solid #e5e7eb;"></div>
-          </div>
-          ` : ''}
-
-          <div onclick="selectPaymentMethod('bank_card')" id="method_bank_card" style="border:2px solid #e5e7eb;border-radius:10px;padding:10px 14px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:10px;">
-            <div style="display:flex;gap:6px;align-items:center;min-width:90px;">
-              <img src="img/cb-logo.svg" alt="CB" style="height:22px;width:auto;object-fit:contain;">
-              <img src="img/visa-logo.svg" alt="Visa" style="height:20px;width:auto;object-fit:contain;">
-              <img src="img/mastercard-logo.svg" alt="Mastercard" style="height:22px;width:auto;object-fit:contain;">
+          <!-- Bande de logos acceptés -->
+          <div style="border:2px solid #e5e7eb;border-radius:8px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;background:#f9fafb;">
+            <span style="font-size:0.85rem;font-weight:600;color:var(--text-soft);white-space:nowrap;">Moyens de paiement:</span>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <img src="img/cb-logo.svg" alt="CB" style="height:20px;width:auto;">
+              <img src="img/visa-logo.svg" alt="Visa" style="height:18px;width:auto;">
+              <img src="img/mastercard-logo.svg" alt="Mastercard" style="height:20px;width:auto;">
+              ${(navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad') || navigator.userAgent.includes('Mac')) ? `<img src="img/apple-pay-logo.svg" alt="Apple Pay" style="height:20px;width:auto;">` : ''}
+              ${(navigator.userAgent.includes('Android') || navigator.userAgent.includes('Chrome')) && !navigator.userAgent.includes('iPhone') ? `<img src="img/google-pay-logo.svg" alt="Google Pay" style="height:20px;width:auto;">` : ''}
+              <img src="img/swile-logo.png" alt="Swile" style="height:18px;width:auto;">
+              <img src="img/conecs-logo.png" alt="Conecs" style="height:18px;width:auto;">
+              <img src="img/restoflash-logo.png" alt="Restoflash" style="height:18px;width:auto;">
             </div>
-            <div style="flex:1;font-weight:600;font-size:0.95rem;">Carte bancaire</div>
-            <div id="check_bank_card" style="width:18px;height:18px;border-radius:50%;border:2px solid #e5e7eb;"></div>
           </div>
 
-          <div onclick="selectPaymentMethod('swile')" id="method_swile" style="border:2px solid #e5e7eb;border-radius:10px;padding:10px 14px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:10px;">
-            <img src="img/swile-logo.png" alt="Swile" style="width:55px;height:auto;max-height:22px;object-fit:contain;">
-            <div style="flex:1;font-weight:600;font-size:0.95rem;">Swile</div>
-            <div id="check_swile" style="width:18px;height:18px;border-radius:50%;border:2px solid #e5e7eb;"></div>
-          </div>
+          <!-- Options de paiement sélectionnables -->
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <!-- Carte bancaire -->
+            <div onclick="selectPaymentMethod('bank_card')" id="method_bank_card" style="border:2px solid #e5e7eb;border-radius:8px;padding:14px 16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;background:#fff;">
+              <input type="radio" name="payment" style="width:18px;height:18px;margin:0;cursor:pointer;">
+              <div style="display:flex;gap:8px;align-items:center;">
+                <img src="img/cb-logo.svg" alt="CB" style="height:22px;width:auto;">
+                <img src="img/visa-logo.svg" alt="Visa" style="height:20px;width:auto;">
+                <img src="img/mastercard-logo.svg" alt="Mastercard" style="height:22px;width:auto;">
+              </div>
+              <span style="font-weight:600;font-size:0.95rem;">Carte bancaire</span>
+            </div>
 
-          <div onclick="selectPaymentMethod('conecs')" id="method_conecs" style="border:2px solid #e5e7eb;border-radius:10px;padding:10px 14px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:10px;">
-            <img src="img/conecs-logo.png" alt="Conecs" style="width:55px;height:auto;max-height:22px;object-fit:contain;">
-            <div style="flex:1;font-weight:600;font-size:0.95rem;">Conecs <span style="font-size:0.75rem;color:var(--text-soft);font-weight:400;">Pluxee, Up, Bimpli</span></div>
-            <div id="check_conecs" style="width:18px;height:18px;border-radius:50%;border:2px solid #e5e7eb;"></div>
-          </div>
+            <!-- Apple Pay (iOS/Safari uniquement) -->
+            ${(navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad') || navigator.userAgent.includes('Mac')) ? `
+            <div onclick="selectPaymentMethod('apple_pay')" id="method_apple_pay" style="border:2px solid #e5e7eb;border-radius:8px;padding:14px 16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;background:#fff;">
+              <input type="radio" name="payment" style="width:18px;height:18px;margin:0;cursor:pointer;">
+              <img src="img/apple-pay-logo.svg" alt="Apple Pay" style="height:24px;width:auto;">
+              <span style="font-weight:600;font-size:0.95rem;">Apple Pay</span>
+            </div>
+            ` : ''}
 
-          <div onclick="selectPaymentMethod('restoflash')" id="method_restoflash" style="border:2px solid #e5e7eb;border-radius:10px;padding:10px 14px;margin-bottom:0;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:10px;">
-            <img src="img/restoflash-logo.png" alt="Restoflash" style="width:62px;height:auto;max-height:22px;object-fit:contain;">
-            <div style="flex:1;font-weight:600;font-size:0.95rem;">Restoflash</div>
-            <div id="check_restoflash" style="width:18px;height:18px;border-radius:50%;border:2px solid #e5e7eb;"></div>
+            <!-- Google Pay (Android/Chrome uniquement) -->
+            ${(navigator.userAgent.includes('Android') || navigator.userAgent.includes('Chrome')) && !navigator.userAgent.includes('iPhone') ? `
+            <div onclick="selectPaymentMethod('google_pay')" id="method_google_pay" style="border:2px solid #e5e7eb;border-radius:8px;padding:14px 16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;background:#fff;">
+              <input type="radio" name="payment" style="width:18px;height:18px;margin:0;cursor:pointer;">
+              <img src="img/google-pay-logo.svg" alt="Google Pay" style="height:24px;width:auto;">
+              <span style="font-weight:600;font-size:0.95rem;">Google Pay</span>
+            </div>
+            ` : ''}
+
+            <!-- Swile -->
+            <div onclick="selectPaymentMethod('swile')" id="method_swile" style="border:2px solid #e5e7eb;border-radius:8px;padding:14px 16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;background:#fff;">
+              <input type="radio" name="payment" style="width:18px;height:18px;margin:0;cursor:pointer;">
+              <img src="img/swile-logo.png" alt="Swile" style="height:22px;width:auto;">
+              <span style="font-weight:600;font-size:0.95rem;">Swile</span>
+            </div>
+
+            <!-- Conecs -->
+            <div onclick="selectPaymentMethod('conecs')" id="method_conecs" style="border:2px solid #e5e7eb;border-radius:8px;padding:14px 16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;background:#fff;">
+              <input type="radio" name="payment" style="width:18px;height:18px;margin:0;cursor:pointer;">
+              <img src="img/conecs-logo.png" alt="Conecs" style="height:22px;width:auto;">
+              <span style="font-weight:600;font-size:0.95rem;">Conecs <span style="font-size:0.8rem;color:var(--text-soft);font-weight:400;">(Pluxee, Up, Bimpli)</span></span>
+            </div>
+
+            <!-- Restoflash -->
+            <div onclick="selectPaymentMethod('restoflash')" id="method_restoflash" style="border:2px solid #e5e7eb;border-radius:8px;padding:14px 16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;background:#fff;">
+              <input type="radio" name="payment" style="width:18px;height:18px;margin:0;cursor:pointer;">
+              <img src="img/restoflash-logo.png" alt="Restoflash" style="height:22px;width:auto;">
+              <span style="font-weight:600;font-size:0.95rem;">Restoflash</span>
+            </div>
           </div>
         </div>
 
@@ -1442,24 +1462,22 @@ function selectPaymentMethod(method) {
   // Reset tous les styles
   ['bank_card', 'swile', 'conecs', 'restoflash', 'apple_pay', 'google_pay'].forEach(m => {
     const el = document.getElementById(`method_${m}`);
-    const check = document.getElementById(`check_${m}`);
-    if (el && check) {
+    const radio = el?.querySelector('input[type="radio"]');
+    if (el) {
       el.style.borderColor = '#e5e7eb';
-      el.style.background = 'transparent';
-      check.style.background = 'transparent';
-      check.style.borderColor = '#e5e7eb';
+      el.style.background = '#fff';
     }
+    if (radio) radio.checked = false;
   });
 
   // Highlight sélection
   const selected = document.getElementById(`method_${method}`);
-  const selectedCheck = document.getElementById(`check_${method}`);
-  if (selected && selectedCheck) {
-    selected.style.borderColor = 'var(--green)';
-    selected.style.background = 'var(--green-light)';
-    selectedCheck.style.background = 'var(--green)';
-    selectedCheck.innerHTML = '<svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5l3 3 7-7" stroke="white" stroke-width="2"/></svg>';
+  const radio = selected?.querySelector('input[type="radio"]');
+  if (selected) {
+    selected.style.borderColor = '#1B8C3E';
+    selected.style.background = '#f0fdf4';
   }
+  if (radio) radio.checked = true;
 
   // Afficher le formulaire
   document.getElementById('paymentForm').style.display = 'block';

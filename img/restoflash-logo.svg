@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 32">
+  <!-- Restoflash Logo -->
+  <rect width="100" height="32" rx="4" fill="#E63946"/>
+  <text x="50" y="21" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="white" text-anchor="middle">restoflash</text>
+</svg>

@@ -1322,7 +1322,7 @@ async function submitOrder() {
 
     // Ouvrir le paiement dans un modal (mode inline PayGreenJS)
     if (data.paymentOrderId && data.objectSecret) {
-      openPaymentModal(data.paymentOrderId, data.objectSecret, orderNum, codeRetrait);
+      openPaymentModal(data.paymentOrderId, data.objectSecret, orderNum, codeRetrait, total);
     } else {
       throw new Error('Données de paiement non reçues');
     }
@@ -1338,8 +1338,8 @@ async function submitOrder() {
 // ===== PAYMENT INLINE =====
 let currentPaymentData = null;
 
-function openPaymentModal(paymentOrderId, objectSecret, orderNum, codeRetrait) {
-  currentPaymentData = { paymentOrderId, objectSecret, orderNum, codeRetrait };
+function openPaymentModal(paymentOrderId, objectSecret, orderNum, codeRetrait, total) {
+  currentPaymentData = { paymentOrderId, objectSecret, orderNum, codeRetrait, total };
 
   // Fermer le panier et afficher la section paiement
   toggleCart();
@@ -1362,6 +1362,34 @@ function openPaymentModal(paymentOrderId, objectSecret, orderNum, codeRetrait) {
 
         <div id="paymentMethods" style="margin-bottom:24px;">
           <p style="font-size:0.85rem;font-weight:600;margin:0 0 12px;color:var(--text-soft);">MOYEN DE PAIEMENT</p>
+
+          <!-- Apple Pay (iOS/Safari uniquement) -->
+          ${(navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad') || navigator.userAgent.includes('Mac')) ? `
+          <div onclick="selectPaymentMethod('apple_pay')" id="method_apple_pay" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;">
+            <div style="display:flex;align-items:center;">
+              <img src="img/apple-pay-logo.svg" alt="Apple Pay" style="width:48px;height:18px;object-fit:contain;">
+            </div>
+            <div style="flex:1;">
+              <div style="font-weight:600;margin-bottom:2px;">Apple Pay</div>
+              <div style="font-size:0.75rem;color:var(--text-soft);">Paiement rapide</div>
+            </div>
+            <div id="check_apple_pay" style="width:20px;height:20px;border-radius:50%;border:2px solid #e5e7eb;"></div>
+          </div>
+          ` : ''}
+
+          <!-- Google Pay (Android/Chrome uniquement) -->
+          ${(navigator.userAgent.includes('Android') || navigator.userAgent.includes('Chrome')) && !navigator.userAgent.includes('iPhone') ? `
+          <div onclick="selectPaymentMethod('google_pay')" id="method_google_pay" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;">
+            <div style="display:flex;align-items:center;">
+              <img src="img/google-pay-logo.svg" alt="Google Pay" style="width:50px;height:18px;object-fit:contain;">
+            </div>
+            <div style="flex:1;">
+              <div style="font-weight:600;margin-bottom:2px;">Google Pay</div>
+              <div style="font-size:0.75rem;color:var(--text-soft);">Paiement rapide</div>
+            </div>
+            <div id="check_google_pay" style="width:20px;height:20px;border-radius:50%;border:2px solid #e5e7eb;"></div>
+          </div>
+          ` : ''}
 
           <div onclick="selectPaymentMethod('bank_card')" id="method_bank_card" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;">
             <div style="display:flex;gap:4px;align-items:center;">
@@ -1387,7 +1415,7 @@ function openPaymentModal(paymentOrderId, objectSecret, orderNum, codeRetrait) {
             <div id="check_swile" style="width:20px;height:20px;border-radius:50%;border:2px solid #e5e7eb;"></div>
           </div>
 
-          <div onclick="selectPaymentMethod('conecs')" id="method_conecs" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;">
+          <div onclick="selectPaymentMethod('conecs')" id="method_conecs" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;">
             <div style="display:flex;align-items:center;">
               <img src="img/conecs-logo.svg" alt="Conecs" style="width:52px;height:20px;object-fit:contain;">
             </div>
@@ -1396,6 +1424,17 @@ function openPaymentModal(paymentOrderId, objectSecret, orderNum, codeRetrait) {
               <div style="font-size:0.75rem;color:var(--text-soft);">Carte restaurant</div>
             </div>
             <div id="check_conecs" style="width:20px;height:20px;border-radius:50%;border:2px solid #e5e7eb;"></div>
+          </div>
+
+          <div onclick="selectPaymentMethod('restoflash')" id="method_restoflash" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;">
+            <div style="display:flex;align-items:center;">
+              <img src="img/restoflash-logo.svg" alt="Restoflash" style="width:60px;height:20px;object-fit:contain;">
+            </div>
+            <div style="flex:1;">
+              <div style="font-weight:600;margin-bottom:2px;">Restoflash</div>
+              <div style="font-size:0.75rem;color:var(--text-soft);">Carte restaurant</div>
+            </div>
+            <div id="check_restoflash" style="width:20px;height:20px;border-radius:50%;border:2px solid #e5e7eb;"></div>
           </div>
         </div>
 
@@ -1429,7 +1468,7 @@ function openPaymentModal(paymentOrderId, objectSecret, orderNum, codeRetrait) {
 
 function selectPaymentMethod(method) {
   // Reset tous les styles
-  ['bank_card', 'swile', 'conecs'].forEach(m => {
+  ['bank_card', 'swile', 'conecs', 'restoflash', 'apple_pay', 'google_pay'].forEach(m => {
     const el = document.getElementById(`method_${m}`);
     const check = document.getElementById(`check_${m}`);
     if (el && check) {

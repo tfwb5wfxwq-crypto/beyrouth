@@ -1360,81 +1360,53 @@ function openPaymentModal(paymentOrderId, objectSecret, orderNum, codeRetrait, t
         <p style="margin:0;color:var(--text-soft);font-size:0.9rem;">Commande ${orderNum}</p>
         <p style="margin:8px 0 24px;font-size:1.5rem;font-weight:700;color:var(--dark);">${total.toFixed(2).replace('.', ',')} €</p>
 
-        <div id="paymentMethods" style="margin-bottom:24px;">
-          <p style="font-size:0.85rem;font-weight:600;margin:0 0 12px;color:var(--text-soft);">MOYEN DE PAIEMENT</p>
+        <div id="paymentMethods" style="margin-bottom:20px;">
+          <p style="font-size:0.85rem;font-weight:600;margin:0 0 10px;color:var(--text-soft);">MOYEN DE PAIEMENT</p>
 
           <!-- Apple Pay (iOS/Safari uniquement) -->
           ${(navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad') || navigator.userAgent.includes('Mac')) ? `
-          <div onclick="selectPaymentMethod('apple_pay')" id="method_apple_pay" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;">
-            <div style="display:flex;align-items:center;">
-              <img src="img/apple-pay-logo.svg" alt="Apple Pay" style="width:48px;height:18px;object-fit:contain;">
-            </div>
-            <div style="flex:1;">
-              <div style="font-weight:600;margin-bottom:2px;">Apple Pay</div>
-              <div style="font-size:0.75rem;color:var(--text-soft);">Paiement rapide</div>
-            </div>
-            <div id="check_apple_pay" style="width:20px;height:20px;border-radius:50%;border:2px solid #e5e7eb;"></div>
+          <div onclick="selectPaymentMethod('apple_pay')" id="method_apple_pay" style="border:2px solid #e5e7eb;border-radius:10px;padding:10px 14px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:10px;">
+            <img src="img/apple-pay-logo.svg" alt="Apple Pay" style="width:50px;height:auto;max-height:22px;object-fit:contain;">
+            <div style="flex:1;font-weight:600;font-size:0.95rem;">Apple Pay</div>
+            <div id="check_apple_pay" style="width:18px;height:18px;border-radius:50%;border:2px solid #e5e7eb;"></div>
           </div>
           ` : ''}
 
           <!-- Google Pay (Android/Chrome uniquement) -->
           ${(navigator.userAgent.includes('Android') || navigator.userAgent.includes('Chrome')) && !navigator.userAgent.includes('iPhone') ? `
-          <div onclick="selectPaymentMethod('google_pay')" id="method_google_pay" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;">
-            <div style="display:flex;align-items:center;">
-              <img src="img/google-pay-logo.svg" alt="Google Pay" style="width:50px;height:18px;object-fit:contain;">
-            </div>
-            <div style="flex:1;">
-              <div style="font-weight:600;margin-bottom:2px;">Google Pay</div>
-              <div style="font-size:0.75rem;color:var(--text-soft);">Paiement rapide</div>
-            </div>
-            <div id="check_google_pay" style="width:20px;height:20px;border-radius:50%;border:2px solid #e5e7eb;"></div>
+          <div onclick="selectPaymentMethod('google_pay')" id="method_google_pay" style="border:2px solid #e5e7eb;border-radius:10px;padding:10px 14px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:10px;">
+            <img src="img/google-pay-logo.svg" alt="Google Pay" style="width:52px;height:auto;max-height:22px;object-fit:contain;">
+            <div style="flex:1;font-weight:600;font-size:0.95rem;">Google Pay</div>
+            <div id="check_google_pay" style="width:18px;height:18px;border-radius:50%;border:2px solid #e5e7eb;"></div>
           </div>
           ` : ''}
 
-          <div onclick="selectPaymentMethod('bank_card')" id="method_bank_card" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;">
-            <div style="display:flex;gap:4px;align-items:center;">
-              <img src="img/cb-logo.svg" alt="CB" style="width:36px;height:24px;object-fit:contain;">
-              <img src="img/visa-logo.svg" alt="Visa" style="width:32px;height:11px;object-fit:contain;">
-              <img src="img/mastercard-logo.svg" alt="Mastercard" style="width:28px;height:18px;object-fit:contain;">
+          <div onclick="selectPaymentMethod('bank_card')" id="method_bank_card" style="border:2px solid #e5e7eb;border-radius:10px;padding:10px 14px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:10px;">
+            <div style="display:flex;gap:6px;align-items:center;min-width:90px;">
+              <img src="img/cb-logo.svg" alt="CB" style="height:22px;width:auto;object-fit:contain;">
+              <img src="img/visa-logo.svg" alt="Visa" style="height:20px;width:auto;object-fit:contain;">
+              <img src="img/mastercard-logo.svg" alt="Mastercard" style="height:22px;width:auto;object-fit:contain;">
             </div>
-            <div style="flex:1;">
-              <div style="font-weight:600;margin-bottom:2px;">Carte bancaire</div>
-              <div style="font-size:0.75rem;color:var(--text-soft);">CB, Visa, Mastercard</div>
-            </div>
-            <div id="check_bank_card" style="width:20px;height:20px;border-radius:50%;border:2px solid #e5e7eb;"></div>
+            <div style="flex:1;font-weight:600;font-size:0.95rem;">Carte bancaire</div>
+            <div id="check_bank_card" style="width:18px;height:18px;border-radius:50%;border:2px solid #e5e7eb;"></div>
           </div>
 
-          <div onclick="selectPaymentMethod('swile')" id="method_swile" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;">
-            <div style="display:flex;align-items:center;">
-              <img src="img/swile-logo.png" alt="Swile" style="width:52px;height:20px;object-fit:contain;">
-            </div>
-            <div style="flex:1;">
-              <div style="font-weight:600;margin-bottom:2px;">Swile</div>
-              <div style="font-size:0.75rem;color:var(--text-soft);">Carte restaurant</div>
-            </div>
-            <div id="check_swile" style="width:20px;height:20px;border-radius:50%;border:2px solid #e5e7eb;"></div>
+          <div onclick="selectPaymentMethod('swile')" id="method_swile" style="border:2px solid #e5e7eb;border-radius:10px;padding:10px 14px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:10px;">
+            <img src="img/swile-logo.png" alt="Swile" style="width:55px;height:auto;max-height:22px;object-fit:contain;">
+            <div style="flex:1;font-weight:600;font-size:0.95rem;">Swile</div>
+            <div id="check_swile" style="width:18px;height:18px;border-radius:50%;border:2px solid #e5e7eb;"></div>
           </div>
 
-          <div onclick="selectPaymentMethod('conecs')" id="method_conecs" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;">
-            <div style="display:flex;align-items:center;">
-              <img src="img/conecs-logo.png" alt="Conecs" style="width:52px;height:20px;object-fit:contain;">
-            </div>
-            <div style="flex:1;">
-              <div style="font-weight:600;margin-bottom:2px;">Conecs</div>
-              <div style="font-size:0.75rem;color:var(--text-soft);">Pluxee, Up, Bimpli</div>
-            </div>
-            <div id="check_conecs" style="width:20px;height:20px;border-radius:50%;border:2px solid #e5e7eb;"></div>
+          <div onclick="selectPaymentMethod('conecs')" id="method_conecs" style="border:2px solid #e5e7eb;border-radius:10px;padding:10px 14px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:10px;">
+            <img src="img/conecs-logo.png" alt="Conecs" style="width:55px;height:auto;max-height:22px;object-fit:contain;">
+            <div style="flex:1;font-weight:600;font-size:0.95rem;">Conecs <span style="font-size:0.75rem;color:var(--text-soft);font-weight:400;">Pluxee, Up, Bimpli</span></div>
+            <div id="check_conecs" style="width:18px;height:18px;border-radius:50%;border:2px solid #e5e7eb;"></div>
           </div>
 
-          <div onclick="selectPaymentMethod('restoflash')" id="method_restoflash" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;">
-            <div style="display:flex;align-items:center;">
-              <img src="img/restoflash-logo.png" alt="Restoflash" style="width:60px;height:20px;object-fit:contain;">
-            </div>
-            <div style="flex:1;">
-              <div style="font-weight:600;margin-bottom:2px;">Restoflash</div>
-              <div style="font-size:0.75rem;color:var(--text-soft);">Carte restaurant</div>
-            </div>
-            <div id="check_restoflash" style="width:20px;height:20px;border-radius:50%;border:2px solid #e5e7eb;"></div>
+          <div onclick="selectPaymentMethod('restoflash')" id="method_restoflash" style="border:2px solid #e5e7eb;border-radius:10px;padding:10px 14px;margin-bottom:0;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:10px;">
+            <img src="img/restoflash-logo.png" alt="Restoflash" style="width:62px;height:auto;max-height:22px;object-fit:contain;">
+            <div style="flex:1;font-weight:600;font-size:0.95rem;">Restoflash</div>
+            <div id="check_restoflash" style="width:18px;height:18px;border-radius:50%;border:2px solid #e5e7eb;"></div>
           </div>
         </div>
 

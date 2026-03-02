@@ -1231,7 +1231,7 @@ async function generateUniqueOrderNum() {
     const digits = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
     const letter1 = String.fromCharCode(65 + Math.floor(Math.random() * 26));
     const letter2 = String.fromCharCode(65 + Math.floor(Math.random() * 26));
-    orderNum = digits + letter1 + letter2;
+    orderNum = digits + ' ' + letter1 + letter2;
     const { data } = await sb.from('orders').select('numero').eq('numero', orderNum).maybeSingle();
     exists = !!data;
     attempts++;
@@ -1586,7 +1586,10 @@ async function showConfirmation(orderNum, codeRetrait) {
 
   const itemsHtml = cart.map(item => {
     const t = (item.prix * item.qty).toFixed(2).replace('.', ',');
-    return `<div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:.9rem;"><span>${item.qty}x ${item.nom}</span><span style="font-weight:600;">${t} €</span></div>`;
+    const imgHtml = item.image_url
+      ? `<img src="${item.image_url}" style="width:50px;height:50px;border-radius:10px;object-fit:cover;margin-right:12px;">`
+      : `<div style="width:50px;height:50px;border-radius:10px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;margin-right:12px;font-size:1.5rem;">🍽️</div>`;
+    return `<div style="display:flex;align-items:center;margin-bottom:12px;"><div style="flex-shrink:0;">${imgHtml}</div><div style="flex:1;display:flex;justify-content:space-between;align-items:center;font-size:.9rem;"><span>${item.qty}x ${item.nom}</span><span style="font-weight:600;">${t} €</span></div></div>`;
   }).join('');
 
   // Créer modal style blur iOS avec animation fade in

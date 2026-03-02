@@ -214,9 +214,7 @@ h1.blue { color: var(--blue); }
   padding: 12px;
 }
 .btn-secondary:hover {
-  background: var(--green);
-  border-color: var(--green);
-  color: white;
+  background: #f5f5f5;
 }
 .loading {
   text-align: center;
@@ -269,17 +267,19 @@ h1.blue { color: var(--blue); }
     <!-- Adresse récupération -->
     <div class="address-section">
       <p class="address-title">📍 Où récupérer</p>
-      <a href="https://www.google.com/maps/search/A+Beyrouth+1+Esplanade+du+General+de+Gaulle+92800+Puteaux" target="_blank" rel="noopener" style="text-decoration: none; color: inherit; display: block;">
-        <p class="address-name">A Beyrouth</p>
-        <p class="address-text">1 Esplanade du Général de Gaulle<br>92800 Puteaux (La Défense)</p>
-        <p class="address-note">Sortie 4 du métro La Défense</p>
+      <p class="address-name">A Beyrouth</p>
+      <p class="address-text">1 Esplanade du Général de Gaulle<br>92800 Puteaux (La Défense)</p>
+      <p class="address-note">Sortie 4 du métro La Défense</p>
+      <a href="https://www.google.com/maps/search/A+Beyrouth+1+Esplanade+du+General+de+Gaulle+92800+Puteaux" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:8px 14px;background:#E65100;color:white;border-radius:8px;text-decoration:none;font-size:0.85rem;font-weight:600;transition:all 0.2s;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Ouvrir dans Google Maps
       </a>
     </div>
 
     <!-- Email info -->
     <div class="email-section" id="emailSection">
-      <p class="email-text">
-        ✉️ <span id="emailMessage">Email de confirmation envoyé</span>
+      <p class="email-text" id="emailMessage">
+        ✉️ Email de confirmation envoyé
       </p>
     </div>
 
@@ -350,7 +350,7 @@ function updateDisplay(order) {
       </div>
     `;
 
-    emailMsg.innerHTML = '<strong>Email de confirmation envoyé</strong><br><span class="email-sub">Vous recevrez un autre email dès que le restaurant validera</span>';
+    emailMsg.innerHTML = '✉️ <strong>Email envoyé</strong><br><span class="email-sub">Vous serez notifié dès validation</span>';
 
   } else if (effectiveStatus === 'acceptee') {
     // Acceptée, en préparation
@@ -368,7 +368,7 @@ function updateDisplay(order) {
       </div>
     `;
 
-    emailMsg.innerHTML = '<strong>Email de confirmation envoyé</strong><br><span class="email-sub">Commande acceptée par le restaurant</span>';
+    emailMsg.innerHTML = '✉️ <strong>Commande acceptée</strong>';
 
   } else if (effectiveStatus === 'prete') {
     // Prête à récupérer

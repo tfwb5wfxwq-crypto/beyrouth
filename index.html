@@ -1357,25 +1357,28 @@ function openPaymentModal(paymentOrderId, objectSecret, orderNum, codeRetrait) {
 
       <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:var(--shadow-lg);margin-bottom:20px;">
         <h2 style="margin:0 0 8px;font-size:1.3rem;font-weight:700;">Paiement sécurisé</h2>
-        <p style="margin:0 0 24px;color:var(--text-soft);font-size:0.9rem;">Commande ${orderNum}</p>
+        <p style="margin:0;color:var(--text-soft);font-size:0.9rem;">Commande ${orderNum}</p>
+        <p style="margin:8px 0 24px;font-size:1.5rem;font-weight:700;color:var(--dark);">${total.toFixed(2).replace('.', ',')} €</p>
 
         <div id="paymentMethods" style="margin-bottom:24px;">
           <p style="font-size:0.85rem;font-weight:600;margin:0 0 12px;color:var(--text-soft);">MOYEN DE PAIEMENT</p>
 
           <div onclick="selectPaymentMethod('bank_card')" id="method_bank_card" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;">
-            <div style="width:48px;height:32px;display:flex;align-items:center;justify-content:center;background:#f9fafb;border-radius:6px;">
-              <img src="img/cb-logo.svg" alt="CB" style="width:40px;height:26px;object-fit:contain;">
+            <div style="display:flex;gap:4px;align-items:center;">
+              <img src="img/cb-logo.svg" alt="CB" style="width:36px;height:24px;object-fit:contain;">
+              <img src="img/visa-logo.svg" alt="Visa" style="width:32px;height:11px;object-fit:contain;">
+              <img src="img/mastercard-logo.svg" alt="Mastercard" style="width:28px;height:18px;object-fit:contain;">
             </div>
             <div style="flex:1;">
               <div style="font-weight:600;margin-bottom:2px;">Carte bancaire</div>
-              <div style="font-size:0.75rem;color:var(--text-soft);">Visa, Mastercard, CB</div>
+              <div style="font-size:0.75rem;color:var(--text-soft);">CB, Visa, Mastercard</div>
             </div>
             <div id="check_bank_card" style="width:20px;height:20px;border-radius:50%;border:2px solid #e5e7eb;"></div>
           </div>
 
           <div onclick="selectPaymentMethod('swile')" id="method_swile" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;">
-            <div style="width:48px;height:32px;display:flex;align-items:center;justify-content:center;background:#f0fdf4;border-radius:6px;">
-              <img src="img/swile-logo.svg" alt="Swile" style="width:46px;height:30px;object-fit:contain;">
+            <div style="display:flex;align-items:center;">
+              <img src="img/swile-logo.svg" alt="Swile" style="width:52px;height:20px;object-fit:contain;">
             </div>
             <div style="flex:1;">
               <div style="font-weight:600;margin-bottom:2px;">Swile</div>
@@ -1385,8 +1388,8 @@ function openPaymentModal(paymentOrderId, objectSecret, orderNum, codeRetrait) {
           </div>
 
           <div onclick="selectPaymentMethod('conecs')" id="method_conecs" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;">
-            <div style="width:48px;height:32px;display:flex;align-items:center;justify-content:center;background:#fff5f0;border-radius:6px;">
-              <img src="img/conecs-logo.svg" alt="Conecs" style="width:46px;height:30px;object-fit:contain;">
+            <div style="display:flex;align-items:center;">
+              <img src="img/conecs-logo.svg" alt="Conecs" style="width:52px;height:20px;object-fit:contain;">
             </div>
             <div style="flex:1;">
               <div style="font-weight:600;margin-bottom:2px;">Conecs</div>

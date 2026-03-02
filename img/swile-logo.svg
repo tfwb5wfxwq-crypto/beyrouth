@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40">
-  <rect width="120" height="40" rx="6" fill="#00D285"/>
-  <text x="60" y="27" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="white" text-anchor="middle">Swile</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 32">
+  <!-- Swile Logo -->
+  <rect width="80" height="32" rx="4" fill="#00D285"/>
+  <text x="40" y="22" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="white" text-anchor="middle">Swile</text>
 </svg>

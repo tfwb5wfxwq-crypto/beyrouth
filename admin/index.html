@@ -306,7 +306,7 @@ button{cursor:pointer;font-family:inherit;border:none}
 .stat-value{font-family:'Playfair Display',serif;font-size:2rem;font-weight:800;color:var(--bordeaux)}
 .stat-label{font-size:.85rem;color:#888;margin-top:4px}
 
-/* ========= HISTORY ========= */
+/* ========= HISTORY / COMPLETED ========= */
 .history-filter{
   padding:10px 18px;border-radius:var(--radius);font-weight:600;
   font-size:.9rem;background:#f5f5f5;color:#666;
@@ -314,6 +314,22 @@ button{cursor:pointer;font-family:inherit;border:none}
 }
 .history-filter.active{background:var(--cream);color:var(--bordeaux);border-color:var(--gold)}
 .history-filter:hover{background:#eee}
+
+/* ========= CLIENTS ========= */
+.client-card{
+  background:#fff;border-radius:var(--radius);padding:16px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);gap:16px;
+  transition:all .3s;
+}
+.client-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.1);transform:translateY(-2px)}
+.client-info{flex:1;min-width:0}
+.client-name{font-weight:600;font-size:1rem;color:var(--bordeaux);margin-bottom:4px}
+.client-contact{font-size:.85rem;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.client-stats{display:flex;gap:20px;flex-shrink:0}
+.client-stat{text-align:center}
+.client-stat-value{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--noir)}
+.client-stat-label{font-size:.7rem;color:#999;text-transform:uppercase;letter-spacing:.5px}
 
 /* ========= RESPONSIVE ========= */
 @media(max-width:600px){
@@ -360,18 +376,68 @@ button{cursor:pointer;font-family:inherit;border:none}
 
   <div class="tabs">
     <button class="tab active" data-tab="orders" onclick="switchTab('orders')">
-      Commandes <span class="tab-badge" id="ordersBadge" style="display:none">0</span>
+      En cours <span class="tab-badge" id="ordersBadge" style="display:none">0</span>
     </button>
+    <button class="tab" data-tab="completed" onclick="switchTab('completed')">Terminées</button>
+    <button class="tab" data-tab="clients" onclick="switchTab('clients')">Clients</button>
     <button class="tab" data-tab="menu" onclick="switchTab('menu')">Menu</button>
     <button class="tab" data-tab="stats" onclick="switchTab('stats')">Stats</button>
-    <button class="tab" data-tab="history" onclick="switchTab('history')">Historique</button>
   </div>
 
   <div class="content">
-    <!-- Orders Tab -->
+    <!-- En cours Tab -->
     <div class="tab-content" id="tab-orders">
       <div class="orders-list" id="ordersList">
-        <div class="no-orders">Aucune commande pour le moment</div>
+        <div class="no-orders">Aucune commande en cours</div>
+      </div>
+    </div>
+
+    <!-- Terminées Tab -->
+    <div class="tab-content" id="tab-completed" style="display:none">
+      <h2 style="margin-bottom:16px;color:var(--bordeaux)">Commandes terminées</h2>
+      <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="history-filter active" data-days="today" onclick="loadCompleted('today')">Aujourd'hui</button>
+        <button class="history-filter" data-days="7" onclick="loadCompleted(7)">7 derniers jours</button>
+        <button class="history-filter" data-days="30" onclick="loadCompleted(30)">30 derniers jours</button>
+      </div>
+      <div class="orders-list" id="completedList">
+        <div class="no-orders">Chargement...</div>
+      </div>
+    </div>
+
+    <!-- Clients Tab -->
+    <div class="tab-content" id="tab-clients" style="display:none">
+      <h2 style="margin-bottom:16px;color:var(--bordeaux)">Base clients</h2>
+      <div class="stats-grid" style="margin-bottom:24px">
+        <div class="stat-card">
+          <div class="stat-value" id="clientsTotal">0</div>
+          <div class="stat-label">Clients</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="clientsNew">0</div>
+          <div class="stat-label">Nouveaux (7j)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="clientsOrdersTotal">0</div>
+          <div class="stat-label">Commandes totales</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="clientsRevenueTotal">0 €</div>
+          <div class="stat-label">CA total</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:24px">
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--bordeaux);margin-bottom:12px;">🏆 Top clients</h3>
+        <div id="topClientsList" style="display:grid;gap:8px;"></div>
+      </div>
+
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--bordeaux);margin:0;">Tous les clients</h3>
+          <input type="search" id="clientSearch" placeholder="Rechercher..." style="padding:8px 16px;border:2px solid #e0e0e0;border-radius:8px;font-size:.9rem;width:240px;">
+        </div>
+        <div id="allClientsList"></div>
       </div>
     </div>
 
@@ -404,19 +470,6 @@ button{cursor:pointer;font-family:inherit;border:none}
         </div>
       </div>
     </div>
-
-    <!-- History Tab -->
-    <div class="tab-content" id="tab-history" style="display:none">
-      <h2 style="margin-bottom:16px;color:var(--bordeaux)">Historique des commandes</h2>
-      <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="history-filter active" data-days="7" onclick="loadHistory(7)">7 derniers jours</button>
-        <button class="history-filter" data-days="30" onclick="loadHistory(30)">30 derniers jours</button>
-        <button class="history-filter" data-days="all" onclick="loadHistory('all')">Tout</button>
-      </div>
-      <div class="orders-list" id="historyList">
-        <div class="no-orders">Chargement...</div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -435,6 +488,8 @@ let orders = [];
 let ingredients = [];
 let menuCategories = [];
 let menuItemsList = [];
+let clients = [];
+let completedOrders = [];
 let currentTab = 'orders';
 
 // ===== AUTH =====
@@ -517,15 +572,15 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
   document.getElementById('tab-' + tab).style.display = '';
   if (tab === 'stats') updateStats();
-  if (tab === 'history') loadHistory(7);
+  if (tab === 'completed') loadCompleted('today');
+  if (tab === 'clients') loadClients();
 }
 
 // ===== ORDERS =====
 async function loadOrders() {
-  const today = new Date().toISOString().split('T')[0];
   const {data} = await sb.from('orders')
     .select('*')
-    .gte('created_at', today + 'T00:00:00')
+    .in('statut', ['payee', 'acceptee', 'en_preparation', 'prete'])
     .order('created_at', {ascending: false});
   orders = data || [];
   renderOrders();
@@ -895,51 +950,9 @@ async function confirmCancel(orderId) {
   document.querySelector('.modal-overlay').remove();
 }
 
-// ===== RESEND INVOICE =====
-async function resendInvoice(orderId, email) {
-  const order = historyOrders.find(o => o.id === orderId);
-  if (!order) return;
-
-  const modal = document.createElement('div');
-  modal.className = 'modal-overlay';
-  modal.innerHTML = `
-    <div class="modal-box">
-      <div class="modal-title">📧 Renvoyer la facture</div>
-      <p style="text-align:center;color:#666;margin-bottom:20px;">
-        Envoyer à <strong>${email}</strong> ?<br>
-        <span style="font-size:.85rem">Commande ${order.numero} — ${order.total.toFixed(2).replace('.',',')} €</span>
-      </p>
-      <div class="modal-buttons">
-        <button class="modal-btn modal-btn-secondary" onclick="this.closest('.modal-overlay').remove()">Annuler</button>
-        <button class="modal-btn modal-btn-primary" onclick="confirmResendInvoice(${orderId}, '${email}')">Envoyer</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-}
-
-async function confirmResendInvoice(orderId, email) {
-  const btn = document.querySelector('.modal-btn-primary');
-  btn.disabled = true;
-  btn.textContent = 'Envoi...';
-
-  try {
-    // TODO: Call Edge Function to send email
-    // For now, just show success
-    alert(`Email envoyé à ${email} ✓`);
-    document.querySelector('.modal-overlay').remove();
-  } catch (error) {
-    alert('Erreur lors de l\'envoi');
-    btn.disabled = false;
-    btn.textContent = 'Envoyer';
-  }
-}
-
-// ===== HISTORY =====
-let historyOrders = [];
-
-async function loadHistory(days) {
-  const list = document.getElementById('historyList');
+// ===== COMPLETED ORDERS =====
+async function loadCompleted(days) {
+  const list = document.getElementById('completedList');
   list.innerHTML = '<div class="no-orders">Chargement...</div>';
 
   // Update filter buttons
@@ -947,9 +960,15 @@ async function loadHistory(days) {
     btn.classList.toggle('active', btn.dataset.days == days);
   });
 
-  let query = sb.from('orders').select('*').order('created_at', {ascending: false});
+  let query = sb.from('orders')
+    .select('*')
+    .in('statut', ['recuperee', 'annulee'])
+    .order('created_at', {ascending: false});
 
-  if (days !== 'all') {
+  if (days === 'today') {
+    const today = new Date().toISOString().split('T')[0];
+    query = query.gte('created_at', today + 'T00:00:00');
+  } else if (days !== 'all') {
     const date = new Date();
     date.setDate(date.getDate() - days);
     query = query.gte('created_at', date.toISOString());
@@ -962,39 +981,112 @@ async function loadHistory(days) {
     return;
   }
 
-  historyOrders = data || [];
+  completedOrders = data || [];
 
-  if (!historyOrders.length) {
-    list.innerHTML = '<div class="no-orders">Aucune commande</div>';
+  if (!completedOrders.length) {
+    list.innerHTML = '<div class="no-orders">Aucune commande terminée</div>';
     return;
   }
 
   let html = '';
-  historyOrders.forEach(order => {
+  completedOrders.forEach(order => {
     const date = new Date(order.created_at);
-    const dateStr = date.toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric'});
+    const dateStr = date.toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'});
     const timeStr = date.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
-    const statusEmoji = {
-      'payee': '⏳',
-      'acceptee': '✓',
-      'en_preparation': '🔥',
-      'prete': '✅',
-      'recuperee': '📦',
-      'annulee': '✕'
-    }[order.statut] || '•';
-    const statusLabel = {
-      'payee': 'Payée',
-      'acceptee': 'Acceptée',
-      'en_preparation': 'En préparation',
-      'prete': 'Prête',
-      'recuperee': 'Récupérée',
-      'annulee': 'Annulée'
-    }[order.statut] || order.statut;
+    const statusEmoji = order.statut === 'recuperee' ? '📦' : '✕';
+    const statusLabel = order.statut === 'recuperee' ? 'Récupérée' : 'Annulée';
 
     html += renderOrderCard(order, '', dateStr, timeStr, statusEmoji, statusLabel);
   });
 
   list.innerHTML = html;
+}
+
+// ===== CLIENTS =====
+async function loadClients() {
+  const {data, error} = await sb.from('clients').select('*').order('total_depense', {ascending: false});
+
+  if (error) {
+    console.error('Erreur chargement clients:', error);
+    return;
+  }
+
+  clients = data || [];
+
+  // Stats
+  const totalClients = clients.length;
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  const newClients = clients.filter(c => new Date(c.created_at) >= weekAgo).length;
+  const totalOrders = clients.reduce((sum, c) => sum + (c.nb_commandes || 0), 0);
+  const totalRevenue = clients.reduce((sum, c) => sum + (c.total_depense || 0), 0);
+
+  document.getElementById('clientsTotal').textContent = totalClients;
+  document.getElementById('clientsNew').textContent = newClients;
+  document.getElementById('clientsOrdersTotal').textContent = totalOrders;
+  document.getElementById('clientsRevenueTotal').textContent = totalRevenue.toFixed(2).replace('.', ',') + ' €';
+
+  // Top clients
+  const topClients = [...clients].slice(0, 10);
+  const topHtml = topClients.map(c => `
+    <div class="client-card">
+      <div class="client-info">
+        <div class="client-name">${c.prenom || 'Client'}</div>
+        <div class="client-contact">${c.email || ''} ${c.telephone ? '· ' + c.telephone : ''}</div>
+      </div>
+      <div class="client-stats">
+        <div class="client-stat">
+          <div class="client-stat-value">${c.nb_commandes || 0}</div>
+          <div class="client-stat-label">commandes</div>
+        </div>
+        <div class="client-stat">
+          <div class="client-stat-value">${(c.total_depense || 0).toFixed(0)} €</div>
+          <div class="client-stat-label">dépensé</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('topClientsList').innerHTML = topHtml;
+
+  // All clients
+  renderAllClients(clients);
+
+  // Search
+  document.getElementById('clientSearch').oninput = (e) => {
+    const search = e.target.value.toLowerCase();
+    const filtered = clients.filter(c =>
+      (c.prenom || '').toLowerCase().includes(search) ||
+      (c.email || '').toLowerCase().includes(search) ||
+      (c.telephone || '').includes(search)
+    );
+    renderAllClients(filtered);
+  };
+}
+
+function renderAllClients(clientList) {
+  const html = clientList.map(c => `
+    <div class="client-card" style="margin-bottom:8px;">
+      <div class="client-info">
+        <div class="client-name">${c.prenom || 'Client'}</div>
+        <div class="client-contact">${c.email || ''} ${c.telephone ? '· ' + c.telephone : ''}</div>
+      </div>
+      <div class="client-stats">
+        <div class="client-stat">
+          <div class="client-stat-value">${c.nb_commandes || 0}</div>
+          <div class="client-stat-label">commandes</div>
+        </div>
+        <div class="client-stat">
+          <div class="client-stat-value">${(c.total_depense || 0).toFixed(0)} €</div>
+          <div class="client-stat-label">dépensé</div>
+        </div>
+        <div class="client-stat">
+          <div class="client-stat-value" style="font-size:.9rem;color:#888">${new Date(c.derniere_commande || c.created_at).toLocaleDateString('fr-FR', {day:'numeric',month:'short'})}</div>
+          <div class="client-stat-label">dernière</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('allClientsList').innerHTML = html;
 }
 </script>
 </body>

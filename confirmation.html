@@ -214,7 +214,9 @@ h1.blue { color: var(--blue); }
   padding: 12px;
 }
 .btn-secondary:hover {
-  background: #f5f5f5;
+  background: var(--green);
+  border-color: var(--green);
+  color: white;
 }
 .loading {
   text-align: center;
@@ -267,9 +269,11 @@ h1.blue { color: var(--blue); }
     <!-- Adresse récupération -->
     <div class="address-section">
       <p class="address-title">📍 Où récupérer</p>
-      <p class="address-name">A Beyrouth</p>
-      <p class="address-text">1 Esplanade du Général de Gaulle<br>92800 Puteaux (La Défense)</p>
-      <p class="address-note">Sortie 4 du métro La Défense</p>
+      <a href="https://www.google.com/maps/search/A+Beyrouth+1+Esplanade+du+General+de+Gaulle+92800+Puteaux" target="_blank" rel="noopener" style="text-decoration: none; color: inherit; display: block;">
+        <p class="address-name">A Beyrouth</p>
+        <p class="address-text">1 Esplanade du Général de Gaulle<br>92800 Puteaux (La Défense)</p>
+        <p class="address-note">Sortie 4 du métro La Défense</p>
+      </a>
     </div>
 
     <!-- Email info -->

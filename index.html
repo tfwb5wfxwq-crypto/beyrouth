@@ -281,6 +281,8 @@ a{color:inherit;text-decoration:none}
 @media(min-width:640px){#toastContainer{top:20px;bottom:auto}.toast{transform:translateY(-100px)}.toast.hide{transform:translateY(-20px)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes dots{0%,20%{content:''}40%{content:'.'}60%{content:'..'}80%,100%{content:'...'}}.dots::after{content:'...';animation:dots 1.5s infinite}
 </style>
 </head>
 <body>
@@ -1226,9 +1228,10 @@ async function submitOrder() {
   const email = document.getElementById('clientEmail').value.trim();
   const phone = document.getElementById('clientPhone').value.trim();
   const pickup = document.getElementById('pickupTime').value;
-  if (!name) { showToast('Entrez votre prénom', 'error'); return; }
-  if (!phone) { showToast('Entrez votre téléphone', 'error'); return; }
-  if (!email || !email.includes('@')) { showToast('Entrez un email valide', 'error'); return; }
+  if (!name) { showToast('⚠️ Entrez votre prénom', 'error'); return; }
+  if (!phone) { showToast('⚠️ Entrez votre téléphone', 'error'); return; }
+  if (!email) { showToast('⚠️ Email OBLIGATOIRE pour recevoir la confirmation', 'error'); return; }
+  if (!email.includes('@') || !email.includes('.')) { showToast('⚠️ Email invalide (ex: nom@gmail.com)', 'error'); return; }
   if (!pickup) { showToast('Choisissez une heure de retrait', 'error'); return; }
   // Vérifier que ASAP n'est pas choisi quand le restaurant est fermé (ne devrait plus arriver)
   if (pickup === 'asap' && !isOpenNow()) {
@@ -1445,8 +1448,16 @@ function initPayGreen(method) {
     const btn = document.getElementById('payBtn');
     btn.textContent = '🧪 Simuler paiement (TEST)';
     btn.onclick = async () => {
-      btn.textContent = 'Traitement en cours...';
+      btn.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="animation:spin 1s linear infinite;">
+            <circle cx="10" cy="10" r="8" stroke="white" stroke-width="3" stroke-linecap="round" stroke-dasharray="40 20" opacity="0.9"/>
+          </svg>
+          <span>Traitement en cours<span class="dots"></span></span>
+        </div>
+      `;
       btn.disabled = true;
+      btn.style.cursor = 'wait';
 
       // Sauvegarder les données AVANT cancelPayment (qui met currentPaymentData à null)
       const orderNum = currentPaymentData.orderNum;
@@ -1500,8 +1511,16 @@ function initPayGreen(method) {
     // Bouton payer
     document.getElementById('payBtn').onclick = () => {
       const btn = document.getElementById('payBtn');
-      btn.textContent = 'Traitement en cours...';
+      btn.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="animation:spin 1s linear infinite;">
+            <circle cx="10" cy="10" r="8" stroke="white" stroke-width="3" stroke-linecap="round" stroke-dasharray="40 20" opacity="0.9"/>
+          </svg>
+          <span>Traitement en cours<span class="dots"></span></span>
+        </div>
+      `;
       btn.disabled = true;
+      btn.style.cursor = 'wait';
       window.paygreenjs.submitPayment();
     };
 
@@ -1681,12 +1700,13 @@ function updateConfirmModalStatus(order) {
 
   if (status === 'payee') {
     content = `
-      <div class="status-icon pulse" style="background: linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%); box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);">
-        <span style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">⏳</span>
+      <div class="status-icon pulse" style="background: linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%); box-shadow: 0 12px 32px rgba(245, 158, 11, 0.4);">
+        <span style="font-size: 4rem; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));">⏳</span>
       </div>
-      <h2 style="font-size: 1.8rem; font-weight: 800; color: #F59E0B; margin: 0 0 12px; font-family: 'Playfair Display', serif;">En attente de validation</h2>
-      <p style="font-size: 1rem; color: #6B6B6B; margin: 0 0 8px; line-height: 1.6;">Le restaurant examine votre commande</p>
-      <p style="font-size: 0.85rem; color: #9CA3AF; margin: 0;">Vous recevrez un email dès validation</p>
+      <div style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); border-radius: 16px; padding: 20px; margin-bottom: 16px; border: 2px solid #F59E0B;">
+        <h2 style="font-size: 2rem; font-weight: 900; color: #D97706; margin: 0 0 8px; font-family: 'Playfair Display', serif; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">⏳ En attente de validation</h2>
+        <p style="font-size: 1.05rem; color: #92400E; margin: 0; font-weight: 600;">Le restaurant examine votre commande</p>
+      </div>
     `;
   } else if (status === 'acceptee') {
     content = `
@@ -1722,9 +1742,9 @@ function updateConfirmModalStatus(order) {
   // Message email
   if (emailMsg) {
     if (status === 'payee') {
-      emailMsg.innerHTML = '<strong>Email de confirmation envoyé</strong><br><span style="font-size:0.8rem;color:#666;">Vous recevrez un autre email dès validation</span>';
+      emailMsg.innerHTML = '<strong>✉️ Email de confirmation envoyé</strong><br><span style="font-size:0.8rem;color:#666;">Vous serez notifié dès validation du restaurant</span>';
     } else if (status === 'acceptee' || status === 'prete') {
-      emailMsg.innerHTML = '<strong>Email de confirmation envoyé</strong>';
+      emailMsg.innerHTML = '<strong>✉️ Email de confirmation envoyé</strong>';
     } else if (status === 'recuperee') {
       emailMsg.innerHTML = '<strong>Merci et à bientôt !</strong>';
     }

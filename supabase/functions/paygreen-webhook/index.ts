@@ -95,11 +95,52 @@ serve(async (req) => {
 
     console.log(`Commande ${orderId} mise à jour: ${newStatus}`)
 
-    // Si paiement validé, envoyer email de confirmation (TODO)
+    // Si paiement validé, envoyer email de confirmation
     if (newStatus === 'payee' && data && data.length > 0) {
       const order = data[0]
       console.log(`✅ Paiement validé pour ${order.client_email}`)
-      // TODO: Envoyer email via Resend ou SendGrid
+
+      try {
+        // Récupérer les items de la commande
+        const { data: orderItems } = await supabase
+          .from('order_items')
+          .select('*, menu_items(nom, prix)')
+          .eq('order_id', order.id)
+
+        // Formater les items pour l'email
+        const items = orderItems?.map(item => ({
+          nom: item.menu_items.nom,
+          qty: item.quantite,
+          prix: item.menu_items.prix
+        })) || []
+
+        // Appeler l'Edge Function send-receipt
+        const emailRes = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-receipt`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+          },
+          body: JSON.stringify({
+            email: order.client_email,
+            name: order.client_nom,
+            orderNum: order.numero,
+            codeRetrait: order.code_retrait,
+            items: items,
+            total: order.total,
+            pickup: order.heure_retrait === 'asap' ? 'Dès que possible' : order.heure_retrait
+          })
+        })
+
+        if (!emailRes.ok) {
+          console.error('Erreur envoi email:', await emailRes.text())
+        } else {
+          console.log('✅ Email de confirmation envoyé à', order.client_email)
+        }
+      } catch (emailError) {
+        console.error('Erreur lors de l\'envoi de l\'email:', emailError)
+        // Ne pas bloquer le webhook si l'email échoue
+      }
     }
 
     return new Response(

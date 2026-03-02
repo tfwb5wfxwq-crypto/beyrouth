@@ -764,9 +764,39 @@ function getActionButtons(order) {
 
 async function updateStatus(orderId, newStatus) {
   await sb.from('orders').update({statut: newStatus}).eq('id', orderId);
+
   // Update local
   const order = orders.find(o => o.id === orderId);
   if (order) order.statut = newStatus;
+
+  // Envoyer email quand la commande est acceptée
+  if (newStatus === 'acceptee' && order) {
+    try {
+      const response = await fetch(`${sb.supabaseUrl}/functions/v1/send-order-notification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sb.supabaseKey}`
+        },
+        body: JSON.stringify({
+          email: order.client_email,
+          name: order.client_nom,
+          orderNum: order.numero,
+          codeRetrait: order.code_retrait,
+          pickup: order.heure_retrait === 'asap' ? 'Dès que possible' : order.heure_retrait
+        })
+      });
+
+      if (response.ok) {
+        console.log('✅ Email acceptation envoyé');
+      } else {
+        console.error('❌ Erreur envoi email:', await response.text());
+      }
+    } catch (err) {
+      console.error('❌ Erreur appel send-order-notification:', err);
+    }
+  }
+
   renderOrders();
   updateTopbarStats();
 }

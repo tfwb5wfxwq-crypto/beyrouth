@@ -10,6 +10,8 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
   --green: #10B981;
+  --orange: #F59E0B;
+  --blue: #3B82F6;
   --dark: #1A1A1A;
   --cream: #FFF8F0;
   --gold: #D4A853;
@@ -33,8 +35,6 @@ body {
   box-shadow: 0 4px 24px rgba(0,0,0,0.1);
 }
 .icon {
-  background: var(--green);
-  color: white;
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -44,13 +44,18 @@ body {
   margin: 0 auto 16px;
   font-size: 2rem;
 }
+.icon.green { background: var(--green); color: white; }
+.icon.orange { background: var(--orange); color: white; }
+.icon.blue { background: var(--blue); color: white; }
 h1 {
-  color: var(--green);
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 8px;
   text-align: center;
 }
+h1.green { color: var(--green); }
+h1.orange { color: var(--orange); }
+h1.blue { color: var(--blue); }
 .order-num {
   font-size: 1.8rem;
   font-weight: 800;
@@ -64,6 +69,40 @@ h1 {
   color: #6B6B6B;
   margin: 0 0 20px;
   text-align: center;
+}
+.status-banner {
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.status-banner.waiting {
+  background: #FEF3C7;
+  border: 2px solid var(--orange);
+}
+.status-banner.accepted {
+  background: #D1FAE5;
+  border: 2px solid var(--green);
+}
+.status-banner.ready {
+  background: #DBEAFE;
+  border: 2px solid var(--blue);
+}
+.status-banner-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+.status-banner-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+.status-banner.waiting .status-banner-title { color: var(--orange); }
+.status-banner.accepted .status-banner-title { color: var(--green); }
+.status-banner.ready .status-banner-title { color: var(--blue); }
+.status-banner-text {
+  font-size: 0.9rem;
+  color: #666;
 }
 .section {
   background: var(--cream);
@@ -150,8 +189,6 @@ h1 {
 }
 .btn {
   display: block;
-  background: var(--green);
-  color: white;
   padding: 14px;
   border-radius: 12px;
   text-align: center;
@@ -163,7 +200,11 @@ h1 {
   cursor: pointer;
   transition: all 0.2s;
 }
-.btn:hover {
+.btn-primary {
+  background: var(--green);
+  color: white;
+}
+.btn-primary:hover {
   background: #0EA572;
 }
 .btn-secondary {
@@ -180,21 +221,32 @@ h1 {
   padding: 60px 20px;
   color: #666;
 }
+.pulse {
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
 </style>
 </head>
 <body>
 
 <div class="container" id="app">
   <div class="loading" id="loading">
-    <div style="font-size:3rem;margin-bottom:16px;">⏳</div>
+    <div style="font-size:3rem;margin-bottom:16px;" class="pulse">⏳</div>
     <p>Chargement de votre commande...</p>
   </div>
 
   <div id="content" style="display:none;">
-    <div class="icon">✓</div>
-    <h1>Paiement validé !</h1>
+    <!-- Icon & Title (changent selon statut) -->
+    <div class="icon green" id="statusIcon">✓</div>
+    <h1 class="green" id="statusTitle">Paiement validé !</h1>
     <div class="order-num" id="orderNum">BE-0001</div>
-    <p class="subtitle">Votre commande a été enregistrée</p>
+    <p class="subtitle" id="statusSubtitle">Votre commande a été enregistrée</p>
+
+    <!-- Bannière statut dynamique -->
+    <div id="statusBanner"></div>
 
     <!-- Heure de retrait -->
     <div class="section">
@@ -220,15 +272,13 @@ h1 {
       <p class="address-note">Sortie 4 du métro La Défense</p>
     </div>
 
-    <!-- Email confirmation -->
-    <div class="email-section">
+    <!-- Email info -->
+    <div class="email-section" id="emailSection">
       <p class="email-text">
-        ✉️ <strong>Confirmation par email envoyée</strong><br>
-        <span class="email-sub">Vous recevrez un email avec l'heure de retrait et le récapitulatif</span>
+        ✉️ <span id="emailMessage">Email de confirmation envoyé</span>
       </p>
     </div>
 
-    <a class="btn" href="commande.html" id="trackBtn">Suivre ma commande en temps réel</a>
     <a class="btn btn-secondary" href="/">Retour au menu</a>
   </div>
 </div>
@@ -239,6 +289,120 @@ const SUPABASE_URL = 'https://xbuftfwcyontgqbbrrjt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidWZ0ZndjeW9udGdxYmJycmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2Njg1NzksImV4cCI6MjA4NjI0NDU3OX0.ROkSccADlpLsWMgqyiX_xNaFdJNR8P4R-LJCnZV2Gzg';
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let orderData = null;
+
+// Vérifier si l'heure de retrait est passée (= commande automatiquement prête)
+function isPickupTimePassed(pickupTime) {
+  if (!pickupTime || pickupTime === 'asap') return false;
+
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+
+  // Parser "12h30" → Date
+  const match = pickupTime.match(/(\d+)h(\d+)/);
+  if (!match) return false;
+
+  const pickupDate = new Date(`${today}T${match[1].padStart(2, '0')}:${match[2].padStart(2, '0')}:00`);
+  return now >= pickupDate;
+}
+
+// Mettre à jour l'affichage selon le statut
+function updateDisplay(order) {
+  orderData = order;
+
+  const icon = document.getElementById('statusIcon');
+  const title = document.getElementById('statusTitle');
+  const subtitle = document.getElementById('statusSubtitle');
+  const banner = document.getElementById('statusBanner');
+  const emailMsg = document.getElementById('emailMessage');
+
+  const status = order.statut;
+  const isPassed = isPickupTimePassed(order.heure_retrait);
+
+  // Déterminer le statut effectif
+  let effectiveStatus = status;
+  if (status === 'acceptee' && isPassed) {
+    effectiveStatus = 'prete';
+  }
+
+  // Reset classes
+  icon.className = 'icon';
+  title.className = '';
+
+  // Adapter selon statut
+  if (effectiveStatus === 'payee') {
+    // En attente validation
+    icon.classList.add('orange');
+    icon.textContent = '⏳';
+    title.classList.add('orange');
+    title.textContent = 'En attente de validation';
+    subtitle.textContent = 'Le restaurant va confirmer votre commande';
+
+    banner.innerHTML = `
+      <div class="status-banner waiting">
+        <div class="status-banner-icon">⏳</div>
+        <div class="status-banner-title">Validation en cours...</div>
+        <div class="status-banner-text">Le restaurant examine votre commande.<br>Vous recevrez un email dès validation.</div>
+      </div>
+    `;
+
+    emailMsg.innerHTML = '<strong>Email de confirmation envoyé</strong><br><span class="email-sub">Vous recevrez un autre email dès que le restaurant validera</span>';
+
+  } else if (effectiveStatus === 'acceptee') {
+    // Acceptée, en préparation
+    icon.classList.add('green');
+    icon.textContent = '✓';
+    title.classList.add('green');
+    title.textContent = 'Commande acceptée !';
+    subtitle.textContent = 'Votre commande est en préparation';
+
+    banner.innerHTML = `
+      <div class="status-banner accepted">
+        <div class="status-banner-icon">👨‍🍳</div>
+        <div class="status-banner-title">Préparation en cours</div>
+        <div class="status-banner-text">Votre commande sera prête à <strong>${order.heure_retrait}</strong></div>
+      </div>
+    `;
+
+    emailMsg.innerHTML = '<strong>Email de confirmation envoyé</strong><br><span class="email-sub">Commande acceptée par le restaurant</span>';
+
+  } else if (effectiveStatus === 'prete') {
+    // Prête à récupérer
+    icon.classList.add('blue');
+    icon.textContent = '🎉';
+    title.classList.add('blue');
+    title.textContent = 'Commande prête !';
+    subtitle.textContent = 'Venez la récupérer';
+
+    banner.innerHTML = `
+      <div class="status-banner ready">
+        <div class="status-banner-icon">🎉</div>
+        <div class="status-banner-title">Votre commande est prête !</div>
+        <div class="status-banner-text">Vous pouvez venir la récupérer au restaurant</div>
+      </div>
+    `;
+
+    emailMsg.innerHTML = '<strong>Commande prête !</strong><br><span class="email-sub">Venez la récupérer chez A Beyrouth</span>';
+
+  } else if (effectiveStatus === 'recuperee') {
+    // Récupérée
+    icon.classList.add('green');
+    icon.textContent = '✅';
+    title.classList.add('green');
+    title.textContent = 'Bon appétit !';
+    subtitle.textContent = 'Commande récupérée';
+
+    banner.innerHTML = `
+      <div class="status-banner accepted">
+        <div class="status-banner-icon">✅</div>
+        <div class="status-banner-title">Merci pour votre commande !</div>
+        <div class="status-banner-text">À très bientôt chez A Beyrouth 🧆</div>
+      </div>
+    `;
+
+    emailMsg.innerHTML = '<strong>Merci et à bientôt !</strong>';
+  }
+}
 
 async function loadOrder() {
   const params = new URLSearchParams(window.location.search);
@@ -250,6 +414,7 @@ async function loadOrder() {
   }
 
   try {
+    // Charger la commande
     const { data, error } = await sb
       .from('orders')
       .select('*')
@@ -263,9 +428,9 @@ async function loadOrder() {
       return;
     }
 
-    // Remplir les infos
+    // Remplir les infos fixes
     document.getElementById('orderNum').textContent = data.numero;
-    document.getElementById('pickupTime').textContent = data.heure_retrait || 'Dès que possible (~15-20 min)';
+    document.getElementById('pickupTime').textContent = data.heure_retrait || 'Dès que possible';
 
     // Items
     const itemsHtml = data.items.map(item => {
@@ -283,12 +448,23 @@ async function loadOrder() {
     const total = data.total.toFixed(2).replace('.', ',');
     document.getElementById('total').textContent = total + ' €';
 
-    // Track link
-    document.getElementById('trackBtn').href = `commande.html?num=${data.numero}`;
-
     // Afficher
+    updateDisplay(data);
     document.getElementById('loading').style.display = 'none';
     document.getElementById('content').style.display = 'block';
+
+    // S'abonner aux changements temps réel
+    sb.channel('orders')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'orders',
+        filter: `numero=eq.${orderNum}`
+      }, payload => {
+        console.log('Commande mise à jour:', payload.new);
+        updateDisplay(payload.new);
+      })
+      .subscribe();
 
   } catch (error) {
     console.error('Erreur:', error);
@@ -298,6 +474,13 @@ async function loadOrder() {
 }
 
 loadOrder();
+
+// Vérifier toutes les 30 secondes si l'heure est passée (pour passer auto en "prêt")
+setInterval(() => {
+  if (orderData) {
+    updateDisplay(orderData);
+  }
+}, 30000);
 </script>
 
 </body>

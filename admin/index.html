@@ -82,7 +82,19 @@ button{cursor:pointer;font-family:inherit;border:none}
 .content{max-width:900px;margin:0 auto;padding:24px}
 
 /* ========= ORDERS TAB ========= */
-.orders-list{display:flex;flex-direction:column;gap:16px}
+.orders-list{display:flex;flex-direction:column;gap:24px}
+.status-section{margin-bottom:24px}
+.status-section-header{
+  font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;
+  color:var(--bordeaux);margin-bottom:14px;padding:12px 16px;
+  background:var(--cream);border-radius:var(--radius);
+  display:flex;align-items:center;gap:8px;
+}
+.status-section-count{
+  font-size:.85rem;font-weight:600;color:#888;
+  background:#fff;padding:2px 10px;border-radius:12px;
+}
+.status-section-cards{display:flex;flex-direction:column;gap:12px}
 .order-card{
   background:#fff;border-radius:var(--radius);padding:20px;
   box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid #ddd;
@@ -95,9 +107,11 @@ button{cursor:pointer;font-family:inherit;border:none}
 .order-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .order-num{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:800;color:var(--bordeaux)}
 .order-time-badge{
-  padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:600;
-  background:var(--cream);color:var(--noir);
+  padding:6px 14px;border-radius:20px;font-size:.85rem;font-weight:600;
+  background:var(--cream);color:var(--noir);cursor:pointer;
+  transition:all .3s;user-select:none;
 }
+.order-time-badge:hover{background:#F5E5D3}
 .order-client{font-size:.9rem;color:#666;margin-bottom:8px}
 .order-items{margin-bottom:16px}
 .order-item-line{
@@ -105,10 +119,12 @@ button{cursor:pointer;font-family:inherit;border:none}
   font-size:.9rem;border-bottom:1px solid #f5f5f5;
 }
 .order-total-line{font-weight:700;font-size:1rem;color:var(--bordeaux);padding-top:8px}
-.order-actions{display:flex;gap:8px;flex-wrap:wrap}
+.order-actions{display:flex;gap:10px;flex-wrap:wrap}
 .order-action{
-  padding:10px 20px;border-radius:var(--radius);font-weight:600;
-  font-size:.9rem;transition:all .3s;
+  padding:16px 24px;border-radius:var(--radius);font-weight:600;
+  font-size:1rem;transition:all .3s;min-height:60px;
+  display:inline-flex;align-items:center;justify-content:center;
+  flex:1;min-width:140px;
 }
 .btn-accept{background:var(--olive);color:#fff}
 .btn-accept:hover{background:#3A4B2C}
@@ -117,7 +133,40 @@ button{cursor:pointer;font-family:inherit;border:none}
 .btn-ready{background:var(--gold);color:var(--noir)}
 .btn-ready:hover{background:#C49843}
 .btn-done{background:#ccc;color:#666}
+.btn-cancel{background:#C62828;color:#fff}
+.btn-cancel:hover{background:#A02020}
+.btn-secondary{background:#f5f5f5;color:#666;border:2px solid #ddd}
+.btn-secondary:hover{background:#eee}
 .no-orders{text-align:center;padding:60px 20px;color:#999;font-size:1.1rem}
+
+/* Time picker modal */
+.modal-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;
+  z-index:1000;animation:fadeIn .2s;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-box{
+  background:#fff;border-radius:16px;padding:32px;
+  max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3);
+  animation:scaleIn .3s;
+}
+@keyframes scaleIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-title{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--bordeaux);margin-bottom:16px;text-align:center}
+.modal-input{
+  width:100%;padding:14px 16px;border:2px solid #e0e0e0;border-radius:var(--radius);
+  font-size:1.1rem;margin-bottom:20px;font-family:inherit;text-align:center;
+}
+.modal-input:focus{border-color:var(--gold);outline:none}
+.modal-buttons{display:flex;gap:10px}
+.modal-btn{
+  flex:1;padding:14px;border-radius:var(--radius);font-weight:600;
+  font-size:1rem;transition:all .3s;
+}
+.modal-btn-primary{background:var(--olive);color:#fff}
+.modal-btn-primary:hover{background:#3A4B2C}
+.modal-btn-secondary{background:#f5f5f5;color:#666}
+.modal-btn-secondary:hover{background:#ddd}
 
 /* ========= INGREDIENTS TAB ========= */
 .ingredients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
@@ -173,8 +222,19 @@ button{cursor:pointer;font-family:inherit;border:none}
 @media(max-width:600px){
   .content{padding:16px}
   .order-actions{flex-direction:column}
-  .order-action{text-align:center}
+  .order-action{text-align:center;min-width:100%}
   .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .status-section-header{font-size:1.1rem;padding:10px 14px}
+  .order-num{font-size:1.2rem}
+}
+
+/* Touch optimization */
+@media(hover:none){
+  .order-action{min-height:64px;font-size:1.05rem}
+  .toggle{width:56px;height:32px}
+  .toggle::after{width:26px;height:26px}
+  .toggle.on::after{transform:translateX(24px)}
+  .order-time-badge{padding:8px 16px;font-size:.9rem}
 }
 </style>
 </head>
@@ -339,71 +399,129 @@ async function loadOrders() {
 
 function renderOrders() {
   const list = document.getElementById('ordersList');
-  const active = orders.filter(o => o.statut !== 'recuperee');
-  const done = orders.filter(o => o.statut === 'recuperee');
 
   if (!orders.length) {
     list.innerHTML = '<div class="no-orders">Aucune commande pour le moment</div>';
     return;
   }
 
+  // Group by status
+  const waiting = orders.filter(o => o.statut === 'payee' || o.statut === 'acceptee');
+  const preparing = orders.filter(o => o.statut === 'en_preparation');
+  const ready = orders.filter(o => o.statut === 'prete');
+  const done = orders.filter(o => o.statut === 'recuperee');
+
   let html = '';
-  [...active, ...done].forEach(order => {
-    const statusClass = order.statut === 'payee' ? 'new' :
-                        order.statut === 'en_preparation' ? 'preparing' :
-                        order.statut === 'prete' ? 'ready' : '';
-    const items = order.items || [];
-    html += `
-      <div class="order-card ${statusClass}" id="order-${order.id}">
-        <div class="order-top">
-          <span class="order-num">${order.numero}</span>
-          <span class="order-time-badge">${order.heure_retrait === 'asap' ? 'Dès que possible' : order.heure_retrait}</span>
-        </div>
-        <div class="order-client">
-          ${order.client_prenom || ''} — ${order.client_email || ''}
-          ${order.client_telephone ? ' — ' + order.client_telephone : ''}
-        </div>
-        <div class="order-items">
-          ${items.map(i => {
-            const imgHtml = i.image_url
-              ? `<img src="${i.image_url}" alt="${i.nom}" style="width:32px;height:32px;object-fit:cover;border-radius:4px;margin-right:6px;">`
-              : '';
-            const componentsHtml = i.isFormule && i.components
-              ? `<div style="font-size:.65rem;color:#666;padding-left:38px;margin-top:-2px;">→ ${i.components.join(', ')}</div>`
-              : '';
-            return `<div class="order-item-line" style="align-items:center;"><span style="display:flex;align-items:center;">${imgHtml}${i.qty}x ${i.nom}</span><span>${(i.prix * i.qty).toFixed(2).replace('.',',')} €</span></div>${componentsHtml}`;
-          }).join('')}
-          <div class="order-item-line order-total-line"><span>Total</span><span>${(order.total || 0).toFixed(2).replace('.',',')} €</span></div>
-        </div>
-        <div class="order-actions">
-          ${getActionButtons(order)}
-        </div>
-      </div>`;
-  });
+
+  // Waiting section
+  if (waiting.length) {
+    html += `<div class="status-section">
+      <div class="status-section-header">⏳ EN ATTENTE <span class="status-section-count">${waiting.length}</span></div>
+      <div class="status-section-cards">`;
+    waiting.forEach(order => {
+      html += renderOrderCard(order, 'new');
+    });
+    html += `</div></div>`;
+  }
+
+  // Preparing section
+  if (preparing.length) {
+    html += `<div class="status-section">
+      <div class="status-section-header">👨‍🍳 EN PRÉPARATION <span class="status-section-count">${preparing.length}</span></div>
+      <div class="status-section-cards">`;
+    preparing.forEach(order => {
+      html += renderOrderCard(order, 'preparing');
+    });
+    html += `</div></div>`;
+  }
+
+  // Ready section
+  if (ready.length) {
+    html += `<div class="status-section">
+      <div class="status-section-header">🎉 PRÊTES <span class="status-section-count">${ready.length}</span></div>
+      <div class="status-section-cards">`;
+    ready.forEach(order => {
+      html += renderOrderCard(order, 'ready');
+    });
+    html += `</div></div>`;
+  }
+
+  // Done section (collapsed, less visible)
+  if (done.length) {
+    html += `<div class="status-section" style="opacity:.5;">
+      <div class="status-section-header" style="background:#f5f5f5;">✅ RÉCUPÉRÉES <span class="status-section-count">${done.length}</span></div>
+      <div class="status-section-cards">`;
+    done.forEach(order => {
+      html += renderOrderCard(order, '');
+    });
+    html += `</div></div>`;
+  }
+
   list.innerHTML = html;
 
   // Badge
-  const pending = orders.filter(o => o.statut === 'payee').length;
+  const pending = waiting.length;
   const badge = document.getElementById('ordersBadge');
   badge.style.display = pending > 0 ? '' : 'none';
   badge.textContent = pending;
 }
 
+function renderOrderCard(order, statusClass) {
+  const items = order.items || [];
+  return `
+    <div class="order-card ${statusClass}" id="order-${order.id}">
+      <div class="order-top">
+        <span class="order-num">${order.numero}</span>
+        <span class="order-time-badge" onclick="rescheduleOrder(${order.id},'${order.heure_retrait}')">${order.heure_retrait === 'asap' ? 'Dès que possible' : order.heure_retrait}</span>
+      </div>
+      <div class="order-client">
+        ${order.client_prenom || ''} — ${order.client_email || ''}
+        ${order.client_telephone ? ' — ' + order.client_telephone : ''}
+      </div>
+      <div class="order-items">
+        ${items.map(i => {
+          const imgHtml = i.image_url
+            ? `<img src="${i.image_url}" alt="${i.nom}" style="width:32px;height:32px;object-fit:cover;border-radius:4px;margin-right:6px;">`
+            : '';
+          const componentsHtml = i.isFormule && i.components
+            ? `<div style="font-size:.65rem;color:#666;padding-left:38px;margin-top:-2px;">→ ${i.components.join(', ')}</div>`
+            : '';
+          return `<div class="order-item-line" style="align-items:center;"><span style="display:flex;align-items:center;">${imgHtml}${i.qty}x ${i.nom}</span><span>${(i.prix * i.qty).toFixed(2).replace('.',',')} €</span></div>${componentsHtml}`;
+        }).join('')}
+        <div class="order-item-line order-total-line"><span>Total</span><span>${(order.total || 0).toFixed(2).replace('.',',')} €</span></div>
+      </div>
+      <div class="order-actions">
+        ${getActionButtons(order)}
+      </div>
+    </div>`;
+}
+
 function getActionButtons(order) {
+  let buttons = '';
+
   switch(order.statut) {
     case 'payee':
-      return `<button class="order-action btn-accept" onclick="updateStatus(${order.id},'acceptee')">✓ Accepter</button>`;
+      buttons = `<button class="order-action btn-accept" onclick="updateStatus(${order.id},'acceptee')">✓ Accepter</button>`;
+      buttons += `<button class="order-action btn-cancel" onclick="cancelOrder(${order.id})">✕ Annuler</button>`;
+      break;
     case 'acceptee':
-      return `<button class="order-action btn-prepare" onclick="updateStatus(${order.id},'en_preparation')">🔥 En préparation</button>`;
+      buttons = `<button class="order-action btn-prepare" onclick="updateStatus(${order.id},'en_preparation')">🔥 En préparation</button>`;
+      buttons += `<button class="order-action btn-cancel" onclick="cancelOrder(${order.id})">✕ Annuler</button>`;
+      break;
     case 'en_preparation':
-      return `<button class="order-action btn-ready" onclick="updateStatus(${order.id},'prete')">✅ Prête !</button>`;
+      buttons = `<button class="order-action btn-ready" onclick="updateStatus(${order.id},'prete')">✅ Prête !</button>`;
+      break;
     case 'prete':
-      return `<button class="order-action btn-done" onclick="updateStatus(${order.id},'recuperee')">📦 Récupérée</button>`;
+      buttons = `<button class="order-action btn-done" onclick="updateStatus(${order.id},'recuperee')">📦 Récupérée</button>`;
+      break;
     case 'recuperee':
-      return `<span style="color:#888;font-size:.85rem">✓ Terminée</span>`;
+      buttons = `<span style="color:#888;font-size:.85rem">✓ Terminée</span>`;
+      break;
     default:
-      return '';
+      buttons = '';
   }
+
+  return buttons;
 }
 
 async function updateStatus(orderId, newStatus) {
@@ -530,6 +648,68 @@ function playAlert() {
   audio.play().catch(() => {});
   // Vibrate on mobile
   if (navigator.vibrate) navigator.vibrate([200,100,200]);
+}
+
+// ===== RESCHEDULE ORDER =====
+function rescheduleOrder(orderId, currentTime) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-title">⏰ Modifier l'heure de retrait</div>
+      <input type="time" class="modal-input" id="newPickupTime" value="${currentTime === 'asap' ? '' : currentTime.replace('h', ':')}">
+      <div class="modal-buttons">
+        <button class="modal-btn modal-btn-secondary" onclick="this.closest('.modal-overlay').remove()">Annuler</button>
+        <button class="modal-btn modal-btn-primary" onclick="confirmReschedule(${orderId})">Confirmer</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  setTimeout(() => document.getElementById('newPickupTime').focus(), 100);
+}
+
+async function confirmReschedule(orderId) {
+  const input = document.getElementById('newPickupTime');
+  const timeValue = input.value; // Format: "12:30"
+  if (!timeValue) {
+    alert('Veuillez choisir une heure');
+    return;
+  }
+  const formatted = timeValue.replace(':', 'h'); // Convert to "12h30"
+  await sb.from('orders').update({heure_retrait: formatted}).eq('id', orderId);
+  const order = orders.find(o => o.id === orderId);
+  if (order) order.heure_retrait = formatted;
+  renderOrders();
+  document.querySelector('.modal-overlay').remove();
+}
+
+// ===== CANCEL ORDER =====
+function cancelOrder(orderId) {
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-title">⚠️ Annuler la commande ${order.numero} ?</div>
+      <p style="text-align:center;color:#666;margin-bottom:20px;">Cette action est irréversible.</p>
+      <div class="modal-buttons">
+        <button class="modal-btn modal-btn-secondary" onclick="this.closest('.modal-overlay').remove()">Non, garder</button>
+        <button class="modal-btn modal-btn-primary" style="background:#C62828" onclick="confirmCancel(${orderId})">Oui, annuler</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+async function confirmCancel(orderId) {
+  await sb.from('orders').update({statut: 'annulee'}).eq('id', orderId);
+  // Remove from local list
+  orders = orders.filter(o => o.id !== orderId);
+  renderOrders();
+  updateTopbarStats();
+  document.querySelector('.modal-overlay').remove();
 }
 </script>
 </body>

@@ -1244,7 +1244,8 @@ async function submitOrder() {
   const note = document.getElementById('clientNote').value.trim();
   const optin = document.getElementById('optinPromos').checked;
 
-  // Créer la commande en statut "pending"
+  // Créer la commande en statut "pending" (ou "payee" en mode test)
+  const isTestMode = window.location.search.includes('test=1') || window.location.hostname === 'localhost';
   const orderData = {
     numero: orderNum,
     items: cart.map(c => ({
@@ -1257,12 +1258,13 @@ async function submitOrder() {
       components: c.components || null
     })),
     total: Math.round(total*100)/100,
-    statut: 'pending',
+    statut: isTestMode ? 'payee' : 'pending',
     heure_retrait: pickup,
     client_prenom: name, client_email: email,
     client_telephone: phone || null,
     note: note || null,
     created_at: new Date().toISOString(),
+    ...(isTestMode && { payment_confirmed_at: new Date().toISOString() })
   };
 
   try {
@@ -1529,6 +1531,15 @@ let confirmOrderNum = null;
 
 async function showConfirmation(orderNum, codeRetrait) {
   confirmOrderNum = orderNum;
+
+  // Fade out écran paiement avant de fermer
+  const paymentSection = document.getElementById('paymentSection');
+  if (paymentSection) {
+    paymentSection.style.transition = 'opacity 0.3s ease';
+    paymentSection.style.opacity = '0';
+    await new Promise(resolve => setTimeout(resolve, 300));
+  }
+
   cancelPayment(); // Fermer modal paiement
 
   // Infos commande
@@ -1541,15 +1552,15 @@ async function showConfirmation(orderNum, codeRetrait) {
     return `<div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:.9rem;"><span>${item.qty}x ${item.nom}</span><span style="font-weight:600;">${t} €</span></div>`;
   }).join('');
 
-  // Créer modal style blur iOS
+  // Créer modal style blur iOS avec animation fade in
   confirmModal = document.createElement('div');
   confirmModal.id = 'confirmModal';
-  confirmModal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(245,245,247,0.85);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);z-index:10000;overflow-y:auto;animation:slideUp 0.3s ease;padding-top:20px;';
+  confirmModal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(245,245,247,0.85);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);z-index:10000;overflow-y:auto;animation:fadeIn 0.4s ease;padding-top:20px;';
 
   confirmModal.innerHTML = `
     <style>
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
     <div style="max-width:500px;margin:0 auto;padding:0 20px 40px;">
       <button onclick="closeConfirmModal()" style="background:none;border:none;color:var(--text-soft);font-size:0.9rem;padding:12px 0;cursor:pointer;display:flex;align-items:center;gap:6px;margin-bottom:16px;">
@@ -1558,10 +1569,10 @@ async function showConfirmation(orderNum, codeRetrait) {
       </button>
 
       <div style="background:#fff;border-radius:20px;padding:32px 24px;box-shadow:var(--shadow-lg);">
-        <div id="statusIcon" style="width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2rem;background:var(--green);color:white;">⏳</div>
-        <h2 id="statusTitle" style="margin:0 0 8px;font-size:1.4rem;font-weight:700;text-align:center;color:var(--green);">Paiement validé !</h2>
+        <div id="statusIcon" style="width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2rem;background:#F59E0B;color:white;animation:pulse 2s infinite;">⏳</div>
+        <h2 id="statusTitle" style="margin:0 0 8px;font-size:1.4rem;font-weight:700;text-align:center;color:#F59E0B;">Chargement...</h2>
         <div style="font-size:1.8rem;font-weight:800;color:var(--dark);margin-bottom:4px;text-align:center;font-family:'Playfair Display',serif;">${orderNum}</div>
-        <p id="statusSubtitle" style="font-size:0.85rem;color:#6B6B6B;margin:0 0 20px;text-align:center;">Votre commande a été enregistrée</p>
+        <p id="statusSubtitle" style="font-size:0.85rem;color:#6B6B6B;margin:0 0 20px;text-align:center;">Vérification du statut...</p>
 
         <div id="statusBanner"></div>
 

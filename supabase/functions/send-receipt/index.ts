@@ -36,10 +36,13 @@ serve(async (req) => {
     // Générer HTML du reçu
     const itemsHtml = items.map((item: any) => `
       <tr>
-        <td style="padding:8px 0;border-bottom:1px solid #eee;">
-          ${item.qty}x ${item.nom}
+        <td style="padding:12px 0;border-bottom:1px solid #eee;display:flex;align-items:center;gap:12px;">
+          ${item.image ? `<img src="https://beyrouth.express/${item.image}" alt="${item.nom}" style="width:60px;height:60px;border-radius:8px;object-fit:cover;">` : ''}
+          <div>
+            <div style="font-weight:600;">${item.qty}x ${item.nom}</div>
+          </div>
         </td>
-        <td style="padding:8px 0;border-bottom:1px solid #eee;text-align:right;">
+        <td style="padding:12px 0;border-bottom:1px solid #eee;text-align:right;vertical-align:middle;">
           ${(item.prix * item.qty).toFixed(2).replace('.', ',')} €
         </td>
       </tr>
@@ -58,8 +61,9 @@ serve(async (req) => {
     <!-- Header -->
     <div style="background: #1A1A1A; color: white; padding: 32px 24px; text-align: center;">
       <div style="font-size: 48px; margin-bottom: 12px;">🧆</div>
-      <h1 style="margin: 0; font-size: 24px; font-weight: 600;">A Beyrouth</h1>
-      <p style="margin: 8px 0 0; opacity: 0.7; font-size: 14px;">Reçu de commande</p>
+      <h1 style="margin: 0; font-size: 26px; font-weight: 700;">Beyrouth Express</h1>
+      <p style="margin: 8px 0 0; opacity: 0.9; font-size: 15px;">Restaurant A Beyrouth</p>
+      <p style="margin: 8px 0 0; opacity: 0.7; font-size: 13px;">Reçu de commande</p>
     </div>
 
     <!-- Body -->
@@ -70,11 +74,7 @@ serve(async (req) => {
         <div style="width: 64px; height: 64px; border-radius: 50%; background: #E8F5EC; color: #1B8C3E; display: inline-flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 16px;">✓</div>
         <h2 style="margin: 0 0 8px; font-size: 20px; font-weight: 600;">Commande confirmée</h2>
         <p style="margin: 0; color: #6B6B6B; font-size: 14px;">Numéro de commande</p>
-        <p style="margin: 8px 0 0; font-size: 28px; font-weight: 700; color: #1A1A1A; letter-spacing: 1px;">${orderNum}</p>
-        ${codeRetrait ? `
-        <p style="margin: 16px 0 0; color: #6B6B6B; font-size: 14px;">Code de retrait</p>
-        <p style="margin: 4px 0 0; font-size: 40px; font-weight: 700; color: #1B8C3E; letter-spacing: 8px;">${codeRetrait}</p>
-        ` : ''}
+        <p style="margin: 8px 0 0; font-size: 32px; font-weight: 700; color: #1A1A1A; letter-spacing: 2px;">${orderNum}</p>
       </div>
 
       <!-- Info Client -->
@@ -82,7 +82,12 @@ serve(async (req) => {
         <p style="margin: 0 0 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #ABABAB;">Vos informations</p>
         <p style="margin: 0; font-size: 15px;"><strong>Nom :</strong> ${name}</p>
         <p style="margin: 8px 0 0; font-size: 15px;"><strong>Heure de retrait :</strong> ${pickup}</p>
-        <p style="margin: 8px 0 0; font-size: 15px;"><strong>Lieu :</strong> La Défense — Sortie 4 Métro</p>
+        <p style="margin: 8px 0 0; font-size: 15px;">
+          <strong>Lieu :</strong>
+          <a href="https://maps.google.com/?q=1+Esplanade+du+Général+de+Gaulle,+92800+Puteaux" style="color: #1B8C3E; text-decoration: none;">
+            La Défense — Sortie 4 Métro 📍
+          </a>
+        </p>
       </div>
 
       <!-- Items -->
@@ -97,26 +102,24 @@ serve(async (req) => {
         </table>
       </div>
 
-      <!-- CTA -->
-      <div style="text-align: center; padding: 24px 0;">
-        <a href="https://beyrouth.express/commande.html?num=${orderNum}"
-           style="display: inline-block; background: #1A1A1A; color: white; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 600; font-size: 15px;">
-          Suivre ma commande
-        </a>
-      </div>
-
       <!-- Footer Info -->
       <div style="text-align: center; padding-top: 24px; border-top: 1px solid #EAEAE8;">
-        <p style="margin: 0; font-size: 13px; color: #6B6B6B;">On vous prévient quand c'est prêt !</p>
-        <p style="margin: 8px 0 0; font-size: 12px; color: #ABABAB;">En cas de question : contact@beyrouth.express</p>
+        <p style="margin: 0; font-size: 14px; color: #1A1A1A; font-weight: 600;">À tout de suite ! 👋</p>
+        <p style="margin: 8px 0 0; font-size: 13px; color: #6B6B6B;">Présentez votre numéro de commande au retrait</p>
+        <p style="margin: 12px 0 0; font-size: 12px; color: #ABABAB;">Questions ? contact@beyrouth.express</p>
       </div>
 
     </div>
 
     <!-- Footer -->
-    <div style="background: #1A1A1A; color: white; padding: 20px 24px; text-align: center; font-size: 12px; opacity: 0.6;">
-      <p style="margin: 0;">A Beyrouth — Cuisine libanaise authentique</p>
-      <p style="margin: 4px 0 0;">1 Esplanade du Général de Gaulle, 92800 Puteaux</p>
+    <div style="background: #1A1A1A; color: white; padding: 20px 24px; text-align: center; font-size: 12px; opacity: 0.7;">
+      <p style="margin: 0; font-weight: 600;">Restaurant A Beyrouth</p>
+      <p style="margin: 8px 0 0;">Cuisine libanaise authentique</p>
+      <p style="margin: 4px 0 0;">
+        <a href="https://maps.google.com/?q=1+Esplanade+du+Général+de+Gaulle,+92800+Puteaux" style="color: #00D285; text-decoration: none;">
+          1 Esplanade du Général de Gaulle, 92800 Puteaux
+        </a>
+      </p>
     </div>
 
   </div>
@@ -132,9 +135,9 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'A Beyrouth <commande@beyrouth.express>',
+        from: 'Beyrouth Express <commande@beyrouth.express>',
         to: [email],
-        subject: `✅ Commande ${orderNum} confirmée — A Beyrouth`,
+        subject: `✅ Commande ${orderNum} confirmée — Beyrouth Express`,
         html: emailHtml,
       }),
     })

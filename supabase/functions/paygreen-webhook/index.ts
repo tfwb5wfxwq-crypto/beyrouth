@@ -104,14 +104,15 @@ serve(async (req) => {
         // Récupérer les items de la commande
         const { data: orderItems } = await supabase
           .from('order_items')
-          .select('*, menu_items(nom, prix)')
+          .select('*, menu_items(nom, prix, image_url)')
           .eq('order_id', order.id)
 
         // Formater les items pour l'email
         const items = orderItems?.map(item => ({
           nom: item.menu_items.nom,
           qty: item.quantite,
-          prix: item.menu_items.prix
+          prix: item.menu_items.prix,
+          image: item.menu_items.image_url
         })) || []
 
         // Appeler l'Edge Function send-receipt
@@ -125,7 +126,6 @@ serve(async (req) => {
             email: order.client_email,
             name: order.client_nom,
             orderNum: order.numero,
-            codeRetrait: order.code_retrait,
             items: items,
             total: order.total,
             pickup: order.heure_retrait === 'asap' ? 'Dès que possible' : order.heure_retrait

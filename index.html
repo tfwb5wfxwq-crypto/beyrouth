@@ -1550,24 +1550,16 @@ async function showConfirmation(orderNum, codeRetrait) {
 
   confirmModal.innerHTML = `
     <style>
-    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.05); } }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    .step { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 24px; position: relative; }
-    .step-line { position: absolute; left: 19px; top: 40px; width: 2px; height: calc(100% + 24px); background: #E5E7EB; }
-    .step.done .step-line { background: #10B981; }
-    .step.current .step-line { background: linear-gradient(180deg, #F59E0B 0%, #E5E7EB 100%); }
-    .step-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; z-index: 1; }
-    .step.done .step-icon { background: #10B981; color: white; }
-    .step.current .step-icon { background: #F59E0B; color: white; animation: pulse 2s infinite; }
-    .step.pending .step-icon { background: #E5E7EB; color: #9CA3AF; }
-    .step-content { flex: 1; padding-top: 6px; }
-    .step-title { font-weight: 700; font-size: 1rem; margin: 0 0 4px; }
-    .step.done .step-title { color: #10B981; }
-    .step.current .step-title { color: #F59E0B; }
-    .step.pending .step-title { color: #9CA3AF; }
-    .step-desc { font-size: 0.85rem; color: #6B6B6B; margin: 0; }
-    .step.pending .step-desc { color: #D1D5DB; }
-    .step:last-child .step-line { display: none; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.8; } }
+    @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    .progress-bar { height: 4px; background: #E5E7EB; border-radius: 2px; overflow: hidden; margin-bottom: 24px; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #10B981, #34D399); transition: width 0.6s ease; border-radius: 2px; }
+    .status-card { background: linear-gradient(135deg, #FAFAFA 0%, #FFFFFF 100%); border-radius: 24px; padding: 48px 32px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.08); position: relative; overflow: hidden; }
+    .status-icon { width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; margin: 0 auto 24px; position: relative; }
+    .status-icon::before { content: ''; position: absolute; inset: -4px; border-radius: 50%; opacity: 0.2; }
+    .status-icon.pulse { animation: pulse 2s infinite; }
+    .status-icon.rotate svg { animation: rotate 2s linear infinite; }
     </style>
     <div style="max-width:500px;margin:0 auto;padding:0 20px 40px;">
       <button onclick="closeConfirmModal()" style="background:none;border:none;color:var(--text-soft);font-size:0.9rem;padding:12px 0;cursor:pointer;display:flex;align-items:center;gap:6px;margin-bottom:16px;">
@@ -1575,12 +1567,17 @@ async function showConfirmation(orderNum, codeRetrait) {
         Fermer
       </button>
 
-      <div style="background:#fff;border-radius:20px;padding:32px 24px;box-shadow:var(--shadow-lg);">
+      <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:var(--shadow-lg);">
         <div style="font-size:1.8rem;font-weight:800;color:var(--dark);margin-bottom:8px;text-align:center;font-family:'Playfair Display',serif;">${orderNum}</div>
-        <p style="font-size:0.85rem;color:#6B6B6B;margin:0 0 28px;text-align:center;">Suivez l'avancement de votre commande en temps réel</p>
 
-        <div id="progressTimeline" style="margin-bottom:28px;">
-          <!-- Timeline créée dynamiquement -->
+        <!-- Barre progression -->
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+        </div>
+
+        <!-- Carte statut actuel -->
+        <div class="status-card" id="statusCard">
+          <!-- Contenu dynamique -->
         </div>
 
         <div style="background:var(--cream);border-radius:12px;padding:16px;margin-bottom:20px;">
@@ -1658,7 +1655,8 @@ async function loadOrderStatus(orderNum) {
 function updateConfirmModalStatus(order) {
   if (!confirmModal) return;
 
-  const timeline = confirmModal.querySelector('#progressTimeline');
+  const statusCard = confirmModal.querySelector('#statusCard');
+  const progressFill = confirmModal.querySelector('#progressFill');
   const emailMsg = confirmModal.querySelector('#emailMessage');
 
   function isPickupTimePassed(t) {
@@ -1673,26 +1671,53 @@ function updateConfirmModalStatus(order) {
   let status = order.statut;
   if (status === 'acceptee' && isPickupTimePassed(order.heure_retrait)) status = 'prete';
 
-  // Définir les étapes
-  const steps = [
-    { id: 'paid', icon: '💳', title: 'Paiement validé', desc: 'Votre commande a été enregistrée', status: 'done' },
-    { id: 'payee', icon: '⏳', title: 'En attente de validation', desc: 'Le restaurant examine votre commande', status: status === 'payee' ? 'current' : (status === 'acceptee' || status === 'prete' || status === 'recuperee' ? 'done' : 'pending') },
-    { id: 'acceptee', icon: '👨‍🍳', title: 'Commande acceptée', desc: `Préparation en cours${order.heure_retrait ? ' - Prête à ' + order.heure_retrait : ''}`, status: status === 'acceptee' ? 'current' : (status === 'prete' || status === 'recuperee' ? 'done' : 'pending') },
-    { id: 'prete', icon: '🎉', title: 'Commande prête', desc: 'Vous pouvez venir la récupérer', status: status === 'prete' ? 'current' : (status === 'recuperee' ? 'done' : 'pending') },
-    { id: 'recuperee', icon: '✅', title: 'Commande récupérée', desc: 'Bon appétit !', status: status === 'recuperee' ? 'current' : 'pending' }
-  ];
+  // Progression %
+  const progressMap = { payee: 25, acceptee: 50, prete: 75, recuperee: 100 };
+  const progress = progressMap[status] || 0;
+  progressFill.style.width = progress + '%';
 
-  // Générer HTML timeline
-  timeline.innerHTML = steps.map((step, i) => `
-    <div class="step ${step.status}">
-      <div class="step-icon">${step.icon}</div>
-      ${i < steps.length - 1 ? '<div class="step-line"></div>' : ''}
-      <div class="step-content">
-        <div class="step-title">${step.title}</div>
-        <div class="step-desc">${step.desc}</div>
+  // Contenu selon statut
+  let content = '';
+
+  if (status === 'payee') {
+    content = `
+      <div class="status-icon pulse" style="background: linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%); box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);">
+        <span style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">⏳</span>
       </div>
-    </div>
-  `).join('');
+      <h2 style="font-size: 1.8rem; font-weight: 800; color: #F59E0B; margin: 0 0 12px; font-family: 'Playfair Display', serif;">En attente de validation</h2>
+      <p style="font-size: 1rem; color: #6B6B6B; margin: 0 0 8px; line-height: 1.6;">Le restaurant examine votre commande</p>
+      <p style="font-size: 0.85rem; color: #9CA3AF; margin: 0;">Vous recevrez un email dès validation</p>
+    `;
+  } else if (status === 'acceptee') {
+    content = `
+      <div class="status-icon" style="background: linear-gradient(135deg, #34D399 0%, #10B981 100%); box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);">
+        <span style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">👨‍🍳</span>
+      </div>
+      <h2 style="font-size: 1.8rem; font-weight: 800; color: #10B981; margin: 0 0 12px; font-family: 'Playfair Display', serif;">Commande acceptée !</h2>
+      <p style="font-size: 1rem; color: #6B6B6B; margin: 0 0 8px; line-height: 1.6;">Votre commande est en préparation</p>
+      <p style="font-size: 0.95rem; color: #10B981; margin: 0; font-weight: 600;">Prête à ${order.heure_retrait || 'bientôt'}</p>
+    `;
+  } else if (status === 'prete') {
+    content = `
+      <div class="status-icon pulse" style="background: linear-gradient(135deg, #60A5FA 0%, #3B82F6 100%); box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);">
+        <span style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">🎉</span>
+      </div>
+      <h2 style="font-size: 1.8rem; font-weight: 800; color: #3B82F6; margin: 0 0 12px; font-family: 'Playfair Display', serif;">Votre commande est prête !</h2>
+      <p style="font-size: 1rem; color: #6B6B6B; margin: 0 0 8px; line-height: 1.6;">Vous pouvez venir la récupérer</p>
+      <p style="font-size: 0.85rem; color: #9CA3AF; margin: 0;">1 Esplanade du Général de Gaulle, La Défense</p>
+    `;
+  } else if (status === 'recuperee') {
+    content = `
+      <div class="status-icon" style="background: linear-gradient(135deg, #34D399 0%, #10B981 100%); box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);">
+        <span style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">✅</span>
+      </div>
+      <h2 style="font-size: 1.8rem; font-weight: 800; color: #10B981; margin: 0 0 12px; font-family: 'Playfair Display', serif;">Bon appétit !</h2>
+      <p style="font-size: 1rem; color: #6B6B6B; margin: 0 0 8px; line-height: 1.6;">Merci pour votre commande</p>
+      <p style="font-size: 0.85rem; color: #9CA3AF; margin: 0;">À très bientôt chez A Beyrouth 🧆</p>
+    `;
+  }
+
+  statusCard.innerHTML = content;
 
   // Message email
   if (emailMsg) {

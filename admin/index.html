@@ -942,7 +942,8 @@ function cancelOrder(orderId) {
 }
 
 async function confirmCancel(orderId) {
-  await sb.from('orders').update({statut: 'annulee'}).eq('id', orderId);
+  // DELETE vraiment la commande (pas juste mise à jour du statut)
+  await sb.from('orders').delete().eq('id', orderId);
   // Remove from local list
   orders = orders.filter(o => o.id !== orderId);
   renderOrders();

@@ -1531,16 +1531,7 @@ let confirmOrderNum = null;
 
 async function showConfirmation(orderNum, codeRetrait) {
   confirmOrderNum = orderNum;
-
-  // Fade out écran paiement avant de fermer
-  const paymentSection = document.getElementById('paymentSection');
-  if (paymentSection) {
-    paymentSection.style.transition = 'opacity 0.3s ease';
-    paymentSection.style.opacity = '0';
-    await new Promise(resolve => setTimeout(resolve, 300));
-  }
-
-  cancelPayment(); // Fermer modal paiement
+  cancelPayment(); // Fermer modal paiement (sans fade)
 
   // Infos commande
   const pickup = document.getElementById('pickupTime').value || 'asap';
@@ -1559,8 +1550,24 @@ async function showConfirmation(orderNum, codeRetrait) {
 
   confirmModal.innerHTML = `
     <style>
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.05); } }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .step { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 24px; position: relative; }
+    .step-line { position: absolute; left: 19px; top: 40px; width: 2px; height: calc(100% + 24px); background: #E5E7EB; }
+    .step.done .step-line { background: #10B981; }
+    .step.current .step-line { background: linear-gradient(180deg, #F59E0B 0%, #E5E7EB 100%); }
+    .step-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; z-index: 1; }
+    .step.done .step-icon { background: #10B981; color: white; }
+    .step.current .step-icon { background: #F59E0B; color: white; animation: pulse 2s infinite; }
+    .step.pending .step-icon { background: #E5E7EB; color: #9CA3AF; }
+    .step-content { flex: 1; padding-top: 6px; }
+    .step-title { font-weight: 700; font-size: 1rem; margin: 0 0 4px; }
+    .step.done .step-title { color: #10B981; }
+    .step.current .step-title { color: #F59E0B; }
+    .step.pending .step-title { color: #9CA3AF; }
+    .step-desc { font-size: 0.85rem; color: #6B6B6B; margin: 0; }
+    .step.pending .step-desc { color: #D1D5DB; }
+    .step:last-child .step-line { display: none; }
     </style>
     <div style="max-width:500px;margin:0 auto;padding:0 20px 40px;">
       <button onclick="closeConfirmModal()" style="background:none;border:none;color:var(--text-soft);font-size:0.9rem;padding:12px 0;cursor:pointer;display:flex;align-items:center;gap:6px;margin-bottom:16px;">
@@ -1569,12 +1576,12 @@ async function showConfirmation(orderNum, codeRetrait) {
       </button>
 
       <div style="background:#fff;border-radius:20px;padding:32px 24px;box-shadow:var(--shadow-lg);">
-        <div id="statusIcon" style="width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2rem;background:#F59E0B;color:white;animation:pulse 2s infinite;">⏳</div>
-        <h2 id="statusTitle" style="margin:0 0 8px;font-size:1.4rem;font-weight:700;text-align:center;color:#F59E0B;">Chargement...</h2>
-        <div style="font-size:1.8rem;font-weight:800;color:var(--dark);margin-bottom:4px;text-align:center;font-family:'Playfair Display',serif;">${orderNum}</div>
-        <p id="statusSubtitle" style="font-size:0.85rem;color:#6B6B6B;margin:0 0 20px;text-align:center;">Vérification du statut...</p>
+        <div style="font-size:1.8rem;font-weight:800;color:var(--dark);margin-bottom:8px;text-align:center;font-family:'Playfair Display',serif;">${orderNum}</div>
+        <p style="font-size:0.85rem;color:#6B6B6B;margin:0 0 28px;text-align:center;">Suivez l'avancement de votre commande en temps réel</p>
 
-        <div id="statusBanner"></div>
+        <div id="progressTimeline" style="margin-bottom:28px;">
+          <!-- Timeline créée dynamiquement -->
+        </div>
 
         <div style="background:var(--cream);border-radius:12px;padding:16px;margin-bottom:20px;">
           <p style="font-size:0.75rem;color:#888;margin:0 0 4px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Retrait prévu</p>
@@ -1651,10 +1658,7 @@ async function loadOrderStatus(orderNum) {
 function updateConfirmModalStatus(order) {
   if (!confirmModal) return;
 
-  const icon = confirmModal.querySelector('#statusIcon');
-  const title = confirmModal.querySelector('#statusTitle');
-  const subtitle = confirmModal.querySelector('#statusSubtitle');
-  const banner = confirmModal.querySelector('#statusBanner');
+  const timeline = confirmModal.querySelector('#progressTimeline');
   const emailMsg = confirmModal.querySelector('#emailMessage');
 
   function isPickupTimePassed(t) {
@@ -1669,38 +1673,36 @@ function updateConfirmModalStatus(order) {
   let status = order.statut;
   if (status === 'acceptee' && isPickupTimePassed(order.heure_retrait)) status = 'prete';
 
-  if (status === 'payee') {
-    icon.style.cssText = 'width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2rem;background:#F59E0B;color:white;animation:pulse 2s infinite;';
-    icon.textContent = '⏳';
-    title.style.color = '#F59E0B';
-    title.textContent = 'En attente de validation';
-    subtitle.textContent = 'Le restaurant va confirmer votre commande';
-    banner.innerHTML = '<div style="background:#FEF3C7;border:2px solid #F59E0B;border-radius:12px;padding:16px;margin-bottom:20px;text-align:center;"><div style="font-size:2rem;margin-bottom:8px;animation:pulse 2s infinite;">⏳</div><div style="font-weight:700;font-size:1.1rem;color:#F59E0B;margin-bottom:4px;">Validation en cours...</div><div style="font-size:0.9rem;color:#666;">Le restaurant examine votre commande.<br>Vous recevrez un email dès validation.</div></div>';
-    emailMsg.innerHTML = '<strong>Email de confirmation envoyé</strong><br><span style="font-size:0.8rem;color:#666;">Vous recevrez un autre email dès que le restaurant validera</span>';
-  } else if (status === 'acceptee') {
-    icon.style.cssText = 'width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2rem;background:#10B981;color:white;';
-    icon.textContent = '✓';
-    title.style.color = '#10B981';
-    title.textContent = 'Commande acceptée !';
-    subtitle.textContent = 'Votre commande est en préparation';
-    banner.innerHTML = `<div style="background:#D1FAE5;border:2px solid #10B981;border-radius:12px;padding:16px;margin-bottom:20px;text-align:center;"><div style="font-size:2rem;margin-bottom:8px;">👨‍🍳</div><div style="font-weight:700;font-size:1.1rem;color:#10B981;margin-bottom:4px;">Préparation en cours</div><div style="font-size:0.9rem;color:#666;">Votre commande sera prête à <strong>${order.heure_retrait}</strong></div></div>`;
-    emailMsg.innerHTML = '<strong>Email de confirmation envoyé</strong><br><span style="font-size:0.8rem;color:#666;">Commande acceptée par le restaurant</span>';
-  } else if (status === 'prete') {
-    icon.style.cssText = 'width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2rem;background:#3B82F6;color:white;';
-    icon.textContent = '🎉';
-    title.style.color = '#3B82F6';
-    title.textContent = 'Commande prête !';
-    subtitle.textContent = 'Venez la récupérer';
-    banner.innerHTML = '<div style="background:#DBEAFE;border:2px solid #3B82F6;border-radius:12px;padding:16px;margin-bottom:20px;text-align:center;"><div style="font-size:2rem;margin-bottom:8px;">🎉</div><div style="font-weight:700;font-size:1.1rem;color:#3B82F6;margin-bottom:4px;">Votre commande est prête !</div><div style="font-size:0.9rem;color:#666;">Vous pouvez venir la récupérer au restaurant</div></div>';
-    emailMsg.innerHTML = '<strong>Commande prête !</strong><br><span style="font-size:0.8rem;color:#666;">Venez la récupérer chez A Beyrouth</span>';
-  } else if (status === 'recuperee') {
-    icon.style.cssText = 'width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2rem;background:#10B981;color:white;';
-    icon.textContent = '✅';
-    title.style.color = '#10B981';
-    title.textContent = 'Bon appétit !';
-    subtitle.textContent = 'Commande récupérée';
-    banner.innerHTML = '<div style="background:#D1FAE5;border:2px solid #10B981;border-radius:12px;padding:16px;margin-bottom:20px;text-align:center;"><div style="font-size:2rem;margin-bottom:8px;">✅</div><div style="font-weight:700;font-size:1.1rem;color:#10B981;margin-bottom:4px;">Merci pour votre commande !</div><div style="font-size:0.9rem;color:#666;">À très bientôt chez A Beyrouth 🧆</div></div>';
-    emailMsg.innerHTML = '<strong>Merci et à bientôt !</strong>';
+  // Définir les étapes
+  const steps = [
+    { id: 'paid', icon: '💳', title: 'Paiement validé', desc: 'Votre commande a été enregistrée', status: 'done' },
+    { id: 'payee', icon: '⏳', title: 'En attente de validation', desc: 'Le restaurant examine votre commande', status: status === 'payee' ? 'current' : (status === 'acceptee' || status === 'prete' || status === 'recuperee' ? 'done' : 'pending') },
+    { id: 'acceptee', icon: '👨‍🍳', title: 'Commande acceptée', desc: `Préparation en cours${order.heure_retrait ? ' - Prête à ' + order.heure_retrait : ''}`, status: status === 'acceptee' ? 'current' : (status === 'prete' || status === 'recuperee' ? 'done' : 'pending') },
+    { id: 'prete', icon: '🎉', title: 'Commande prête', desc: 'Vous pouvez venir la récupérer', status: status === 'prete' ? 'current' : (status === 'recuperee' ? 'done' : 'pending') },
+    { id: 'recuperee', icon: '✅', title: 'Commande récupérée', desc: 'Bon appétit !', status: status === 'recuperee' ? 'current' : 'pending' }
+  ];
+
+  // Générer HTML timeline
+  timeline.innerHTML = steps.map((step, i) => `
+    <div class="step ${step.status}">
+      <div class="step-icon">${step.icon}</div>
+      ${i < steps.length - 1 ? '<div class="step-line"></div>' : ''}
+      <div class="step-content">
+        <div class="step-title">${step.title}</div>
+        <div class="step-desc">${step.desc}</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Message email
+  if (emailMsg) {
+    if (status === 'payee') {
+      emailMsg.innerHTML = '<strong>Email de confirmation envoyé</strong><br><span style="font-size:0.8rem;color:#666;">Vous recevrez un autre email dès validation</span>';
+    } else if (status === 'acceptee' || status === 'prete') {
+      emailMsg.innerHTML = '<strong>Email de confirmation envoyé</strong>';
+    } else if (status === 'recuperee') {
+      emailMsg.innerHTML = '<strong>Merci et à bientôt !</strong>';
+    }
   }
 }
 

@@ -1881,9 +1881,7 @@ function setupScrollReveal() {
   document.querySelectorAll('.menu-card.reveal').forEach(card => observer.observe(card));
 }
 
-document.getElementById('confirmModal').addEventListener('click', function(e) {
-  if (e.target === this) this.classList.remove('open');
-});
+// Modal confirmModal créé dynamiquement, plus besoin de cet event listener
 </script>
 </body>
 </html>

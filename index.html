@@ -1435,6 +1435,28 @@ function selectPaymentMethod(method) {
 function initPayGreen(method) {
   if (!currentPaymentData) return;
 
+  // MODE TEST : Simuler le paiement (pour dev/démo)
+  const isTestMode = window.location.search.includes('test=1') || window.location.hostname === 'localhost';
+
+  if (isTestMode) {
+    console.log('🧪 MODE TEST activé - Paiement simulé');
+    const btn = document.getElementById('payBtn');
+    btn.textContent = '🧪 Simuler paiement (TEST)';
+    btn.onclick = async () => {
+      btn.textContent = 'Traitement en cours...';
+      btn.disabled = true;
+
+      // Simuler délai réseau
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Simuler succès paiement
+      console.log('✅ Paiement TEST réussi');
+      cancelPayment();
+      showConfirmation(currentPaymentData.orderNum, currentPaymentData.codeRetrait);
+    };
+    return;
+  }
+
   try {
     window.paygreenjs.init({
       paymentOrder: {

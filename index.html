@@ -1446,13 +1446,17 @@ function initPayGreen(method) {
       btn.textContent = 'Traitement en cours...';
       btn.disabled = true;
 
+      // Sauvegarder les données AVANT cancelPayment (qui met currentPaymentData à null)
+      const orderNum = currentPaymentData.orderNum;
+      const codeRetrait = currentPaymentData.codeRetrait;
+
       // Simuler délai réseau
       await new Promise(resolve => setTimeout(resolve, 1500));
 
       // Simuler succès paiement
       console.log('✅ Paiement TEST réussi');
       cancelPayment();
-      showConfirmation(currentPaymentData.orderNum, currentPaymentData.codeRetrait);
+      showConfirmation(orderNum, codeRetrait);
     };
     return;
   }

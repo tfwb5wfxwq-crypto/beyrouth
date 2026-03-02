@@ -218,6 +218,15 @@ button{cursor:pointer;font-family:inherit;border:none}
 .stat-value{font-family:'Playfair Display',serif;font-size:2rem;font-weight:800;color:var(--bordeaux)}
 .stat-label{font-size:.85rem;color:#888;margin-top:4px}
 
+/* ========= HISTORY ========= */
+.history-filter{
+  padding:10px 18px;border-radius:var(--radius);font-weight:600;
+  font-size:.9rem;background:#f5f5f5;color:#666;
+  border:2px solid transparent;transition:all .3s;
+}
+.history-filter.active{background:var(--cream);color:var(--bordeaux);border-color:var(--gold)}
+.history-filter:hover{background:#eee}
+
 /* ========= RESPONSIVE ========= */
 @media(max-width:600px){
   .content{padding:16px}
@@ -245,10 +254,9 @@ button{cursor:pointer;font-family:inherit;border:none}
   <div class="login-box">
     <h1>🧆 Beyrouth Express</h1>
     <p>Interface de gestion</p>
-    <input class="login-input" type="email" id="loginEmail" placeholder="Email" autocomplete="email">
-    <input class="login-input" type="password" id="loginPassword" placeholder="Mot de passe" autocomplete="current-password">
+    <input class="login-input" type="text" id="loginCode" placeholder="Code d'accès" autocomplete="off" inputmode="numeric" maxlength="6">
     <button class="login-btn" onclick="doLogin()">Se connecter</button>
-    <div class="login-error" id="loginError">Email ou mot de passe incorrect</div>
+    <div class="login-error" id="loginError">Code incorrect</div>
   </div>
 </div>
 
@@ -268,6 +276,7 @@ button{cursor:pointer;font-family:inherit;border:none}
     </button>
     <button class="tab" data-tab="menu" onclick="switchTab('menu')">Menu</button>
     <button class="tab" data-tab="stats" onclick="switchTab('stats')">Stats</button>
+    <button class="tab" data-tab="history" onclick="switchTab('history')">Historique</button>
   </div>
 
   <div class="content">
@@ -307,6 +316,19 @@ button{cursor:pointer;font-family:inherit;border:none}
         </div>
       </div>
     </div>
+
+    <!-- History Tab -->
+    <div class="tab-content" id="tab-history" style="display:none">
+      <h2 style="margin-bottom:16px;color:var(--bordeaux)">Historique des commandes</h2>
+      <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="history-filter active" data-days="7" onclick="loadHistory(7)">7 derniers jours</button>
+        <button class="history-filter" data-days="30" onclick="loadHistory(30)">30 derniers jours</button>
+        <button class="history-filter" data-days="all" onclick="loadHistory('all')">Tout</button>
+      </div>
+      <div class="orders-list" id="historyList">
+        <div class="no-orders">Chargement...</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -328,43 +350,39 @@ let menuItemsList = [];
 let currentTab = 'orders';
 
 // ===== AUTH =====
-const ADMIN_EMAILS = ['admin@beyrouth.express'];
+const ADMIN_CODE = '123456'; // TODO: Mettre dans Supabase Edge Function pour plus de sécurité
 
 async function checkSession() {
-  const {data:{session}} = await sb.auth.getSession();
-  if (session && ADMIN_EMAILS.includes(session.user.email.toLowerCase())) {
+  const savedCode = localStorage.getItem('adminAuth');
+  if (savedCode === ADMIN_CODE) {
     showDashboard();
-  } else if (session) {
-    await sb.auth.signOut();
   }
 }
 checkSession();
 
-document.getElementById('loginPassword').addEventListener('keydown', e => {
+document.getElementById('loginCode').addEventListener('keydown', e => {
   if (e.key === 'Enter') doLogin();
 });
 
 async function doLogin() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const pwd = document.getElementById('loginPassword').value;
+  const code = document.getElementById('loginCode').value.trim();
   const errEl = document.getElementById('loginError');
-  const {error} = await sb.auth.signInWithPassword({email, password: pwd});
-  if (error) {
-    errEl.textContent = 'Email ou mot de passe incorrect';
+
+  if (code === ADMIN_CODE) {
+    localStorage.setItem('adminAuth', code);
+    showDashboard();
+  } else {
+    errEl.textContent = 'Code incorrect';
     errEl.style.display = 'block';
-    return;
+    setTimeout(() => {
+      errEl.style.display = 'none';
+      document.getElementById('loginCode').value = '';
+    }, 2000);
   }
-  if (!ADMIN_EMAILS.includes(email.toLowerCase())) {
-    await sb.auth.signOut();
-    errEl.textContent = 'Accès non autorisé';
-    errEl.style.display = 'block';
-    return;
-  }
-  showDashboard();
 }
 
 async function doLogout() {
-  await sb.auth.signOut();
+  localStorage.removeItem('adminAuth');
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('loginPage').style.display = 'flex';
 }
@@ -383,6 +401,7 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
   document.getElementById('tab-' + tab).style.display = '';
   if (tab === 'stats') updateStats();
+  if (tab === 'history') loadHistory(7);
 }
 
 // ===== ORDERS =====
@@ -466,13 +485,18 @@ function renderOrders() {
   badge.textContent = pending;
 }
 
-function renderOrderCard(order, statusClass) {
+function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, statusLabel) {
   const items = order.items || [];
+  const isHistory = !!dateStr;
+
   return `
     <div class="order-card ${statusClass}" id="order-${order.id}">
       <div class="order-top">
         <span class="order-num">${order.numero}</span>
-        <span class="order-time-badge" onclick="rescheduleOrder(${order.id},'${order.heure_retrait}')">${order.heure_retrait === 'asap' ? 'Dès que possible' : order.heure_retrait}</span>
+        ${isHistory
+          ? `<span class="order-time-badge" style="cursor:default;">${statusEmoji} ${statusLabel} — ${dateStr} ${timeStr}</span>`
+          : `<span class="order-time-badge" onclick="rescheduleOrder(${order.id},'${order.heure_retrait}')">${order.heure_retrait === 'asap' ? 'Dès que possible' : order.heure_retrait}</span>`
+        }
       </div>
       <div class="order-client">
         ${order.client_prenom || ''} — ${order.client_email || ''}
@@ -490,9 +514,7 @@ function renderOrderCard(order, statusClass) {
         }).join('')}
         <div class="order-item-line order-total-line"><span>Total</span><span>${(order.total || 0).toFixed(2).replace('.',',')} €</span></div>
       </div>
-      <div class="order-actions">
-        ${getActionButtons(order)}
-      </div>
+      ${!isHistory ? `<div class="order-actions">${getActionButtons(order)}</div>` : ''}
     </div>`;
 }
 
@@ -710,6 +732,68 @@ async function confirmCancel(orderId) {
   renderOrders();
   updateTopbarStats();
   document.querySelector('.modal-overlay').remove();
+}
+
+// ===== HISTORY =====
+let historyOrders = [];
+
+async function loadHistory(days) {
+  const list = document.getElementById('historyList');
+  list.innerHTML = '<div class="no-orders">Chargement...</div>';
+
+  // Update filter buttons
+  document.querySelectorAll('.history-filter').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.days == days);
+  });
+
+  let query = sb.from('orders').select('*').order('created_at', {ascending: false});
+
+  if (days !== 'all') {
+    const date = new Date();
+    date.setDate(date.getDate() - days);
+    query = query.gte('created_at', date.toISOString());
+  }
+
+  const {data, error} = await query.limit(100);
+
+  if (error) {
+    list.innerHTML = '<div class="no-orders">Erreur de chargement</div>';
+    return;
+  }
+
+  historyOrders = data || [];
+
+  if (!historyOrders.length) {
+    list.innerHTML = '<div class="no-orders">Aucune commande</div>';
+    return;
+  }
+
+  let html = '';
+  historyOrders.forEach(order => {
+    const date = new Date(order.created_at);
+    const dateStr = date.toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric'});
+    const timeStr = date.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
+    const statusEmoji = {
+      'payee': '⏳',
+      'acceptee': '✓',
+      'en_preparation': '🔥',
+      'prete': '✅',
+      'recuperee': '📦',
+      'annulee': '✕'
+    }[order.statut] || '•';
+    const statusLabel = {
+      'payee': 'Payée',
+      'acceptee': 'Acceptée',
+      'en_preparation': 'En préparation',
+      'prete': 'Prête',
+      'recuperee': 'Récupérée',
+      'annulee': 'Annulée'
+    }[order.statut] || order.statut;
+
+    html += renderOrderCard(order, '', dateStr, timeStr, statusEmoji, statusLabel);
+  });
+
+  list.innerHTML = html;
 }
 </script>
 </body>

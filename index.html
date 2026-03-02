@@ -427,18 +427,7 @@ a{color:inherit;text-decoration:none}
   </div>
 </div>
 
-<!-- MODAL -->
-<div class="modal-overlay" id="confirmModal">
-  <div class="modal">
-    <div class="modal-icon">&#10003;</div>
-    <h3>Commande envoyée !</h3>
-    <div class="modal-order-num" id="confirmOrderNum">BE-0001</div>
-    <p style="font-size:.82rem;color:#6B6B6B;margin:8px 0 0;">Code de retrait</p>
-    <div id="confirmCode" style="font-size:2.5rem;font-weight:700;color:#1B8C3E;margin:8px 0 12px;letter-spacing:6px;display:none;">----</div>
-    <p id="confirmText">Commande enregistrée !<br>Un email de confirmation vous a été envoyé.</p>
-    <a class="modal-btn" id="confirmTrackBtn" href="commande.html">Suivre ma commande</a>
-  </div>
-</div>
+<!-- Modal de confirmation créé dynamiquement via JS -->
 
 <!-- UPSELL -->
 <div class="upsell-bubble" id="upsellBubble">
@@ -1507,40 +1496,187 @@ function cancelPayment() {
 
 // Ancienne fonction modal supprimée (remplacée par cancelPayment)
 
-async function showConfirmation(orderNum, codeRetrait) {
-  toggleCart();
-  document.getElementById('confirmOrderNum').textContent = orderNum;
-  if (codeRetrait) {
-    document.getElementById('confirmCode').textContent = codeRetrait;
-    document.getElementById('confirmCode').style.display = 'block';
-  }
-  document.getElementById('confirmTrackBtn').href = `commande.html?num=${orderNum}`;
-  document.getElementById('confirmModal').classList.add('open');
+// Variables globales modal confirmation
+let confirmModal = null;
+let confirmSubscription = null;
+let confirmOrderNum = null;
 
-  // Envoyer le reçu par email si demandé
+async function showConfirmation(orderNum, codeRetrait) {
+  confirmOrderNum = orderNum;
+  cancelPayment(); // Fermer modal paiement
+
+  // Infos commande
+  const pickup = document.getElementById('pickupTime').value || 'asap';
+  const pickupText = pickup === 'asap' ? 'Dès que possible (~15-20 min)' : pickup;
+  const total = cart.reduce((sum, item) => sum + (item.prix * item.qty), 0).toFixed(2).replace('.', ',');
+
+  const itemsHtml = cart.map(item => {
+    const t = (item.prix * item.qty).toFixed(2).replace('.', ',');
+    return `<div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:.9rem;"><span>${item.qty}x ${item.nom}</span><span style="font-weight:600;">${t} €</span></div>`;
+  }).join('');
+
+  // Créer modal style blur iOS
+  confirmModal = document.createElement('div');
+  confirmModal.id = 'confirmModal';
+  confirmModal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(245,245,247,0.85);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);z-index:10000;overflow-y:auto;animation:slideUp 0.3s ease;padding-top:20px;';
+
+  confirmModal.innerHTML = `
+    <style>
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    </style>
+    <div style="max-width:500px;margin:0 auto;padding:0 20px 40px;">
+      <button onclick="closeConfirmModal()" style="background:none;border:none;color:var(--text-soft);font-size:0.9rem;padding:12px 0;cursor:pointer;display:flex;align-items:center;gap:6px;margin-bottom:16px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        Fermer
+      </button>
+
+      <div style="background:#fff;border-radius:20px;padding:32px 24px;box-shadow:var(--shadow-lg);">
+        <div id="statusIcon" style="width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2rem;background:var(--green);color:white;">⏳</div>
+        <h2 id="statusTitle" style="margin:0 0 8px;font-size:1.4rem;font-weight:700;text-align:center;color:var(--green);">Paiement validé !</h2>
+        <div style="font-size:1.8rem;font-weight:800;color:var(--dark);margin-bottom:4px;text-align:center;font-family:'Playfair Display',serif;">${orderNum}</div>
+        <p id="statusSubtitle" style="font-size:0.85rem;color:#6B6B6B;margin:0 0 20px;text-align:center;">Votre commande a été enregistrée</p>
+
+        <div id="statusBanner"></div>
+
+        <div style="background:var(--cream);border-radius:12px;padding:16px;margin-bottom:20px;">
+          <p style="font-size:0.75rem;color:#888;margin:0 0 4px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Retrait prévu</p>
+          <p style="font-size:1.1rem;font-weight:700;color:var(--dark);margin:0;">${pickupText}</p>
+        </div>
+
+        <div style="background:var(--cream);border-radius:12px;padding:16px;margin-bottom:20px;">
+          <p style="font-size:0.75rem;color:#888;margin:0 0 12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Votre commande</p>
+          ${itemsHtml}
+          <div style="border-top:2px solid #ddd;margin-top:12px;padding-top:12px;display:flex;justify-content:space-between;font-weight:700;font-size:1.05rem;">
+            <span>Total</span><span>${total} €</span>
+          </div>
+        </div>
+
+        <div style="background:#FFF3E0;border-radius:12px;padding:16px;margin-bottom:20px;">
+          <p style="font-size:0.75rem;color:#E65100;margin:0 0 8px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">📍 Où récupérer</p>
+          <p style="font-weight:600;color:var(--dark);margin:0 0 4px;">A Beyrouth</p>
+          <p style="font-size:0.9rem;color:#666;margin:0 0 8px;">1 Esplanade du Général de Gaulle<br>92800 Puteaux (La Défense)</p>
+          <p style="font-size:0.85rem;color:#888;margin:0;">Sortie 4 du métro La Défense</p>
+        </div>
+
+        <div id="emailSection" style="background:#E3F2FD;border-radius:12px;padding:14px;margin-bottom:20px;text-align:center;">
+          <p style="font-size:0.9rem;color:#1976D2;margin:0;">✉️ <strong id="emailMessage">Email de confirmation envoyé</strong></p>
+        </div>
+
+        <button onclick="closeConfirmModal()" style="width:100%;background:transparent;border:2px solid #ddd;color:var(--dark);padding:14px;border-radius:12px;font-weight:600;cursor:pointer;font-size:1rem;">Retour au menu</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(confirmModal);
+
+  // Charger statut + realtime
+  loadOrderStatus(orderNum);
+
+  // Envoyer email si demandé
   const wantReceipt = document.getElementById('wantReceipt').checked;
   if (wantReceipt && sb) {
     const email = document.getElementById('clientEmail').value.trim();
     const name = document.getElementById('clientName').value.trim();
-    const pickup = document.getElementById('pickupTime').value;
-    const total = cart.reduce((s, c) => s + c.prix * c.qty, 0);
-
+    const totalNum = cart.reduce((s, c) => s + c.prix * c.qty, 0);
     try {
-      await sb.functions.invoke('send-receipt', {
-        body: { email, name, orderNum, codeRetrait, items: cart, total, pickup }
-      });
+      await sb.functions.invoke('send-receipt', { body: { email, name, orderNum, codeRetrait, items: cart, total: totalNum, pickup } });
     } catch (e) {
       console.error('Erreur envoi reçu:', e);
-      // Ne pas bloquer si l'email échoue
     }
   }
 
+  // Reset
   cart = []; saveCart(); updateCartUI(); renderMenu();
   document.getElementById('cartSubmit').disabled = false;
   document.getElementById('cartSubmit').textContent = 'Passer la commande';
   ['clientNote'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('wantReceipt').checked = true; // Reset à checked par défaut
-  document.getElementById('optinPromos').checked = true; // Optin promos par défaut
+  document.getElementById('wantReceipt').checked = true;
+  document.getElementById('optinPromos').checked = true;
+}
+
+async function loadOrderStatus(orderNum) {
+  try {
+    const { data } = await sb.from('orders').select('*').eq('numero', orderNum).single();
+    if (data) {
+      updateConfirmModalStatus(data);
+
+      if (confirmSubscription) confirmSubscription.unsubscribe();
+      confirmSubscription = sb.channel(`order-${orderNum}`)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `numero=eq.${orderNum}` }, p => updateConfirmModalStatus(p.new))
+        .subscribe();
+    }
+  } catch (e) {
+    console.error('Erreur:', e);
+  }
+}
+
+function updateConfirmModalStatus(order) {
+  if (!confirmModal) return;
+
+  const icon = confirmModal.querySelector('#statusIcon');
+  const title = confirmModal.querySelector('#statusTitle');
+  const subtitle = confirmModal.querySelector('#statusSubtitle');
+  const banner = confirmModal.querySelector('#statusBanner');
+  const emailMsg = confirmModal.querySelector('#emailMessage');
+
+  function isPickupTimePassed(t) {
+    if (!t || t === 'asap') return false;
+    const m = t.match(/(\d+)h(\d+)/);
+    if (!m) return false;
+    const now = new Date();
+    const pd = new Date(`${now.toISOString().split('T')[0]}T${m[1].padStart(2,'0')}:${m[2].padStart(2,'0')}:00`);
+    return now >= pd;
+  }
+
+  let status = order.statut;
+  if (status === 'acceptee' && isPickupTimePassed(order.heure_retrait)) status = 'prete';
+
+  if (status === 'payee') {
+    icon.style.cssText = 'width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2rem;background:#F59E0B;color:white;animation:pulse 2s infinite;';
+    icon.textContent = '⏳';
+    title.style.color = '#F59E0B';
+    title.textContent = 'En attente de validation';
+    subtitle.textContent = 'Le restaurant va confirmer votre commande';
+    banner.innerHTML = '<div style="background:#FEF3C7;border:2px solid #F59E0B;border-radius:12px;padding:16px;margin-bottom:20px;text-align:center;"><div style="font-size:2rem;margin-bottom:8px;animation:pulse 2s infinite;">⏳</div><div style="font-weight:700;font-size:1.1rem;color:#F59E0B;margin-bottom:4px;">Validation en cours...</div><div style="font-size:0.9rem;color:#666;">Le restaurant examine votre commande.<br>Vous recevrez un email dès validation.</div></div>';
+    emailMsg.innerHTML = '<strong>Email de confirmation envoyé</strong><br><span style="font-size:0.8rem;color:#666;">Vous recevrez un autre email dès que le restaurant validera</span>';
+  } else if (status === 'acceptee') {
+    icon.style.cssText = 'width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2rem;background:#10B981;color:white;';
+    icon.textContent = '✓';
+    title.style.color = '#10B981';
+    title.textContent = 'Commande acceptée !';
+    subtitle.textContent = 'Votre commande est en préparation';
+    banner.innerHTML = `<div style="background:#D1FAE5;border:2px solid #10B981;border-radius:12px;padding:16px;margin-bottom:20px;text-align:center;"><div style="font-size:2rem;margin-bottom:8px;">👨‍🍳</div><div style="font-weight:700;font-size:1.1rem;color:#10B981;margin-bottom:4px;">Préparation en cours</div><div style="font-size:0.9rem;color:#666;">Votre commande sera prête à <strong>${order.heure_retrait}</strong></div></div>`;
+    emailMsg.innerHTML = '<strong>Email de confirmation envoyé</strong><br><span style="font-size:0.8rem;color:#666;">Commande acceptée par le restaurant</span>';
+  } else if (status === 'prete') {
+    icon.style.cssText = 'width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2rem;background:#3B82F6;color:white;';
+    icon.textContent = '🎉';
+    title.style.color = '#3B82F6';
+    title.textContent = 'Commande prête !';
+    subtitle.textContent = 'Venez la récupérer';
+    banner.innerHTML = '<div style="background:#DBEAFE;border:2px solid #3B82F6;border-radius:12px;padding:16px;margin-bottom:20px;text-align:center;"><div style="font-size:2rem;margin-bottom:8px;">🎉</div><div style="font-weight:700;font-size:1.1rem;color:#3B82F6;margin-bottom:4px;">Votre commande est prête !</div><div style="font-size:0.9rem;color:#666;">Vous pouvez venir la récupérer au restaurant</div></div>';
+    emailMsg.innerHTML = '<strong>Commande prête !</strong><br><span style="font-size:0.8rem;color:#666;">Venez la récupérer chez A Beyrouth</span>';
+  } else if (status === 'recuperee') {
+    icon.style.cssText = 'width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2rem;background:#10B981;color:white;';
+    icon.textContent = '✅';
+    title.style.color = '#10B981';
+    title.textContent = 'Bon appétit !';
+    subtitle.textContent = 'Commande récupérée';
+    banner.innerHTML = '<div style="background:#D1FAE5;border:2px solid #10B981;border-radius:12px;padding:16px;margin-bottom:20px;text-align:center;"><div style="font-size:2rem;margin-bottom:8px;">✅</div><div style="font-weight:700;font-size:1.1rem;color:#10B981;margin-bottom:4px;">Merci pour votre commande !</div><div style="font-size:0.9rem;color:#666;">À très bientôt chez A Beyrouth 🧆</div></div>';
+    emailMsg.innerHTML = '<strong>Merci et à bientôt !</strong>';
+  }
+}
+
+function closeConfirmModal() {
+  if (confirmModal) {
+    confirmModal.remove();
+    confirmModal = null;
+  }
+  if (confirmSubscription) {
+    confirmSubscription.unsubscribe();
+    confirmSubscription = null;
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ===== NAV =====

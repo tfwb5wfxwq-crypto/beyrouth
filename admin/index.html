@@ -66,35 +66,62 @@ button{cursor:pointer;font-family:inherit;border:none}
 /* ========= DASHBOARD ========= */
 .dashboard{display:none}
 .topbar{
-  background:var(--bordeaux);color:#fff;padding:16px 24px;
+  background:linear-gradient(135deg, var(--bordeaux) 0%, #6B1414 100%);
+  color:#fff;padding:20px 32px;
   display:flex;align-items:center;justify-content:space-between;
   position:sticky;top:0;z-index:50;
+  box-shadow:0 4px 20px rgba(0,0,0,.15);
+  border-bottom:1px solid rgba(212,168,83,.3);
 }
-.topbar h1{font-size:1.3rem}
-.topbar-right{display:flex;align-items:center;gap:16px}
-.topbar-stats{font-size:.85rem;opacity:.8}
+.topbar h1{
+  font-size:1.4rem;
+  background:linear-gradient(135deg, #fff, var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.topbar-right{display:flex;align-items:center;gap:20px}
+.topbar-stats{
+  font-size:.9rem;
+  background:rgba(255,255,255,.1);
+  padding:8px 16px;
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,.15);
+  backdrop-filter:blur(10px);
+}
 .topbar-logout{
-  background:rgba(255,255,255,.15);color:#fff;padding:8px 16px;
-  border-radius:var(--radius);font-size:.85rem;transition:background .3s;
+  background:rgba(255,255,255,.2);color:#fff;padding:10px 20px;
+  border-radius:var(--radius);font-size:.85rem;
+  transition:all .3s;font-weight:600;
+  border:1px solid rgba(255,255,255,.2);
 }
-.topbar-logout:hover{background:rgba(255,255,255,.25)}
+.topbar-logout:hover{
+  background:rgba(255,255,255,.3);
+  transform:translateY(-1px);
+  box-shadow:0 4px 12px rgba(0,0,0,.2);
+}
 
 /* Tabs */
 .tabs{
-  display:flex;background:#fff;border-bottom:2px solid #eee;
-  padding:0 24px;position:sticky;top:56px;z-index:40;
+  display:flex;background:#fff;border-bottom:1px solid #e5e5e5;
+  padding:0 32px;position:sticky;top:64px;z-index:40;
+  box-shadow:0 2px 8px rgba(0,0,0,.04);
 }
 .tab{
-  padding:14px 20px;font-weight:600;font-size:.95rem;
+  padding:16px 24px;font-weight:600;font-size:.95rem;
   color:#888;border-bottom:3px solid transparent;
-  background:none;transition:all .3s;
+  background:none;transition:all .3s;position:relative;
 }
-.tab.active{color:var(--bordeaux);border-bottom-color:var(--bordeaux)}
-.tab:hover{color:var(--noir)}
+.tab.active{
+  color:var(--bordeaux);border-bottom-color:var(--gold);
+  background:linear-gradient(to bottom, rgba(212,168,83,.05), transparent);
+}
+.tab:hover{color:var(--noir);background:rgba(0,0,0,.02)}
 .tab-badge{
   display:inline-flex;align-items:center;justify-content:center;
-  background:var(--gold);color:var(--noir);font-size:.7rem;font-weight:700;
-  width:20px;height:20px;border-radius:50%;margin-left:6px;
+  background:linear-gradient(135deg, var(--gold), #C49843);
+  color:#fff;font-size:.7rem;font-weight:700;
+  min-width:22px;height:22px;border-radius:11px;margin-left:8px;
+  padding:0 6px;box-shadow:0 2px 6px rgba(212,168,83,.3);
 }
 
 /* Content */
@@ -122,6 +149,16 @@ button{cursor:pointer;font-family:inherit;border:none}
 .order-card.new{border-left-color:var(--gold);animation:slideIn .4s ease}
 .order-card.preparing{border-left-color:#FF9800}
 .order-card.ready{border-left-color:var(--olive)}
+.order-card.urgency-late{border-left-color:#C62828;border-left-width:6px}
+.order-card.urgency-urgent{border-left-color:#FF6F00;border-left-width:5px}
+.order-card.urgency-soon{border-left-color:#FFA726;border-left-width:4px}
+.urgency-badge{
+  font-size:.75rem;font-weight:700;padding:4px 10px;
+  border-radius:12px;display:inline-flex;align-items:center;gap:4px;
+}
+.urgency-badge.late{background:#FFEBEE;color:#C62828;border:1px solid #FFCDD2}
+.urgency-badge.urgent{background:#FFF3E0;color:#E65100;border:1px solid #FFE0B2}
+.urgency-badge.soon{background:#FFF8E1;color:#F57C00;border:1px solid #FFECB3}
 @keyframes slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:none}}
 .order-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .order-num{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:800;color:var(--bordeaux)}
@@ -463,6 +500,27 @@ async function loadOrders() {
   updateTopbarStats();
 }
 
+// Helper: parse pickup time to Date for sorting
+function parsePickupTime(order) {
+  if (order.heure_retrait === 'asap') return new Date(); // ASAP = now
+  const match = order.heure_retrait.match(/(\d+)h(\d+)/);
+  if (!match) return new Date(order.created_at);
+  const today = new Date().toISOString().split('T')[0];
+  return new Date(`${today}T${match[1].padStart(2, '0')}:${match[2].padStart(2, '0')}:00`);
+}
+
+// Helper: get urgency level
+function getUrgency(order) {
+  const pickupTime = parsePickupTime(order);
+  const now = new Date();
+  const diffMinutes = (pickupTime - now) / 1000 / 60;
+
+  if (diffMinutes < 0) return 'late'; // En retard
+  if (diffMinutes < 30) return 'urgent'; // < 30 min
+  if (diffMinutes < 60) return 'soon'; // < 1h
+  return 'normal';
+}
+
 function renderOrders() {
   const list = document.getElementById('ordersList');
 
@@ -476,6 +534,12 @@ function renderOrders() {
   const preparing = orders.filter(o => o.statut === 'en_preparation');
   const ready = orders.filter(o => o.statut === 'prete');
   const done = orders.filter(o => o.statut === 'recuperee');
+
+  // Sort each group by pickup time (soonest first)
+  const sortByPickup = (a, b) => parsePickupTime(a) - parsePickupTime(b);
+  waiting.sort(sortByPickup);
+  preparing.sort(sortByPickup);
+  ready.sort(sortByPickup);
 
   let html = '';
 
@@ -535,15 +599,30 @@ function renderOrders() {
 function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, statusLabel) {
   const items = order.items || [];
   const isHistory = !!dateStr;
+  const urgency = !isHistory ? getUrgency(order) : '';
+  const urgencyClass = urgency ? `urgency-${urgency}` : '';
+
+  // Urgency badge
+  let urgencyBadge = '';
+  if (!isHistory && urgency === 'late') {
+    urgencyBadge = '<span class="urgency-badge late">⚠️ EN RETARD</span>';
+  } else if (!isHistory && urgency === 'urgent') {
+    urgencyBadge = '<span class="urgency-badge urgent">🔥 URGENT</span>';
+  } else if (!isHistory && urgency === 'soon') {
+    urgencyBadge = '<span class="urgency-badge soon">⏰ BIENTÔT</span>';
+  }
 
   return `
-    <div class="order-card ${statusClass}" id="order-${order.id}">
+    <div class="order-card ${statusClass} ${urgencyClass}" id="order-${order.id}">
       <div class="order-top">
         <span class="order-num">${order.numero}</span>
-        ${isHistory
-          ? `<span class="order-time-badge" style="cursor:default;">${statusEmoji} ${statusLabel} — ${dateStr} ${timeStr}</span>`
-          : `<span class="order-time-badge" onclick="rescheduleOrder(${order.id},'${order.heure_retrait}')">${order.heure_retrait === 'asap' ? 'Dès que possible' : order.heure_retrait}</span>`
-        }
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          ${urgencyBadge}
+          ${isHistory
+            ? `<span class="order-time-badge" style="cursor:default;">${statusEmoji} ${statusLabel} — ${dateStr} ${timeStr}</span>`
+            : `<span class="order-time-badge" onclick="rescheduleOrder(${order.id},'${order.heure_retrait}')">${order.heure_retrait === 'asap' ? '⚡ Dès que possible' : '🕐 ' + order.heure_retrait}</span>`
+          }
+        </div>
       </div>
       <div class="order-client">
         ${order.client_prenom || ''} — ${order.client_email || ''}

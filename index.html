@@ -1536,9 +1536,6 @@ function initPayGreen(method) {
     return;
   }
 
-  // Apple Pay / Google Pay : mode bouton natif
-  const isWalletPayment = method === 'apple_pay' || method === 'google_pay';
-
   try {
     window.paygreenjs.init({
       paymentOrder: {
@@ -1546,7 +1543,7 @@ function initPayGreen(method) {
         objectSecret: currentPaymentData.objectSecret
       },
       publicKey: PAYGREEN_PUBLIC_KEY,
-      mode: isWalletPayment ? 'button' : 'payment',
+      mode: 'payment',
       paymentMethod: method,
       style: {
         input: {
@@ -1573,28 +1570,21 @@ function initPayGreen(method) {
       showToast('Erreur : ' + (event.message || 'Réessayez'), 'error');
     });
 
-    // Pour Apple Pay / Google Pay en mode button, le bouton est géré par PayGreen
-    if (!isWalletPayment) {
-      // Bouton payer classique (CB, Swile, etc.)
-      document.getElementById('payBtn').onclick = () => {
-        const btn = document.getElementById('payBtn');
-        btn.innerHTML = `
-          <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="animation:spin 1s linear infinite;">
-              <circle cx="10" cy="10" r="8" stroke="white" stroke-width="3" stroke-linecap="round" stroke-dasharray="40 20" opacity="0.9"/>
-            </svg>
-            <span>Traitement en cours<span class="dots"></span></span>
-          </div>
-        `;
-        btn.disabled = true;
-        btn.style.cursor = 'wait';
-        window.paygreenjs.submitPayment();
-      };
-    } else {
-      // Cacher le bouton custom pour Apple/Google Pay (bouton natif affiché par PayGreen)
-      const payBtn = document.getElementById('payBtn');
-      if (payBtn) payBtn.style.display = 'none';
-    }
+    // Bouton payer
+    document.getElementById('payBtn').onclick = () => {
+      const btn = document.getElementById('payBtn');
+      btn.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="animation:spin 1s linear infinite;">
+            <circle cx="10" cy="10" r="8" stroke="white" stroke-width="3" stroke-linecap="round" stroke-dasharray="40 20" opacity="0.9"/>
+          </svg>
+          <span>Traitement en cours<span class="dots"></span></span>
+        </div>
+      `;
+      btn.disabled = true;
+      btn.style.cursor = 'wait';
+      window.paygreenjs.submitPayment();
+    };
 
     // Réactiver bouton commande
     document.getElementById('cartSubmit').disabled = false;

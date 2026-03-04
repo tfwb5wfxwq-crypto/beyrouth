@@ -84,7 +84,7 @@ serve(async (req) => {
         <p style="margin: 8px 0 0; font-size: 15px;"><strong>Heure de retrait :</strong> ${pickup}</p>
         <p style="margin: 8px 0 0; font-size: 15px;">
           <strong>Lieu :</strong>
-          <a href="https://maps.google.com/?q=1+Esplanade+du+Général+de+Gaulle,+92800+Puteaux" style="color: #1B8C3E; text-decoration: none;">
+          <a href="https://maps.google.com/?q=4+Esplanade+du+Général+de+Gaulle,+92400+Courbevoie" style="color: #1B8C3E; text-decoration: none;">
             La Défense — Sortie 4 Métro 📍
           </a>
         </p>
@@ -116,8 +116,8 @@ serve(async (req) => {
       <p style="margin: 0; font-weight: 600;">Restaurant A Beyrouth</p>
       <p style="margin: 8px 0 0;">Cuisine libanaise authentique</p>
       <p style="margin: 4px 0 0;">
-        <a href="https://maps.google.com/?q=1+Esplanade+du+Général+de+Gaulle,+92800+Puteaux" style="color: #00D285; text-decoration: none;">
-          1 Esplanade du Général de Gaulle, 92800 Puteaux
+        <a href="https://maps.google.com/?q=4+Esplanade+du+Général+de+Gaulle,+92400+Courbevoie" style="color: #00D285; text-decoration: none;">
+          4 Esplanade du Général de Gaulle, 92400 Courbevoie
         </a>
       </p>
     </div>

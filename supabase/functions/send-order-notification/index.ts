@@ -83,7 +83,7 @@ serve(async (req) => {
 
       <!-- CTA -->
       <div style="text-align: center; padding: 24px 0;">
-        <a href="https://www.google.com/maps/search/A+Beyrouth+1+Esplanade+du+General+de+Gaulle+92800+Puteaux"
+        <a href="https://www.google.com/maps/search/A+Beyrouth+4+Esplanade+du+General+de+Gaulle+92400+Courbevoie"
            style="display: inline-block; background: #1A1A1A; color: white; text-decoration: none; padding: 16px 40px; border-radius: 12px; font-weight: 600; font-size: 16px;">
           📍 Voir l'itinéraire
         </a>
@@ -101,7 +101,7 @@ serve(async (req) => {
     <!-- Footer -->
     <div style="background: #1A1A1A; color: white; padding: 20px 24px; text-align: center; font-size: 12px; opacity: 0.6;">
       <p style="margin: 0;">A Beyrouth — Cuisine libanaise authentique</p>
-      <p style="margin: 4px 0 0;">1 Esplanade du Général de Gaulle, 92800 Puteaux</p>
+      <p style="margin: 4px 0 0;">4 Esplanade du Général de Gaulle, 92400 Courbevoie</p>
     </div>
 
   </div>

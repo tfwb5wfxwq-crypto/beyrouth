@@ -72,7 +72,7 @@ serve(async (req) => {
         </tr>
         <tr>
           <td style="padding: 8px 0; color: #666; font-size: 14px;"><strong>Lieu :</strong></td>
-          <td style="padding: 8px 0; text-align: right; color: #1a1a1a; font-size: 14px;">La Défense — Sortie 4 Métro</td>
+          <td style="padding: 8px 0; text-align: right; color: #1a1a1a; font-size: 14px;">4 Espl. Gal de Gaulle, Courbevoie</td>
         </tr>
       </table>
     </div>
@@ -92,7 +92,7 @@ serve(async (req) => {
     <!-- Footer -->
     <div style="background: #1a1a1a; padding: 30px 20px; text-align: center;">
       <p style="margin: 0 0 10px 0; color: rgba(255,255,255,0.6); font-size: 13px;">À bientôt chez A Beyrouth !</p>
-      <p style="margin: 0; color: rgba(255,255,255,0.4); font-size: 12px;">1 Esplanade du Général de Gaulle, 92800 Puteaux</p>
+      <p style="margin: 0; color: rgba(255,255,255,0.4); font-size: 12px;">4 Esplanade du Général de Gaulle, 92400 Courbevoie</p>
       <div style="margin-top: 20px;">
         <a href="https://beyrouth.express" style="color: #D4A853; text-decoration: none; font-size: 13px;">beyrouth.express</a>
       </div>

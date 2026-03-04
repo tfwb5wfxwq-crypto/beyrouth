@@ -28,7 +28,7 @@ UPDATE menu_items SET image_url = 'img/nom-image.jpg' WHERE id = XX;
 Site click & collect pour le restaurant libanais "A Beyrouth" à La Défense.
 - **Site** : beyrouth.express
 - **Restaurant** : A Beyrouth
-- **Adresse** : Sortie 4 du métro, 1 Esplanade du Général de Gaulle, 92800 Puteaux (La Défense)
+- **Adresse** : Sortie 4 du métro, 4 Esplanade du Général de Gaulle, 92400 Courbevoie (La Défense)
 - **Propriétaire** : Paco
 - **GitHub** : tfwb5wfxwq-crypto/beyrouth
 

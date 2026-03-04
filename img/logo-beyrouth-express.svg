@@ -6,27 +6,9 @@
       <stop offset="100%" style="stop-color:#FFA500"/>
     </linearGradient>
 
-    <!-- Dégradé ORANGE-OR pour EXPRESS (plus vif) -->
-    <linearGradient id="orangeExpress" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#FF8C00"/>
-      <stop offset="50%" style="stop-color:#FFA500"/>
-      <stop offset="100%" style="stop-color:#FFD700"/>
-    </linearGradient>
-
     <!-- Ombre forte -->
     <filter id="shadow">
       <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.6"/>
-    </filter>
-
-    <!-- Lueur orange -->
-    <filter id="glowOrange">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-      <feFlood flood-color="#FF8C00" flood-opacity="0.6"/>
-      <feComposite in2="blur" operator="in"/>
-      <feMerge>
-        <feMergeNode/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
     </filter>
   </defs>
 
@@ -47,7 +29,7 @@
   <line x1="10" y1="40" x2="35" y2="40" stroke="#FF8C00" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
   <line x1="15" y1="45" x2="38" y2="45" stroke="#FFA500" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
 
-  <!-- EXPRESS - ORANGE VIF avec lueur -->
+  <!-- EXPRESS - BLANC PUR (pas de dégradé) -->
   <text
     x="45"
     y="50"
@@ -56,10 +38,8 @@
     font-weight="900"
     font-style="italic"
     letter-spacing="2"
-    fill="url(#orangeExpress)"
-    filter="url(#glowOrange)"
-    stroke="#FFD700"
-    stroke-width="0.5">
+    fill="#FFFFFF"
+    filter="url(#shadow)">
     EXPRESS
   </text>
 

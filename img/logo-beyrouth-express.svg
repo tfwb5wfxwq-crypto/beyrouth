@@ -1,53 +1,70 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 50" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 55" fill="none">
   <defs>
-    <!-- Dégradé OR vif et éclatant -->
-    <linearGradient id="goldBright" x1="0%" y1="0%" x2="100%" y2="0%">
+    <!-- Dégradé OR pour BEYROUTH -->
+    <linearGradient id="goldMain" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" style="stop-color:#FFD700"/>
-      <stop offset="50%" style="stop-color:#FFC700"/>
-      <stop offset="100%" style="stop-color:#FFB700"/>
+      <stop offset="100%" style="stop-color:#FFA500"/>
     </linearGradient>
 
-    <!-- Ombre portée forte -->
+    <!-- Dégradé ORANGE-OR pour EXPRESS (plus vif) -->
+    <linearGradient id="orangeExpress" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FF8C00"/>
+      <stop offset="50%" style="stop-color:#FFA500"/>
+      <stop offset="100%" style="stop-color:#FFD700"/>
+    </linearGradient>
+
+    <!-- Ombre forte -->
     <filter id="shadow">
-      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.5"/>
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.6"/>
+    </filter>
+
+    <!-- Lueur orange -->
+    <filter id="glowOrange">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feFlood flood-color="#FF8C00" flood-opacity="0.6"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
     </filter>
   </defs>
 
-  <!-- BEYROUTH - OR ÉCLATANT -->
+  <!-- BEYROUTH - OR -->
   <text
     x="5"
-    y="32"
+    y="30"
     font-family="Georgia, serif"
-    font-size="28"
+    font-size="26"
     font-weight="700"
     letter-spacing="2.5"
-    fill="url(#goldBright)"
-    filter="url(#shadow)"
-    style="text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);">
+    fill="url(#goldMain)"
+    filter="url(#shadow)">
     BEYROUTH
   </text>
 
-  <!-- Lignes de vitesse oranges VIVES -->
-  <line x1="8" y1="41" x2="28" y2="41" stroke="#FF8C00" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
-  <line x1="12" y1="45" x2="32" y2="45" stroke="#FFA500" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  <!-- Lignes de vitesse -->
+  <line x1="10" y1="40" x2="35" y2="40" stroke="#FF8C00" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+  <line x1="15" y1="45" x2="38" y2="45" stroke="#FFA500" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
 
-  <!-- EXPRESS - BLANC PUR avec italique rapide -->
+  <!-- EXPRESS - ORANGE VIF avec lueur -->
   <text
-    x="40"
-    y="48"
-    font-family="-apple-system, sans-serif"
-    font-size="18"
-    font-weight="800"
+    x="45"
+    y="50"
+    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    font-size="22"
+    font-weight="900"
     font-style="italic"
-    letter-spacing="1.8"
-    fill="#FFFFFF"
-    filter="url(#shadow)"
-    style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);">
+    letter-spacing="2"
+    fill="url(#orangeExpress)"
+    filter="url(#glowOrange)"
+    stroke="#FFD700"
+    stroke-width="0.5">
     EXPRESS
   </text>
 
   <!-- Lignes de vitesse après EXPRESS -->
-  <line x1="125" y1="41" x2="145" y2="41" stroke="#FF8C00" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
-  <line x1="130" y1="45" x2="148" y2="45" stroke="#FFA500" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
-  <line x1="133" y1="48" x2="150" y2="48" stroke="#FFD700" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+  <line x1="145" y1="40" x2="165" y2="40" stroke="#FF8C00" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <line x1="150" y1="45" x2="168" y2="45" stroke="#FFA500" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+  <line x1="153" y1="49" x2="170" y2="49" stroke="#FFD700" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
 </svg>

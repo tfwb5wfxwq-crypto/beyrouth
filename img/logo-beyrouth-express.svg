@@ -25,13 +25,14 @@
     BEYROUTH
   </text>
 
-  <!-- Lignes de vitesse -->
-  <line x1="10" y1="40" x2="35" y2="40" stroke="#FF8C00" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
-  <line x1="15" y1="45" x2="38" y2="45" stroke="#FFA500" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+  <!-- Lignes de vitesse AVANT EXPRESS (3 lignes parallèles propres) -->
+  <line x1="5" y1="41" x2="30" y2="41" stroke="#FF8C00" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+  <line x1="10" y1="45" x2="33" y2="45" stroke="#FFA500" stroke-width="2.2" stroke-linecap="round" opacity="0.6"/>
+  <line x1="15" y1="49" x2="35" y2="49" stroke="#FFD700" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
 
-  <!-- EXPRESS - BLANC PUR (pas de dégradé) -->
+  <!-- EXPRESS - BLANC PUR -->
   <text
-    x="45"
+    x="42"
     y="50"
     font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     font-size="22"
@@ -42,9 +43,4 @@
     filter="url(#shadow)">
     EXPRESS
   </text>
-
-  <!-- Lignes de vitesse après EXPRESS -->
-  <line x1="145" y1="40" x2="165" y2="40" stroke="#FF8C00" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
-  <line x1="150" y1="45" x2="168" y2="45" stroke="#FFA500" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
-  <line x1="153" y1="49" x2="170" y2="49" stroke="#FFD700" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
 </svg>

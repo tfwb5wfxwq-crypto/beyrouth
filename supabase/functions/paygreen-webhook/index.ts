@@ -76,6 +76,15 @@ serve(async (req) => {
       newStatus = 'refunded'
     }
 
+    // Récupérer la commande pour vérifier si email déjà envoyé
+    const { data: existingOrder } = await supabase
+      .from('orders')
+      .select('statut, payment_confirmed_at')
+      .eq('numero', orderId)
+      .single()
+
+    const wasAlreadyPaid = existingOrder?.statut === 'payee' || existingOrder?.payment_confirmed_at !== null
+
     // Mettre à jour la commande
     const { data, error } = await supabase
       .from('orders')
@@ -95,10 +104,10 @@ serve(async (req) => {
 
     console.log(`Commande ${orderId} mise à jour: ${newStatus}`)
 
-    // Si paiement validé, envoyer email de confirmation
-    if (newStatus === 'payee' && data && data.length > 0) {
+    // Si paiement validé ET pas déjà payé avant, envoyer email de confirmation
+    if (newStatus === 'payee' && !wasAlreadyPaid && data && data.length > 0) {
       const order = data[0]
-      console.log(`✅ Paiement validé pour ${order.client_email}`)
+      console.log(`✅ Paiement validé pour ${order.client_email} (premier paiement, envoi email)`)
 
       try {
         // Récupérer les items de la commande
@@ -141,6 +150,8 @@ serve(async (req) => {
         console.error('Erreur lors de l\'envoi de l\'email:', emailError)
         // Ne pas bloquer le webhook si l'email échoue
       }
+    } else if (newStatus === 'payee' && wasAlreadyPaid) {
+      console.log(`ℹ️ Commande ${orderId} déjà payée, email non envoyé (évite doublon)`)
     }
 
     return new Response(

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 50" fill="none">
+  <defs>
+    <!-- Dégradé OR -->
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#FFA500"/>
+    </linearGradient>
+
+    <!-- Ombre -->
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- BEYROUTH - OR -->
+  <text
+    x="5"
+    y="32"
+    font-family="'DM Serif Display', Georgia, serif"
+    font-size="28"
+    font-weight="600"
+    letter-spacing="2.5"
+    fill="url(#gold)"
+    filter="url(#shadow)">
+    BEYROUTH
+  </text>
+
+  <!-- EXPRESS - BLANC ITALIQUE (vitesse) -->
+  <text
+    x="168"
+    y="32"
+    font-family="-apple-system, BlinkMacSystemFont, sans-serif"
+    font-size="28"
+    font-weight="700"
+    font-style="italic"
+    letter-spacing="2"
+    fill="#FFFFFF"
+    filter="url(#shadow)">
+    EXPRESS
+  </text>
+</svg>

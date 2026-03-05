@@ -1207,6 +1207,10 @@ async function loadIngredients() {
 
 function renderIngredients() {
   const list = document.getElementById('ingredientsList');
+  if (!list) {
+    console.warn('Element ingredientsList not found - skipping render');
+    return;
+  }
   list.innerHTML = ingredients.map(ing => `
     <div class="ingredient-card ${ing.disponible ? '' : 'off'}" id="ing-${ing.id}">
       <span class="ingredient-name">${ing.nom}</span>

@@ -409,11 +409,6 @@ button{cursor:pointer;font-family:inherit;border:none}
       <!-- Toggles -->
       <div style="display:flex;gap:12px;align-items:center">
         <label class="toggle-label">
-          <input type="checkbox" id="toggleClickCollect" onchange="toggleClickCollect()" checked>
-          <span>Click & Collect</span>
-        </label>
-
-        <label class="toggle-label">
           <input type="checkbox" id="toggleAutoAccept" onchange="toggleAutoAccept()">
           <span>Auto-Accept</span>
         </label>
@@ -422,8 +417,6 @@ button{cursor:pointer;font-family:inherit;border:none}
           <span id="slotPauseText">⏸️ Pause créneaux</span>
         </button>
       </div>
-
-      <button class="topbar-logout" onclick="doLogout()">Déconnexion</button>
     </div>
   </div>
 
@@ -539,12 +532,6 @@ button{cursor:pointer;font-family:inherit;border:none}
       <button onclick="pauseSlots(120)" class="pause-btn">2 heures</button>
     </div>
 
-    <div style="margin-bottom:20px">
-      <label style="display:block;margin-bottom:8px;color:#666;font-size:.9rem">Ou choisir une heure précise :</label>
-      <input type="time" id="customPauseTime" style="width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:1rem">
-      <button onclick="pauseSlotsUntil()" style="margin-top:8px;width:100%;padding:12px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer">Valider</button>
-    </div>
-
     <button onclick="closeSlotPauseModal()" style="width:100%;padding:12px;background:#f0f0f0;color:#666;border:none;border-radius:8px;font-weight:600;cursor:pointer">Annuler</button>
   </div>
 </div>
@@ -617,11 +604,15 @@ document.addEventListener('touchend', async (e) => {
   if (pullDistance > 100) {
     // Refresh déclenché !
     pullRefreshEl.style.top = '20px';
-    await Promise.all([loadOrders(), loadIngredients(), loadMenuItems()]);
-    await new Promise(r => setTimeout(r, 500)); // Petite pause pour voir le spinner
+    try {
+      await Promise.all([loadOrders(), loadIngredients(), loadMenuItems()]);
+      await new Promise(r => setTimeout(r, 300));
+    } catch (err) {
+      console.error('Erreur refresh:', err);
+    }
   }
 
-  // Remonter le loader
+  // Toujours remonter le loader
   pullRefreshEl.style.top = '-80px';
 });
 
@@ -831,43 +822,6 @@ async function pauseSlots(minutes) {
 
     const hours = String(pauseUntil.getHours()).padStart(2, '0');
     const mins = String(pauseUntil.getMinutes()).padStart(2, '0');
-    alert(`✅ Créneaux en pause jusqu'à ${hours}h${mins}`);
-  } catch (err) {
-    console.error('Erreur pause:', err);
-    alert('❌ Erreur lors de la pause');
-  }
-}
-
-async function pauseSlotsUntil() {
-  const timeInput = document.getElementById('customPauseTime');
-  const time = timeInput.value;
-
-  if (!time) {
-    alert('Veuillez choisir une heure');
-    return;
-  }
-
-  const [hours, mins] = time.split(':');
-  const now = new Date();
-  const pauseUntil = new Date(now);
-  pauseUntil.setHours(parseInt(hours), parseInt(mins), 0, 0);
-
-  // Si l'heure est passée, c'est pour demain
-  if (pauseUntil <= now) {
-    pauseUntil.setDate(pauseUntil.getDate() + 1);
-  }
-
-  nextSlotAvailableAt = pauseUntil.toISOString();
-
-  try {
-    await sb.from('settings').upsert({
-      key: 'next_slot_available_at',
-      value: nextSlotAvailableAt
-    });
-
-    updateSlotPauseButton();
-    closeSlotPauseModal();
-
     alert(`✅ Créneaux en pause jusqu'à ${hours}h${mins}`);
   } catch (err) {
     console.error('Erreur pause:', err);

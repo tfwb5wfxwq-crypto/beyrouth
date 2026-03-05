@@ -769,7 +769,7 @@ function renderMenu() {
         <div class="menu-card ${!item.disponible ? 'menu-card-unavailable' : ''}" data-id="${item.id}" onclick="${item.disponible ? `addToCart(${item.id})` : ''}">
           <div class="menu-card-visual">
             ${item.image_url
-              ? `<img src="${item.image_url}?v=${IMAGE_VERSION}" alt="${item.nom}" loading="lazy">`
+              ? `<img src="${item.image_url}?v=${IMAGE_VERSION}" alt="${item.nom}">`
               : `<span class="emoji-placeholder">${item.emoji || '🍽️'}</span>`
             }
           </div>
@@ -795,11 +795,25 @@ function renderMenu() {
   });
   container.innerHTML = html;
 
-  // Hide loader, show menu
-  const loader = document.getElementById('menuLoader');
-  const menu = document.getElementById('menu');
-  if (loader) loader.style.display = 'none';
-  if (menu) menu.style.display = 'block';
+  // Wait for all images to load before showing menu
+  const images = container.querySelectorAll('img');
+  const imagePromises = Array.from(images).map(img => {
+    return new Promise((resolve) => {
+      if (img.complete) {
+        resolve();
+      } else {
+        img.onload = () => resolve();
+        img.onerror = () => resolve(); // Continue even if image fails to load
+      }
+    });
+  });
+
+  Promise.all(imagePromises).then(() => {
+    const loader = document.getElementById('menuLoader');
+    const menu = document.getElementById('menu');
+    if (loader) loader.style.display = 'none';
+    if (menu) menu.style.display = 'block';
+  });
 }
 
 function renderNavCats() {

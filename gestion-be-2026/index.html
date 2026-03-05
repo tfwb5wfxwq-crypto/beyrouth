@@ -778,12 +778,23 @@ function updateSlotPauseButton() {
     const now = new Date();
 
     if (pauseDate > now) {
-      const hours = String(pauseDate.getHours()).padStart(2, '0');
-      const mins = String(pauseDate.getMinutes()).padStart(2, '0');
-      text.textContent = `⏸️ En pause jusqu'à ${hours}h${mins}`;
+      // Calculer le temps restant
+      const diffMs = pauseDate - now;
+      const diffSecs = Math.floor(diffMs / 1000);
+      const hours = Math.floor(diffSecs / 3600);
+      const mins = Math.floor((diffSecs % 3600) / 60);
+      const secs = diffSecs % 60;
+
+      // Afficher le compte à rebours
+      const hoursStr = String(hours).padStart(2, '0');
+      const minsStr = String(mins).padStart(2, '0');
+      const secsStr = String(secs).padStart(2, '0');
+      text.textContent = `⏸️ Reprise dans ${hoursStr}:${minsStr}:${secsStr}`;
+
       btn.style.background = 'rgba(255,200,100,.2)';
       btn.onclick = () => resumeSlots();
     } else {
+      // La pause est terminée
       nextSlotAvailableAt = '';
       text.textContent = '⏸️ Pause créneaux';
       btn.style.background = 'rgba(255,255,255,.1)';
@@ -921,7 +932,7 @@ async function showDashboard() {
   subscribeRealtime();
 
   // Vérifier périodiquement si la pause est expirée
-  setInterval(updateSlotPauseButton, 30000); // toutes les 30s
+  setInterval(updateSlotPauseButton, 1000); // toutes les 1s pour le compte à rebours
 
   // Mode kiosque: demander permissions + wake lock + plein écran
   requestNotificationPermission();

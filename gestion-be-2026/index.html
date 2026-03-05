@@ -524,6 +524,31 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ===== PULL TO REFRESH =====
+const pullRefreshEl = document.createElement('div');
+pullRefreshEl.id = 'pullRefresh';
+pullRefreshEl.innerHTML = '<div class="spinner"></div>';
+pullRefreshEl.style.cssText = `
+  position:fixed;top:-80px;left:50%;transform:translateX(-50%);
+  width:60px;height:60px;background:#fff;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 12px rgba(0,0,0,.15);
+  transition:top .3s ease;z-index:9999;
+`;
+document.body.appendChild(pullRefreshEl);
+
+const spinnerStyle = document.createElement('style');
+spinnerStyle.textContent = `
+  .spinner{
+    width:30px;height:30px;
+    border:3px solid #f0f0f0;
+    border-top-color:var(--gold);
+    border-radius:50%;
+    animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+`;
+document.head.appendChild(spinnerStyle);
+
 let pullStartY = 0;
 let isPulling = false;
 
@@ -537,8 +562,12 @@ document.addEventListener('touchstart', (e) => {
 document.addEventListener('touchmove', (e) => {
   if (!isPulling) return;
   const pullDistance = e.touches[0].clientY - pullStartY;
-  if (pullDistance > 80) {
+
+  if (pullDistance > 0) {
     e.preventDefault();
+    // Montrer le loader progressivement
+    const progress = Math.min(pullDistance / 100, 1);
+    pullRefreshEl.style.top = `${-80 + (progress * 100)}px`;
   }
 });
 
@@ -547,12 +576,16 @@ document.addEventListener('touchend', async (e) => {
   isPulling = false;
 
   const pullDistance = e.changedTouches[0].clientY - pullStartY;
-  if (pullDistance > 80) {
-    // Refresh !
-    document.body.style.opacity = '0.7';
+
+  if (pullDistance > 100) {
+    // Refresh déclenché !
+    pullRefreshEl.style.top = '20px';
     await Promise.all([loadOrders(), loadIngredients(), loadMenuItems()]);
-    document.body.style.opacity = '1';
+    await new Promise(r => setTimeout(r, 500)); // Petite pause pour voir le spinner
   }
+
+  // Remonter le loader
+  pullRefreshEl.style.top = '-80px';
 });
 
 // ===== MODE KIOSQUE =====

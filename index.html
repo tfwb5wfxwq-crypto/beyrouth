@@ -721,6 +721,35 @@ function subscribeRealtime() {
     .on('postgres_changes', {event:'*', schema:'public', table:'ingredients'}, () => loadFromSupabase().then(renderMenu))
     .on('postgres_changes', {event:'*', schema:'public', table:'menu_items'}, () => loadFromSupabase().then(renderMenu))
     .subscribe();
+
+  // Écouter les changements de pause créneaux
+  sb.channel('settings-changes')
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'settings',
+      filter: 'key=eq.next_slot_available_at'
+    }, async (payload) => {
+      // Recharger la pause
+      if (payload.new && payload.new.value) {
+        nextSlotAvailableAt = new Date(payload.new.value);
+      } else {
+        nextSlotAvailableAt = null;
+      }
+
+      // Mettre à jour les créneaux si le time picker est visible
+      if (tpDays && tpDays.length > 0) {
+        renderTimeSlots();
+      }
+
+      // Mettre à jour le texte ASAP si visible
+      const asapBtn = document.querySelector('[data-slot="ASAP"]');
+      if (asapBtn) {
+        const asapTime = getAsapTime();
+        asapBtn.innerHTML = `<strong>Le plus tôt possible</strong><span>${asapTime}</span>`;
+      }
+    })
+    .subscribe();
 }
 
 // ===== TOAST NOTIFICATIONS =====

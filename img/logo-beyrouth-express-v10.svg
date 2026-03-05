@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 45" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 40" fill="none">
   <defs>
-    <!-- Or subtil et élégant (pas brillant) -->
+    <!-- Or subtil et élégant -->
     <linearGradient id="softGold" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" style="stop-color:#C9A961"/>
       <stop offset="100%" style="stop-color:#B8956A"/>
@@ -12,28 +12,28 @@
     </filter>
   </defs>
 
-  <!-- BEYROUTH - or doux -->
+  <!-- BEYROUTH - or doux (réduit) -->
   <text
     x="5"
-    y="28"
+    y="25"
     font-family="'DM Serif Display', Georgia, serif"
-    font-size="24"
+    font-size="21"
     font-weight="600"
-    letter-spacing="2.5"
+    letter-spacing="2.2"
     fill="url(#softGold)"
     filter="url(#shadow)">
     BEYROUTH
   </text>
 
-  <!-- EXPRESS - blanc crème (pas blanc pur) -->
+  <!-- EXPRESS - blanc crème (réduit) -->
   <text
-    x="175"
-    y="28"
+    x="150"
+    y="25"
     font-family="-apple-system, sans-serif"
-    font-size="24"
+    font-size="21"
     font-weight="700"
     font-style="italic"
-    letter-spacing="1.8"
+    letter-spacing="1.6"
     fill="#F5F5F0"
     filter="url(#shadow)">
     EXPRESS

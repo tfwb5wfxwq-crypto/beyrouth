@@ -484,6 +484,76 @@ const SUPABASE_URL = 'https://xbuftfwcyontgqbbrrjt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidWZ0ZndjeW9udGdxYmJycmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2Njg1NzksImV4cCI6MjA4NjI0NDU3OX0.ROkSccADlpLsWMgqyiX_xNaFdJNR8P4R-LJCnZV2Gzg';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ===== MODE KIOSQUE =====
+let swRegistration = null;
+
+// Enregistrer Service Worker pour notifications
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/admin/sw.js')
+    .then(reg => {
+      swRegistration = reg;
+      console.log('✅ Service Worker enregistré');
+    })
+    .catch(err => console.error('❌ Service Worker error:', err));
+}
+
+// Demander permissions notifications au chargement
+async function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    const permission = await Notification.requestPermission();
+    console.log('🔔 Permission notifications:', permission);
+  }
+}
+
+// Mode plein écran tablette
+function enterFullscreen() {
+  const elem = document.documentElement;
+  if (elem.requestFullscreen) {
+    elem.requestFullscreen().catch(() => {});
+  } else if (elem.webkitRequestFullscreen) {
+    elem.webkitRequestFullscreen().catch(() => {});
+  }
+}
+
+// Auto plein écran après login
+setTimeout(() => {
+  if (localStorage.getItem('adminToken')) {
+    enterFullscreen();
+  }
+}, 1000);
+
+// Garder l'écran allumé (Wake Lock API)
+let wakeLock = null;
+async function keepScreenOn() {
+  if ('wakeLock' in navigator) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      console.log('🔆 Écran maintenu allumé');
+    } catch (err) {}
+  }
+}
+
+// Afficher notification native
+function showNativeNotification(title, body) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    const options = {
+      body: body,
+      icon: 'data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><text y=\'.9em\' font-size=\'90\'>🧆</text></svg>',
+      badge: 'data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><text y=\'.9em\' font-size=\'90\'>🔔</text></svg>',
+      vibrate: [300, 100, 300, 100, 300],
+      tag: 'new-order',
+      requireInteraction: true,
+      silent: false
+    };
+
+    if (swRegistration) {
+      swRegistration.showNotification(title, options);
+    } else {
+      new Notification(title, options);
+    }
+  }
+}
+
 let orders = [];
 let ingredients = [];
 let menuCategories = [];
@@ -563,6 +633,11 @@ async function showDashboard() {
   document.getElementById('dashboard').style.display = 'block';
   await Promise.all([loadOrders(), loadIngredients(), loadMenuItems()]);
   subscribeRealtime();
+
+  // Mode kiosque: demander permissions + wake lock + plein écran
+  requestNotificationPermission();
+  keepScreenOn();
+  setTimeout(() => enterFullscreen(), 500);
 }
 
 // ===== TABS =====
@@ -919,8 +994,17 @@ function playAlert() {
   const audio = document.getElementById('alertSound');
   audio.currentTime = 0;
   audio.play().catch(() => {});
+
   // Vibrate on mobile
-  if (navigator.vibrate) navigator.vibrate([200,100,200]);
+  if (navigator.vibrate) navigator.vibrate([300,100,300,100,300]);
+
+  // Notification native
+  const lastOrder = orders[0];
+  if (lastOrder) {
+    const title = '🔔 Nouvelle commande !';
+    const body = `Commande #${lastOrder.numero} - ${lastOrder.client_nom || 'Client'}\n${lastOrder.total?.toFixed(2)}€ · Retrait: ${lastOrder.heure_retrait === 'asap' ? 'ASAP' : lastOrder.heure_retrait}`;
+    showNativeNotification(title, body);
+  }
 }
 
 // ===== RESCHEDULE ORDER =====

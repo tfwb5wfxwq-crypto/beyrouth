@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<!-- Force deploy 2026-03-05 13:45 -->
+<!-- Force deploy 2026-03-05 13:48 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Service Traiteur — Beyrouth Express</title>
@@ -86,16 +86,16 @@ a{color:inherit;text-decoration:none}
 .section-list li:before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700}
 
 /* ===== PRESTATIONS WITH IMAGE ===== */
-.section-prestations{display:grid;grid-template-columns:1fr 1.3fr;gap:0;padding:0;overflow:hidden;align-items:center;background:var(--white)}
-.prestations-image-wrapper{position:relative;height:100%;min-height:320px;overflow:hidden}
-.prestations-image{width:100%;height:100%;object-fit:cover;object-position:center 30%;clip-path:polygon(0 0, 100% 0, 82% 100%, 0% 100%);transition:transform .6s ease}
+.section-prestations{display:grid;grid-template-columns:0.85fr 1.35fr;gap:0;padding:0;overflow:hidden;align-items:center;background:var(--white)}
+.prestations-image-wrapper{position:relative;height:100%;min-height:230px;overflow:hidden}
+.prestations-image{width:100%;height:100%;object-fit:cover;object-position:center 30%;clip-path:polygon(0 0, 100% 0, 84% 100%, 0% 100%);transition:transform .6s ease}
 .prestations-image:hover{transform:scale(1.05)}
 .prestations-image-overlay{position:absolute;inset:0;background:linear-gradient(135deg, transparent 40%, rgba(26,26,26,0.08) 100%);pointer-events:none}
-.prestations-content{padding:48px 56px 48px 40px}
-.prestations-content .section-title{font-family:'DM Serif Display',Georgia,serif;font-size:1.9rem;margin-bottom:20px;font-weight:400;letter-spacing:-0.3px;line-height:1.2}
-.prestations-content .section-list{margin:16px 0}
-.prestations-content .section-list li{font-size:1rem;padding:10px 0 10px 32px;color:var(--text);line-height:1.6}
-.prestations-content .section-list li:before{font-size:1.1rem}
+.prestations-content{padding:32px 40px 32px 28px}
+.prestations-content .section-title{font-family:'DM Serif Display',Georgia,serif;font-size:1.45rem;margin-bottom:14px;font-weight:400;letter-spacing:-0.3px;line-height:1.25}
+.prestations-content .section-list{margin:12px 0}
+.prestations-content .section-list li{font-size:0.93rem;padding:7px 0 7px 28px;color:var(--text);line-height:1.5}
+.prestations-content .section-list li:before{font-size:0.98rem}
 
 .form{background:var(--white);border-radius:var(--r);padding:32px;box-shadow:var(--shadow)}
 .form-group{margin-bottom:20px}
@@ -129,17 +129,17 @@ a{color:inherit;text-decoration:none}
   .section,.form{padding:24px}
   .form-row{grid-template-columns:1fr;gap:12px}
   .section-prestations{grid-template-columns:1fr;gap:0}
-  .prestations-image-wrapper{min-height:240px}
-  .prestations-image{clip-path:polygon(0 0, 100% 0, 100% 88%, 0% 100%)}
-  .prestations-content{padding:32px 24px}
-  .prestations-content .section-title{font-size:1.6rem;margin-bottom:16px}
-  .prestations-content .section-list li{font-size:0.92rem;padding:8px 0 8px 28px}
+  .prestations-image-wrapper{min-height:200px}
+  .prestations-image{clip-path:polygon(0 0, 100% 0, 100% 90%, 0% 100%)}
+  .prestations-content{padding:28px 22px}
+  .prestations-content .section-title{font-size:1.3rem;margin-bottom:12px}
+  .prestations-content .section-list li{font-size:0.88rem;padding:6px 0 6px 26px}
 }
 @media(min-width:641px) and (max-width:900px){
-  .section-prestations{grid-template-columns:1fr 1.2fr}
-  .prestations-image-wrapper{min-height:280px}
-  .prestations-content{padding:36px 32px}
-  .prestations-content .section-title{font-size:1.7rem}
+  .section-prestations{grid-template-columns:0.9fr 1.3fr}
+  .prestations-image-wrapper{min-height:220px}
+  .prestations-content{padding:30px 32px}
+  .prestations-content .section-title{font-size:1.4rem}
 }
 </style>
 </head>

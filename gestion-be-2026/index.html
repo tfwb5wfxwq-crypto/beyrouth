@@ -124,6 +124,16 @@ button{cursor:pointer;font-family:inherit;border:none}
 .toggle-label input[type="checkbox"]:checked::after{
   left:22px;
 }
+.pause-btn{
+  padding:12px 20px;background:linear-gradient(135deg, #f0f0f0, #e0e0e0);
+  color:var(--noir);border:none;border-radius:8px;font-weight:600;
+  cursor:pointer;transition:all .3s;font-size:.95rem;
+}
+.pause-btn:hover{
+  background:linear-gradient(135deg, var(--gold), #c99843);
+  color:#fff;transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(212,168,83,.3);
+}
 
 /* Tabs */
 .tabs{
@@ -407,6 +417,10 @@ button{cursor:pointer;font-family:inherit;border:none}
           <input type="checkbox" id="toggleAutoAccept" onchange="toggleAutoAccept()">
           <span>Auto-Accept</span>
         </label>
+
+        <button class="toggle-label" id="slotPauseBtn" onclick="openSlotPauseModal()" style="cursor:pointer;border:none">
+          <span id="slotPauseText">⏸️ Pause créneaux</span>
+        </button>
       </div>
 
       <button class="topbar-logout" onclick="doLogout()">Déconnexion</button>
@@ -509,6 +523,29 @@ button{cursor:pointer;font-family:inherit;border:none}
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Modal Pause Créneaux -->
+<div id="slotPauseModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:10000;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:32px;max-width:400px;width:90%">
+    <h3 style="margin-bottom:20px;color:var(--bordeaux);font-size:1.3rem">⏸️ Pause Créneaux</h3>
+    <p style="color:#666;margin-bottom:24px;font-size:.95rem">Décaler le premier créneau disponible :</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+      <button onclick="pauseSlots(15)" class="pause-btn">15 min</button>
+      <button onclick="pauseSlots(30)" class="pause-btn">30 min</button>
+      <button onclick="pauseSlots(60)" class="pause-btn">1 heure</button>
+      <button onclick="pauseSlots(120)" class="pause-btn">2 heures</button>
+    </div>
+
+    <div style="margin-bottom:20px">
+      <label style="display:block;margin-bottom:8px;color:#666;font-size:.9rem">Ou choisir une heure précise :</label>
+      <input type="time" id="customPauseTime" style="width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:1rem">
+      <button onclick="pauseSlotsUntil()" style="margin-top:8px;width:100%;padding:12px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer">Valider</button>
+    </div>
+
+    <button onclick="closeSlotPauseModal()" style="width:100%;padding:12px;background:#f0f0f0;color:#666;border:none;border-radius:8px;font-weight:600;cursor:pointer">Annuler</button>
   </div>
 </div>
 
@@ -726,6 +763,135 @@ async function toggleAutoAccept() {
   }
 }
 
+// ===== PAUSE CRÉNEAUX =====
+let nextSlotAvailableAt = '';
+
+async function loadSlotPause() {
+  try {
+    const { data } = await sb.from('settings').select('value').eq('key', 'next_slot_available_at').single();
+    if (data && data.value) {
+      nextSlotAvailableAt = data.value;
+      updateSlotPauseButton();
+    }
+  } catch (err) {
+    console.error('Erreur chargement slot pause:', err);
+  }
+}
+
+function updateSlotPauseButton() {
+  const btn = document.getElementById('slotPauseBtn');
+  const text = document.getElementById('slotPauseText');
+
+  if (nextSlotAvailableAt) {
+    const pauseDate = new Date(nextSlotAvailableAt);
+    const now = new Date();
+
+    if (pauseDate > now) {
+      const hours = String(pauseDate.getHours()).padStart(2, '0');
+      const mins = String(pauseDate.getMinutes()).padStart(2, '0');
+      text.textContent = `⏸️ En pause jusqu'à ${hours}h${mins}`;
+      btn.style.background = 'rgba(255,200,100,.2)';
+      btn.onclick = () => resumeSlots();
+    } else {
+      nextSlotAvailableAt = '';
+      text.textContent = '⏸️ Pause créneaux';
+      btn.style.background = 'rgba(255,255,255,.1)';
+      btn.onclick = () => openSlotPauseModal();
+    }
+  } else {
+    text.textContent = '⏸️ Pause créneaux';
+    btn.style.background = 'rgba(255,255,255,.1)';
+    btn.onclick = () => openSlotPauseModal();
+  }
+}
+
+function openSlotPauseModal() {
+  const modal = document.getElementById('slotPauseModal');
+  modal.style.display = 'flex';
+}
+
+function closeSlotPauseModal() {
+  const modal = document.getElementById('slotPauseModal');
+  modal.style.display = 'none';
+}
+
+async function pauseSlots(minutes) {
+  const now = new Date();
+  const pauseUntil = new Date(now.getTime() + minutes * 60000);
+  nextSlotAvailableAt = pauseUntil.toISOString();
+
+  try {
+    await sb.from('settings').upsert({
+      key: 'next_slot_available_at',
+      value: nextSlotAvailableAt
+    });
+
+    updateSlotPauseButton();
+    closeSlotPauseModal();
+
+    const hours = String(pauseUntil.getHours()).padStart(2, '0');
+    const mins = String(pauseUntil.getMinutes()).padStart(2, '0');
+    alert(`✅ Créneaux en pause jusqu'à ${hours}h${mins}`);
+  } catch (err) {
+    console.error('Erreur pause:', err);
+    alert('❌ Erreur lors de la pause');
+  }
+}
+
+async function pauseSlotsUntil() {
+  const timeInput = document.getElementById('customPauseTime');
+  const time = timeInput.value;
+
+  if (!time) {
+    alert('Veuillez choisir une heure');
+    return;
+  }
+
+  const [hours, mins] = time.split(':');
+  const now = new Date();
+  const pauseUntil = new Date(now);
+  pauseUntil.setHours(parseInt(hours), parseInt(mins), 0, 0);
+
+  // Si l'heure est passée, c'est pour demain
+  if (pauseUntil <= now) {
+    pauseUntil.setDate(pauseUntil.getDate() + 1);
+  }
+
+  nextSlotAvailableAt = pauseUntil.toISOString();
+
+  try {
+    await sb.from('settings').upsert({
+      key: 'next_slot_available_at',
+      value: nextSlotAvailableAt
+    });
+
+    updateSlotPauseButton();
+    closeSlotPauseModal();
+
+    alert(`✅ Créneaux en pause jusqu'à ${hours}h${mins}`);
+  } catch (err) {
+    console.error('Erreur pause:', err);
+    alert('❌ Erreur lors de la pause');
+  }
+}
+
+async function resumeSlots() {
+  nextSlotAvailableAt = '';
+
+  try {
+    await sb.from('settings').upsert({
+      key: 'next_slot_available_at',
+      value: ''
+    });
+
+    updateSlotPauseButton();
+    alert('✅ Créneaux repris immédiatement');
+  } catch (err) {
+    console.error('Erreur reprise:', err);
+    alert('❌ Erreur lors de la reprise');
+  }
+}
+
 // ===== AUTH =====
 async function checkSession() {
   const savedToken = localStorage.getItem('adminToken');
@@ -797,7 +963,11 @@ async function showDashboard() {
   document.getElementById('dashboard').style.display = 'block';
   await Promise.all([loadOrders(), loadIngredients(), loadMenuItems()]);
   await loadSettings();
+  await loadSlotPause();
   subscribeRealtime();
+
+  // Vérifier périodiquement si la pause est expirée
+  setInterval(updateSlotPauseButton, 30000); // toutes les 30s
 
   // Mode kiosque: demander permissions + wake lock + plein écran
   requestNotificationPermission();

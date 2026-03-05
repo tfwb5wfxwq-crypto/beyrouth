@@ -1,13 +1,13 @@
 {
   "name": "Beyrouth Express - Admin",
   "short_name": "BE Admin",
-  "start_url": "/admin/",
+  "start_url": "/gestion-be-2026/",
   "display": "fullscreen",
   "orientation": "landscape",
   "background_color": "#8B1A1A",
   "theme_color": "#8B1A1A",
   "description": "Interface de gestion des commandes Beyrouth Express",
-  "scope": "/admin/",
+  "scope": "/gestion-be-2026/",
   "prefer_related_applications": false,
   "icons": [
     {

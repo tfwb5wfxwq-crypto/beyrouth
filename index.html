@@ -2034,11 +2034,19 @@ function renderTimeSlots() {
   const endMin = day.slot[3] * 60 + day.slot[4];
   let html = '';
   let count = 0;
+
+  // Déterminer le seuil minimum (now ou pause)
+  let minTimeMinutes = now.getHours() * 60 + now.getMinutes();
+  if (nextSlotAvailableAt && day.isToday) {
+    const pauseMinutes = nextSlotAvailableAt.getHours() * 60 + nextSlotAvailableAt.getMinutes();
+    minTimeMinutes = Math.max(minTimeMinutes, pauseMinutes);
+  }
+
   for (let m = startMin; m <= endMin; m += 30) { // Créneaux toutes les 30 min
     const h = Math.floor(m / 60), min = m % 60;
     const label = `${h}h${min.toString().padStart(2, '0')}`;
-    const isPast = day.isToday && (now.getHours() * 60 + now.getMinutes()) >= m;
-    if (isPast) continue; // Ne pas afficher les créneaux passés
+    const isPast = day.isToday && minTimeMinutes >= m;
+    if (isPast) continue; // Ne pas afficher les créneaux passés ou en pause
     const value = day.isToday ? label : `${day.label} ${label}`;
     html += `<div class="timepicker-slot ${selectedPickup === value ? 'active' : ''}"
       onclick="selectTime('${value}')">${label}</div>`;
@@ -2056,8 +2064,15 @@ function getAsapTime() {
   const minutes = now.getMinutes();
   const rounded = Math.ceil(minutes / 15) * 15;
   now.setMinutes(rounded);
-  const h = now.getHours();
-  const m = now.getMinutes();
+
+  // Si une pause est active et que c'est après ASAP, utiliser l'heure de pause
+  let targetTime = now;
+  if (nextSlotAvailableAt && nextSlotAvailableAt > now) {
+    targetTime = nextSlotAvailableAt;
+  }
+
+  const h = targetTime.getHours();
+  const m = targetTime.getMinutes();
   return `${h}h${m.toString().padStart(2, '0')}`;
 }
 
@@ -2080,6 +2095,23 @@ function selectTime(value) {
   document.getElementById('cartPickupDisplay').innerHTML = cartLabel;
   closeTimePicker();
 }
+
+// ===== PAUSE CRÉNEAUX =====
+let nextSlotAvailableAt = null;
+
+async function loadSlotPause() {
+  try {
+    const { data } = await sb.from('settings').select('value').eq('key', 'next_slot_available_at').single();
+    if (data && data.value) {
+      nextSlotAvailableAt = new Date(data.value);
+    }
+  } catch (err) {
+    console.error('Erreur chargement slot pause:', err);
+  }
+}
+
+// Charger la pause au démarrage
+loadSlotPause();
 
 // ===== UTILS =====
 function formatPrice(n) { return n.toFixed(2).replace('.', ',') + ' €'; }

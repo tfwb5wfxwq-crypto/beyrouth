@@ -705,11 +705,13 @@ async function loadSettings() {
       data.forEach(s => {
         if (s.key === 'click_collect_enabled') {
           clickCollectEnabled = s.value === 'true';
-          document.getElementById('toggleClickCollect').checked = clickCollectEnabled;
+          const el = document.getElementById('toggleClickCollect');
+          if (el) el.checked = clickCollectEnabled;
         }
         if (s.key === 'auto_accept_orders') {
           autoAcceptOrders = s.value === 'true';
-          document.getElementById('toggleAutoAccept').checked = autoAcceptOrders;
+          const el = document.getElementById('toggleAutoAccept');
+          if (el) el.checked = autoAcceptOrders;
         }
       });
     }
@@ -809,7 +811,9 @@ function updateSlotPauseButton() {
       sb.from('settings').upsert({
         key: 'next_slot_available_at',
         value: ''
-      }).catch(err => console.error('Erreur clear pause:', err));
+      }).then(({ error }) => {
+        if (error) console.error('Erreur clear pause:', error);
+      });
     }
   } else {
     text.textContent = '⏸️ Pause créneaux';

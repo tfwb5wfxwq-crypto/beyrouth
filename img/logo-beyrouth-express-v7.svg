@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 310 45" fill="none">
+  <defs>
+    <!-- Dégradé or -->
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#D4AF37"/>
+      <stop offset="100%" style="stop-color:#FFA500"/>
+    </linearGradient>
+
+    <!-- Ombre -->
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- BEYROUTH (or) -->
+  <text
+    x="5"
+    y="30"
+    font-family="'DM Serif Display', Georgia, serif"
+    font-size="24"
+    font-weight="600"
+    letter-spacing="2"
+    fill="url(#gold)"
+    filter="url(#shadow)">
+    BEYROUTH
+  </text>
+
+  <!-- Point (or) -->
+  <circle
+    cx="145"
+    cy="26"
+    r="2.5"
+    fill="url(#gold)"
+    filter="url(#shadow)"/>
+
+  <!-- EXPRESS (blanc, italique) -->
+  <text
+    x="155"
+    y="30"
+    font-family="-apple-system, sans-serif"
+    font-size="24"
+    font-weight="700"
+    font-style="italic"
+    letter-spacing="1.5"
+    fill="#FFFFFF"
+    filter="url(#shadow)">
+    EXPRESS
+  </text>
+</svg>

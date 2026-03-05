@@ -1274,14 +1274,18 @@ function updateTopbarStats() {
 
 // ===== REALTIME =====
 function subscribeRealtime() {
-  sb.channel('admin-orders')
+  console.log('🔌 Initialisation subscription realtime...');
+
+  const channel = sb.channel('admin-orders')
     .on('postgres_changes', {event:'INSERT', schema:'public', table:'orders'}, payload => {
+      console.log('📥 INSERT reçu:', payload.new);
       orders.unshift(payload.new);
       renderOrders();
       updateTopbarStats();
       playAlert();
     })
     .on('postgres_changes', {event:'UPDATE', schema:'public', table:'orders'}, payload => {
+      console.log('📝 UPDATE reçu:', payload.new);
       const idx = orders.findIndex(o => o.id === payload.new.id);
       // Si la commande est annulée ou récupérée, la retirer de la liste "En cours"
       if (payload.new.statut === 'annulee' || payload.new.statut === 'recuperee') {
@@ -1292,13 +1296,29 @@ function subscribeRealtime() {
       renderOrders();
       updateTopbarStats();
     })
+    .on('postgres_changes', {event:'DELETE', schema:'public', table:'orders'}, payload => {
+      console.log('🗑️  DELETE reçu:', payload.old);
+      const idx = orders.findIndex(o => o.id === payload.old.id);
+      if (idx !== -1) {
+        orders.splice(idx, 1);
+        renderOrders();
+        updateTopbarStats();
+      }
+    })
     .on('postgres_changes', {event:'*', schema:'public', table:'ingredients'}, () => {
       loadIngredients();
     })
     .on('postgres_changes', {event:'*', schema:'public', table:'menu_items'}, () => {
       loadMenuItems();
     })
-    .subscribe();
+    .subscribe((status) => {
+      console.log('📡 Subscription status:', status);
+    });
+
+  // Vérifier l'état de la connexion
+  setTimeout(() => {
+    console.log('📊 Channel state:', channel);
+  }, 2000);
 }
 
 function playAlert() {

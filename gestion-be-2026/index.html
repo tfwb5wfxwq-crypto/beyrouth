@@ -1227,7 +1227,6 @@ async function updateStatus(orderId, newStatus) {
           email: order.client_email,
           name: order.client_nom,
           orderNum: order.numero,
-          codeRetrait: order.code_retrait,
           pickup: order.heure_retrait === 'asap' ? 'Dès que possible' : order.heure_retrait
         })
       });
@@ -1346,6 +1345,12 @@ function subscribeRealtime() {
       debouncedRenderOrders();
       updateTopbarStats();
       playAlert();
+
+      // Auto-accept si activé
+      if (autoAcceptOrders && payload.new.statut === 'payee') {
+        console.log('🤖 Auto-accept activé, acceptation automatique de la commande', payload.new.numero);
+        acceptOrder(payload.new.id);
+      }
     })
     .on('postgres_changes', {event:'UPDATE', schema:'public', table:'orders'}, payload => {
       console.log('📝 UPDATE reçu:', payload.new);

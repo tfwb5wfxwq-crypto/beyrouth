@@ -1340,6 +1340,7 @@ async function submitOrder() {
   const orderNum = await generateUniqueOrderNum();
   const note = document.getElementById('clientNote').value.trim();
   const optin = document.getElementById('optinPromos').checked;
+  const wantReceipt = document.getElementById('wantReceipt').checked;
 
   // Créer la commande en statut "pending" (ou "payee" en mode test)
   const isTestMode = window.location.search.includes('test=1') || window.location.hostname === 'localhost';
@@ -1360,13 +1361,13 @@ async function submitOrder() {
     client_prenom: name, client_email: email,
     client_telephone: phone || null,
     note: note || null,
+    want_receipt: wantReceipt,
     created_at: new Date().toISOString(),
     ...(isTestMode && { payment_confirmed_at: new Date().toISOString() })
   };
 
   try {
     // Enregistrer le client
-    let codeRetrait = null;
     if (sb) {
       await sb.from('clients').upsert({
         email, prenom: name, telephone: phone || null,
@@ -1374,14 +1375,11 @@ async function submitOrder() {
         optin_promo: optin,
       }, {onConflict: 'email'});
 
-      // Insérer la commande et récupérer le code_retrait généré
-      const {data: insertData, error: insertError} = await sb.from('orders')
-        .insert([orderData])
-        .select('code_retrait')
-        .single();
+      // Insérer la commande
+      const {error: insertError} = await sb.from('orders')
+        .insert([orderData]);
 
       if (insertError) throw insertError;
-      codeRetrait = insertData?.code_retrait;
     }
 
     btn.textContent = 'Ouverture du paiement...';
@@ -1399,7 +1397,7 @@ async function submitOrder() {
 
     // Ouvrir le paiement dans un modal (mode inline PayGreenJS)
     if (data.paymentOrderId && data.objectSecret) {
-      openPaymentModal(data.paymentOrderId, data.objectSecret, orderNum, codeRetrait, total);
+      openPaymentModal(data.paymentOrderId, data.objectSecret, orderNum, total);
     } else {
       throw new Error('Données de paiement non reçues');
     }
@@ -1415,8 +1413,8 @@ async function submitOrder() {
 // ===== PAYMENT INLINE =====
 let currentPaymentData = null;
 
-function openPaymentModal(paymentOrderId, objectSecret, orderNum, codeRetrait, total) {
-  currentPaymentData = { paymentOrderId, objectSecret, orderNum, codeRetrait, total };
+function openPaymentModal(paymentOrderId, objectSecret, orderNum, total) {
+  currentPaymentData = { paymentOrderId, objectSecret, orderNum, total };
 
   // Fermer le panier et afficher la section paiement
   toggleCart();
@@ -1592,7 +1590,6 @@ function initPayGreen(method) {
 
       // Sauvegarder les données AVANT cancelPayment (qui met currentPaymentData à null)
       const orderNum = currentPaymentData.orderNum;
-      const codeRetrait = currentPaymentData.codeRetrait;
 
       // Simuler délai réseau
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -1622,7 +1619,7 @@ function initPayGreen(method) {
       }
 
       cancelPayment();
-      showConfirmation(orderNum, codeRetrait);
+      showConfirmation(orderNum);
     };
     return;
   }
@@ -1653,7 +1650,7 @@ function initPayGreen(method) {
     // Écouter les events
     window.paygreenjs.attachEventListener(window.paygreenjs.Events.FULL_PAYMENT_DONE, (event) => {
       cancelPayment();
-      showConfirmation(currentPaymentData.orderNum, currentPaymentData.codeRetrait);
+      showConfirmation(currentPaymentData.orderNum);
     });
 
     window.paygreenjs.attachEventListener(window.paygreenjs.Events.ERROR, (event) => {
@@ -1701,7 +1698,7 @@ let confirmModal = null;
 let confirmSubscription = null;
 let confirmOrderNum = null;
 
-async function showConfirmation(orderNum, codeRetrait) {
+async function showConfirmation(orderNum) {
   confirmOrderNum = orderNum;
 
   // Fermer la section paiement en douceur
@@ -1809,7 +1806,7 @@ async function showConfirmation(orderNum, codeRetrait) {
     const name = document.getElementById('clientName').value.trim();
     const totalNum = cart.reduce((s, c) => s + c.prix * c.qty, 0);
     try {
-      await sb.functions.invoke('send-receipt', { body: { email, name, orderNum, codeRetrait, items: cart, total: totalNum, pickup } });
+      await sb.functions.invoke('send-receipt', { body: { email, name, orderNum, items: cart, total: totalNum, pickup } });
     } catch (e) {
       console.error('Erreur envoi reçu:', e);
     }

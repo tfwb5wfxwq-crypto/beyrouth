@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<!-- Force deploy 2026-03-05 13:33 -->
+<!-- Force deploy 2026-03-05 13:45 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Service Traiteur — Beyrouth Express</title>
@@ -86,15 +86,16 @@ a{color:inherit;text-decoration:none}
 .section-list li:before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700}
 
 /* ===== PRESTATIONS WITH IMAGE ===== */
-.section-prestations{display:grid;grid-template-columns:0.65fr 1.5fr;gap:0;padding:0;overflow:hidden;align-items:center;background:var(--white);max-height:180px}
-.prestations-image-wrapper{position:relative;height:180px;overflow:hidden}
-.prestations-image{width:100%;height:100%;object-fit:cover;object-position:center 30%;clip-path:polygon(0 0, 100% 0, 85% 100%, 0% 100%)}
-.prestations-image-overlay{position:absolute;inset:0;background:linear-gradient(135deg, transparent 0%, rgba(26,26,26,0.15) 100%);pointer-events:none}
-.prestations-content{padding:16px 24px 16px 14px}
-.prestations-content .section-title{font-size:1.1rem;margin-bottom:8px;font-weight:600}
-.prestations-content .section-list{margin:8px 0}
-.prestations-content .section-list li{font-size:0.82rem;padding:4px 0 4px 22px;color:var(--text);line-height:1.4}
-.prestations-content .section-list li:before{font-size:0.85rem}
+.section-prestations{display:grid;grid-template-columns:1fr 1.3fr;gap:0;padding:0;overflow:hidden;align-items:center;background:var(--white)}
+.prestations-image-wrapper{position:relative;height:100%;min-height:320px;overflow:hidden}
+.prestations-image{width:100%;height:100%;object-fit:cover;object-position:center 30%;clip-path:polygon(0 0, 100% 0, 82% 100%, 0% 100%);transition:transform .6s ease}
+.prestations-image:hover{transform:scale(1.05)}
+.prestations-image-overlay{position:absolute;inset:0;background:linear-gradient(135deg, transparent 40%, rgba(26,26,26,0.08) 100%);pointer-events:none}
+.prestations-content{padding:48px 56px 48px 40px}
+.prestations-content .section-title{font-family:'DM Serif Display',Georgia,serif;font-size:1.9rem;margin-bottom:20px;font-weight:400;letter-spacing:-0.3px;line-height:1.2}
+.prestations-content .section-list{margin:16px 0}
+.prestations-content .section-list li{font-size:1rem;padding:10px 0 10px 32px;color:var(--text);line-height:1.6}
+.prestations-content .section-list li:before{font-size:1.1rem}
 
 .form{background:var(--white);border-radius:var(--r);padding:32px;box-shadow:var(--shadow)}
 .form-group{margin-bottom:20px}
@@ -127,17 +128,18 @@ a{color:inherit;text-decoration:none}
   .hero-video-cta{padding:14px 28px;font-size:0.95rem}
   .section,.form{padding:24px}
   .form-row{grid-template-columns:1fr;gap:12px}
-  .section-prestations{grid-template-columns:1fr;gap:0;align-items:stretch;max-height:none}
-  .prestations-image-wrapper{height:150px}
-  .prestations-image{clip-path:polygon(0 0, 100% 0, 100% 90%, 0% 100%)}
-  .prestations-content{padding:14px 16px}
-  .prestations-content .section-title{font-size:1.05rem;margin-bottom:8px}
-  .prestations-content .section-list li{font-size:0.8rem;padding:3px 0 3px 20px}
+  .section-prestations{grid-template-columns:1fr;gap:0}
+  .prestations-image-wrapper{min-height:240px}
+  .prestations-image{clip-path:polygon(0 0, 100% 0, 100% 88%, 0% 100%)}
+  .prestations-content{padding:32px 24px}
+  .prestations-content .section-title{font-size:1.6rem;margin-bottom:16px}
+  .prestations-content .section-list li{font-size:0.92rem;padding:8px 0 8px 28px}
 }
 @media(min-width:641px) and (max-width:900px){
-  .section-prestations{grid-template-columns:0.65fr 1.5fr;align-items:center;max-height:170px}
-  .prestations-image-wrapper{height:170px}
-  .prestations-content{padding:16px 18px}
+  .section-prestations{grid-template-columns:1fr 1.2fr}
+  .prestations-image-wrapper{min-height:280px}
+  .prestations-content{padding:36px 32px}
+  .prestations-content .section-title{font-size:1.7rem}
 }
 </style>
 </head>

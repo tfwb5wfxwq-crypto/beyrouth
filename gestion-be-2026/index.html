@@ -952,11 +952,29 @@ async function showDashboard() {
   // POLLING : Recharger les commandes toutes les 5 secondes
   // (backup si realtime ne fonctionne pas)
   setInterval(async () => {
-    const oldCount = orders.length;
-    await loadOrders();
-    // Si nouvelles commandes, jouer le son
-    if (orders.length > oldCount) {
-      playAlert();
+    // Sauvegarder les IDs actuels
+    const oldIds = orders.map(o => o.id).join(',');
+
+    // Charger les nouvelles données SANS render
+    const {data} = await sb.from('orders')
+      .select('*')
+      .in('statut', ['payee', 'acceptee', 'en_preparation', 'prete'])
+      .order('created_at', {ascending: false});
+
+    const newOrders = data || [];
+    const newIds = newOrders.map(o => o.id).join(',');
+
+    // Ne re-render QUE si les données ont changé
+    if (oldIds !== newIds) {
+      const oldCount = orders.length;
+      orders = newOrders;
+      renderOrders();
+      updateTopbarStats();
+
+      // Si nouvelles commandes, jouer le son
+      if (orders.length > oldCount) {
+        playAlert();
+      }
     }
   }, 5000);
 

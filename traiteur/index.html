@@ -76,7 +76,7 @@ a{color:inherit;text-decoration:none}
 @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 
 /* ===== TRAITEUR CONTENT ===== */
-.container{max-width:800px;margin:0 auto;padding:48px 24px}
+.container{max-width:1100px;margin:0 auto;padding:48px 24px}
 
 .section{background:var(--white);border-radius:var(--r);padding:32px;margin-bottom:24px;box-shadow:var(--shadow)}
 .section-title{font-size:1.3rem;font-weight:700;margin-bottom:16px;color:var(--dark)}
@@ -84,6 +84,16 @@ a{color:inherit;text-decoration:none}
 .section-list{list-style:none;margin:16px 0}
 .section-list li{padding:8px 0;padding-left:28px;position:relative;color:var(--text-soft)}
 .section-list li:before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700}
+
+/* ===== PRESTATIONS WITH IMAGE ===== */
+.section-prestations{display:grid;grid-template-columns:1fr 1.2fr;gap:0;padding:0;overflow:hidden;align-items:center}
+.prestations-image-wrapper{position:relative;height:100%;min-height:450px;overflow:hidden}
+.prestations-image{width:100%;height:100%;object-fit:cover;object-position:center;clip-path:polygon(0 0, 100% 0, 85% 100%, 0% 100%)}
+.prestations-image-overlay{position:absolute;inset:0;background:linear-gradient(135deg, transparent 0%, rgba(26,26,26,0.15) 100%);pointer-events:none}
+.prestations-content{padding:48px 40px 48px 32px}
+.prestations-content .section-title{font-size:1.8rem;margin-bottom:24px}
+.prestations-content .section-list li{font-size:1.05rem;padding:12px 0 12px 32px;color:var(--text)}
+.prestations-content .section-list li:before{font-size:1.1rem}
 
 .form{background:var(--white);border-radius:var(--r);padding:32px;box-shadow:var(--shadow)}
 .form-group{margin-bottom:20px}
@@ -116,6 +126,17 @@ a{color:inherit;text-decoration:none}
   .hero-video-cta{padding:14px 28px;font-size:0.95rem}
   .section,.form{padding:24px}
   .form-row{grid-template-columns:1fr;gap:12px}
+  .section-prestations{grid-template-columns:1fr;gap:0}
+  .prestations-image-wrapper{min-height:300px}
+  .prestations-image{clip-path:polygon(0 0, 100% 0, 100% 90%, 0% 100%)}
+  .prestations-content{padding:32px 24px}
+  .prestations-content .section-title{font-size:1.4rem;margin-bottom:20px}
+  .prestations-content .section-list li{font-size:0.95rem;padding:10px 0 10px 28px}
+}
+@media(min-width:641px) and (max-width:900px){
+  .section-prestations{grid-template-columns:1fr 1fr}
+  .prestations-content{padding:40px 32px}
+  .prestations-image-wrapper{min-height:400px}
 }
 </style>
 </head>
@@ -182,15 +203,21 @@ a{color:inherit;text-decoration:none}
 
 <div class="container">
 
-  <div class="section">
-    <h2 class="section-title">Nos prestations</h2>
-    <ul class="section-list">
-      <li>Buffets personnalisés pour événements pro et privés</li>
-      <li>Livraison et installation possible (La Défense & environs)</li>
-      <li>Options végétariennes et vegan</li>
-      <li>À partir de 18€/pers — Minimum 10 personnes</li>
-      <li>Devis gratuit sous 48h</li>
-    </ul>
+  <div class="section section-prestations">
+    <div class="prestations-image-wrapper">
+      <img src="../img/traiteur-buffet-crop.jpg" alt="Buffet libanais Beyrouth Express" class="prestations-image">
+      <div class="prestations-image-overlay"></div>
+    </div>
+    <div class="prestations-content">
+      <h2 class="section-title">Nos prestations</h2>
+      <ul class="section-list">
+        <li>Buffets personnalisés pour événements pro et privés</li>
+        <li>Livraison et installation possible (La Défense & environs)</li>
+        <li>Options végétariennes et vegan</li>
+        <li>À partir de 18€/pers — Minimum 10 personnes</li>
+        <li>Devis gratuit sous 48h</li>
+      </ul>
+    </div>
   </div>
 
   <form class="form" id="traiteurForm" name="devis">

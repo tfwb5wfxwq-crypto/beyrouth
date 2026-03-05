@@ -99,6 +99,31 @@ button{cursor:pointer;font-family:inherit;border:none}
   transform:translateY(-1px);
   box-shadow:0 4px 12px rgba(0,0,0,.2);
 }
+.toggle-label{
+  display:flex;align-items:center;gap:8px;
+  font-size:.85rem;color:#fff;cursor:pointer;
+  background:rgba(255,255,255,.1);
+  padding:8px 12px;border-radius:var(--radius);
+  border:1px solid rgba(255,255,255,.15);
+  transition:all .3s;
+}
+.toggle-label:hover{background:rgba(255,255,255,.15)}
+.toggle-label input[type="checkbox"]{
+  width:40px;height:20px;appearance:none;
+  background:#666;border-radius:10px;position:relative;
+  cursor:pointer;transition:all .3s;
+}
+.toggle-label input[type="checkbox"]:checked{
+  background:var(--gold);
+}
+.toggle-label input[type="checkbox"]::after{
+  content:'';position:absolute;width:16px;height:16px;
+  background:#fff;border-radius:50%;top:2px;left:2px;
+  transition:all .3s;box-shadow:0 2px 4px rgba(0,0,0,.2);
+}
+.toggle-label input[type="checkbox"]:checked::after{
+  left:22px;
+}
 
 /* Tabs */
 .tabs{
@@ -370,6 +395,20 @@ button{cursor:pointer;font-family:inherit;border:none}
     <img src="../img/logo-beyrouth-express-v10.svg" alt="Beyrouth Express" style="height:42px;filter:drop-shadow(0 0 6px rgba(212,175,55,0.15));">
     <div class="topbar-right">
       <span class="topbar-stats" id="topbarStats">0 commandes — 0,00 €</span>
+
+      <!-- Toggles -->
+      <div style="display:flex;gap:12px;align-items:center">
+        <label class="toggle-label">
+          <input type="checkbox" id="toggleClickCollect" onchange="toggleClickCollect()" checked>
+          <span>Click & Collect</span>
+        </label>
+
+        <label class="toggle-label">
+          <input type="checkbox" id="toggleAutoAccept" onchange="toggleAutoAccept()">
+          <span>Auto-Accept</span>
+        </label>
+      </div>
+
       <button class="topbar-logout" onclick="doLogout()">Déconnexion</button>
     </div>
   </div>
@@ -484,6 +523,38 @@ const SUPABASE_URL = 'https://xbuftfwcyontgqbbrrjt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidWZ0ZndjeW9udGdxYmJycmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2Njg1NzksImV4cCI6MjA4NjI0NDU3OX0.ROkSccADlpLsWMgqyiX_xNaFdJNR8P4R-LJCnZV2Gzg';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ===== PULL TO REFRESH =====
+let pullStartY = 0;
+let isPulling = false;
+
+document.addEventListener('touchstart', (e) => {
+  if (window.scrollY === 0) {
+    pullStartY = e.touches[0].clientY;
+    isPulling = true;
+  }
+});
+
+document.addEventListener('touchmove', (e) => {
+  if (!isPulling) return;
+  const pullDistance = e.touches[0].clientY - pullStartY;
+  if (pullDistance > 80) {
+    e.preventDefault();
+  }
+});
+
+document.addEventListener('touchend', async (e) => {
+  if (!isPulling) return;
+  isPulling = false;
+
+  const pullDistance = e.changedTouches[0].clientY - pullStartY;
+  if (pullDistance > 80) {
+    // Refresh !
+    document.body.style.opacity = '0.7';
+    await Promise.all([loadOrders(), loadIngredients(), loadMenuItems()]);
+    document.body.style.opacity = '1';
+  }
+});
+
 // ===== MODE KIOSQUE =====
 let swRegistration = null;
 
@@ -562,6 +633,66 @@ let clients = [];
 let completedOrders = [];
 let currentTab = 'orders';
 
+// ===== SETTINGS =====
+let clickCollectEnabled = true;
+let autoAcceptOrders = false;
+
+async function loadSettings() {
+  try {
+    const { data } = await sb.from('settings').select('key, value');
+    if (data) {
+      data.forEach(s => {
+        if (s.key === 'click_collect_enabled') {
+          clickCollectEnabled = s.value === 'true';
+          document.getElementById('toggleClickCollect').checked = clickCollectEnabled;
+        }
+        if (s.key === 'auto_accept_orders') {
+          autoAcceptOrders = s.value === 'true';
+          document.getElementById('toggleAutoAccept').checked = autoAcceptOrders;
+        }
+      });
+    }
+  } catch (err) {
+    console.error('Erreur chargement settings:', err);
+  }
+}
+
+async function toggleClickCollect() {
+  clickCollectEnabled = document.getElementById('toggleClickCollect').checked;
+  try {
+    await sb.from('settings').upsert({
+      key: 'click_collect_enabled',
+      value: String(clickCollectEnabled)
+    });
+    alert(clickCollectEnabled ? '✅ Click & Collect activé' : '⏸️ Click & Collect en pause');
+  } catch (err) {
+    console.error('Erreur sauvegarde:', err);
+  }
+}
+
+async function toggleAutoAccept() {
+  autoAcceptOrders = document.getElementById('toggleAutoAccept').checked;
+  try {
+    await sb.from('settings').upsert({
+      key: 'auto_accept_orders',
+      value: String(autoAcceptOrders)
+    });
+
+    // Si activé, accepter toutes les commandes "payee"
+    if (autoAcceptOrders) {
+      const payedOrders = orders.filter(o => o.statut === 'payee');
+      for (const order of payedOrders) {
+        await acceptOrder(order.id);
+      }
+      alert(`✅ Auto-Accept activé${payedOrders.length > 0 ? ` - ${payedOrders.length} commande(s) acceptée(s)` : ''}`);
+    } else {
+      alert('⏸️ Auto-Accept désactivé - Validation manuelle requise');
+    }
+  } catch (err) {
+    console.error('Erreur sauvegarde:', err);
+  }
+}
+
 // ===== AUTH =====
 async function checkSession() {
   const savedToken = localStorage.getItem('adminToken');
@@ -632,6 +763,7 @@ async function showDashboard() {
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
   await Promise.all([loadOrders(), loadIngredients(), loadMenuItems()]);
+  await loadSettings();
   subscribeRealtime();
 
   // Mode kiosque: demander permissions + wake lock + plein écran

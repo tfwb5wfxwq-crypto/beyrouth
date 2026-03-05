@@ -32,7 +32,10 @@ a{color:inherit;text-decoration:none}
 .header-mode-active{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg, var(--gold) 0%, #B8956A 100%);color:#1a1a1a;padding:9px 18px;border-radius:24px;border:1px solid rgba(255,255,255,0.3);font-size:.8rem;font-weight:700;letter-spacing:0.3px;text-decoration:none;box-shadow:0 3px 15px rgba(212,175,55,0.35), inset 0 1px 0 rgba(255,255,255,0.2)}
 .header-mode-link{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:rgba(255,255,255,0.7);padding:9px 18px;border-radius:24px;border:1px solid rgba(255,255,255,0.15);font-size:.8rem;font-weight:600;letter-spacing:0.3px;text-decoration:none;transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);box-shadow:0 2px 8px rgba(0,0,0,0.1)}
 .header-mode-link:hover{border-color:rgba(212,175,55,0.4);background:rgba(255,255,255,0.12);color:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
-.header-badge{font-size:.82rem;font-weight:500;color:rgba(255,255,255,0.9);display:flex;align-items:center;gap:6px}
+.header-status{display:flex;align-items:center;gap:6px;font-size:.82rem;font-weight:500}
+.header-status .dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
+.header-status.closed .dot{background:var(--red)}
+.header-sub{font-size:.72rem;opacity:.45;font-weight:400}
 
 .container{max-width:800px;margin:0 auto;padding:48px 24px}
 .hero{text-align:center;margin-bottom:48px}
@@ -96,12 +99,10 @@ a{color:inherit;text-decoration:none}
         </svg>
         Traiteur
       </span>
-      <div class="header-badge">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--gold)">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M12 6v6l4 2"/>
-        </svg>
-        <span>Disponible 24h/24</span>
+      <div class="header-status" id="headerStatus">
+        <span class="dot"></span>
+        <span id="statusText">Ouvert</span>
+        <span id="headerHours" class="header-sub"></span>
       </div>
     </div>
   </div>
@@ -217,6 +218,68 @@ a{color:inherit;text-decoration:none}
 </footer>
 
 <script>
+// Horaires d'ouverture
+const BUSINESS_HOURS = [
+  [1, 11, 0, 15, 0],
+  [2, 11, 0, 15, 0],
+  [3, 11, 0, 15, 0],
+  [4, 11, 0, 15, 0],
+  [5, 11, 0, 15, 0],
+];
+const JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+
+function isOpenNow() {
+  const now = new Date();
+  const day = now.getDay();
+  const h = now.getHours(), m = now.getMinutes();
+  const slot = BUSINESS_HOURS.find(s => s[0] === day);
+  if (!slot) return false;
+  const nowMin = h * 60 + m;
+  return nowMin >= slot[1] * 60 + slot[2] && nowMin < slot[3] * 60 + slot[4];
+}
+
+function getNextOpenSlot() {
+  const now = new Date();
+  const day = now.getDay();
+  const h = now.getHours(), m = now.getMinutes();
+  const nowMin = h * 60 + m;
+  const today = BUSINESS_HOURS.find(s => s[0] === day);
+  if (today && nowMin < today[1] * 60 + today[2]) {
+    return {jour: JOURS[day], h: today[1], m: today[2]};
+  }
+  for (let i = 1; i <= 7; i++) {
+    const d = (day + i) % 7;
+    const slot = BUSINESS_HOURS.find(s => s[0] === d);
+    if (slot) return {jour: JOURS[d], h: slot[1], m: slot[2]};
+  }
+  return null;
+}
+
+function updateOpenStatus() {
+  const statusEl = document.getElementById('headerStatus');
+  const textEl = document.getElementById('statusText');
+  const hoursEl = document.getElementById('headerHours');
+  const open = isOpenNow();
+  if (open) {
+    statusEl.classList.remove('closed');
+    textEl.textContent = 'Ouvert';
+    const now = new Date();
+    const slot = BUSINESS_HOURS.find(s => s[0] === now.getDay());
+    hoursEl.textContent = `· Jusqu'à ${slot[3]}h${slot[4] ? String(slot[4]).padStart(2,'0') : '00'}`;
+  } else {
+    statusEl.classList.add('closed');
+    textEl.textContent = 'Fermé';
+    const next = getNextOpenSlot();
+    hoursEl.textContent = next ? `· Ouvre ${next.jour} ${next.h}h${next.m ? String(next.m).padStart(2,'0') : '00'}` : '';
+  }
+  return open;
+}
+
+// Init header status
+updateOpenStatus();
+setInterval(updateOpenStatus, 60000);
+
+// Form
 document.getElementById('traiteurForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = e.target.querySelector('.form-submit');

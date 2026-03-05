@@ -1389,8 +1389,8 @@ function playAlert() {
   try {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-    // Fonction pour créer une note
-    const playNote = (startTime, frequency, duration) => {
+    // Fonction pour créer une note avec fade-out doux
+    const playNote = (startTime, frequency, duration, fadeOutDuration = 0.15) => {
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 
@@ -1400,18 +1400,20 @@ function playAlert() {
       oscillator.frequency.value = frequency;
       oscillator.type = 'sine';
 
-      // Envelope ADSR simple pour un son doux
-      gainNode.gain.setValueAtTime(0, audioContext.currentTime + startTime);
-      gainNode.gain.linearRampToValueAtTime(0.6, audioContext.currentTime + startTime + 0.02);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + startTime + duration);
+      // Envelope ADSR avec fade-out progressif
+      const now = audioContext.currentTime + startTime;
+      gainNode.gain.setValueAtTime(0, now);
+      gainNode.gain.linearRampToValueAtTime(0.5, now + 0.02); // Attack rapide
+      gainNode.gain.linearRampToValueAtTime(0.45, now + duration - fadeOutDuration); // Sustain
+      gainNode.gain.linearRampToValueAtTime(0, now + duration); // Release doux
 
-      oscillator.start(audioContext.currentTime + startTime);
-      oscillator.stop(audioContext.currentTime + startTime + duration);
+      oscillator.start(now);
+      oscillator.stop(now + duration + 0.01); // Petit buffer pour éviter coupure
     };
 
-    // Ding-dong agréable : E5 → C5 (notes harmonieuses de sonnette)
-    playNote(0, 659.25, 0.4);    // Ding (E5)
-    playNote(0.15, 523.25, 0.5); // Dong (C5)
+    // Ding-dong agréable avec fade-out progressif
+    playNote(0, 659.25, 0.35, 0.12);    // Ding (E5) - fade-out 120ms
+    playNote(0.15, 523.25, 0.55, 0.2);  // Dong (C5) - fade-out 200ms plus doux
   } catch (err) {
     console.error('Erreur Web Audio API:', err);
   }

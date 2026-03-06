@@ -10,6 +10,26 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
+
+/* ===== VIEW TRANSITIONS (swipe animation) ===== */
+@view-transition {
+  navigation: auto;
+}
+::view-transition-old(root) {
+  animation: slideOutLeft 0.3s ease-in-out;
+}
+::view-transition-new(root) {
+  animation: slideInRight 0.3s ease-in-out;
+}
+@keyframes slideOutLeft {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
 :root{
   --dark:#1A1A1A;
   --text:#1A1A1A;--text-soft:#6B6B6B;--text-muted:#ABABAB;
@@ -244,8 +264,8 @@ a{color:inherit;text-decoration:none}
   .menu-grid{grid-template-columns:repeat(4,1fr)}
 }
 @media(max-width:640px){
-  .header{padding:18px 16px;height:130px}
-  .header-inner{flex-wrap:wrap;gap:8px}
+  .header{padding:14px 16px;height:auto}
+  .header-inner{flex-wrap:wrap;gap:10px;align-items:flex-start}
   .brand{font-size:1.3rem}
   .brand-logo-svg{display:none!important}
   .brand-logo-text{display:block!important}

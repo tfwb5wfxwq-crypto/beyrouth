@@ -238,10 +238,11 @@ function generateInvoiceHTML(order: any): string {
     <div class="restaurant-info">
       <div class="section-title">Restaurant</div>
       <div class="info-line"><strong>Beyrouth Express</strong></div>
-      <div class="info-line">4 rue du Faubourg Poissonnière</div>
-      <div class="info-line">75010 Paris</div>
-      <div class="info-line" style="margin-top:10px;">SIRET : XXX XXX XXX XXXXX (à ajouter)</div>
-      <div class="info-line">TVA : FRXX XXX XXX XXX (à ajouter)</div>
+      <div class="info-line">PAPA (SARL)</div>
+      <div class="info-line">4 Esplanade du Général de Gaulle</div>
+      <div class="info-line">92400 Courbevoie</div>
+      <div class="info-line" style="margin-top:10px;">SIRET : 830 675 047 RCS Nanterre</div>
+      <div class="info-line">TVA : FR93 830 675 047</div>
     </div>
 
     <div class="client-info" style="text-align: right;">
@@ -290,9 +291,10 @@ function generateInvoiceHTML(order: any): string {
 
   <div class="footer">
     <p style="margin:5px 0;"><strong>Beyrouth Express</strong> - Restaurant libanais</p>
-    <p style="margin:5px 0;">4 rue du Faubourg Poissonnière, 75010 Paris</p>
-    <p style="margin:5px 0;">Métro : Bonne Nouvelle (lignes 8, 9)</p>
-    <p style="margin:15px 0 5px;">TVA non applicable - Article 293B du CGI</p>
+    <p style="margin:5px 0;">PAPA (SARL) - Capital social : 350 000€</p>
+    <p style="margin:5px 0;">4 Esplanade du Général de Gaulle, 92400 Courbevoie</p>
+    <p style="margin:5px 0;">SIRET : 830 675 047 RCS Nanterre - TVA : FR93 830 675 047</p>
+    <p style="margin:5px 0;">Métro : La Défense (lignes 1, A, T2)</p>
   </div>
 </body>
 </html>

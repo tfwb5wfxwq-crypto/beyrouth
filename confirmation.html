@@ -295,6 +295,19 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let orderData = null;
 
+// 🔒 SÉCURITÉ : Fonction d'échappement HTML pour prévenir les XSS
+function escapeHtml(text) {
+  if (!text) return '';
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+
 // Vérifier si l'heure de retrait est passée (= commande automatiquement prête)
 function isPickupTimePassed(pickupTime) {
   if (!pickupTime || pickupTime === 'asap') return false;
@@ -436,17 +449,21 @@ async function loadOrder() {
     document.getElementById('orderNum').textContent = data.numero;
     document.getElementById('pickupTime').textContent = data.heure_retrait || 'Dès que possible';
 
-    // Items
+    // Items - 🔒 SÉCURISÉ contre XSS
     const itemsHtml = data.items.map(item => {
       const total = (item.prix * item.qty).toFixed(2).replace('.', ',');
+      // Échapper les données utilisateur pour prévenir XSS
+      const safeImageUrl = escapeHtml(item.image_url);
+      const safeName = escapeHtml(item.nom);
+
       const imgHtml = item.image_url
-        ? `<img src="${item.image_url}" style="width:50px;height:50px;border-radius:10px;object-fit:cover;margin-right:12px;">`
+        ? `<img src="${safeImageUrl}" alt="${safeName}" style="width:50px;height:50px;border-radius:10px;object-fit:cover;margin-right:12px;">`
         : `<div style="width:50px;height:50px;border-radius:10px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;margin-right:12px;font-size:1.5rem;">🍽️</div>`;
       return `
         <div class="item" style="display:flex;align-items:center;margin-bottom:12px;">
           ${imgHtml}
           <div style="flex:1;display:flex;justify-content:space-between;align-items:center;">
-            <span>${item.qty}x ${item.nom}</span>
+            <span>${item.qty}x ${safeName}</span>
             <span class="item-price">${total} €</span>
           </div>
         </div>

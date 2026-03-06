@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+  <!-- Page principale - Menu et commande -->
+  <url>
+    <loc>https://beyrouth.express/</loc>
+    <lastmod>2026-03-06</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://beyrouth.express/img/logo-beyrouth-express-v10.svg</image:loc>
+      <image:title>Beyrouth Express - Restaurant Libanais La Défense</image:title>
+    </image:image>
+  </url>
+
+  <!-- Page traiteur -->
+  <url>
+    <loc>https://beyrouth.express/traiteur/</loc>
+    <lastmod>2026-03-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+</urlset>

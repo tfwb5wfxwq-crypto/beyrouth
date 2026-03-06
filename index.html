@@ -3,9 +3,75 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>A Beyrouth — Click & Collect | La Défense</title>
-<meta name="description" content="Commandez en ligne chez A Beyrouth à La Défense. Cuisine libanaise authentique, retrait express.">
+
+<!-- SEO de base -->
+<title>A Beyrouth — Restaurant Libanais La Défense | Click & Collect</title>
+<meta name="description" content="Restaurant libanais A Beyrouth à La Défense Courbevoie. Commandez en ligne : shawarma, mezze, grillades, falafel. Retrait express 15 min. Cartes restaurant acceptées (Swile, Ticket Restaurant, Conecs).">
+<meta name="keywords" content="restaurant libanais, la défense, courbevoie, click and collect, shawarma, mezze, houmous, falafel, grillades, carte restaurant, swile, ticket restaurant, restoflash, conecs, livraison, retrait express">
+<link rel="canonical" href="https://beyrouth.express/">
+
+<!-- OpenGraph (Facebook, LinkedIn) -->
+<meta property="og:type" content="restaurant">
+<meta property="og:title" content="A Beyrouth — Restaurant Libanais La Défense">
+<meta property="og:description" content="Cuisine libanaise authentique à La Défense. Commandez en ligne, retirez en 15 min. Cartes restaurant acceptées.">
+<meta property="og:url" content="https://beyrouth.express/">
+<meta property="og:image" content="https://beyrouth.express/img/beyrouth-poulet.jpg">
+<meta property="og:site_name" content="A Beyrouth">
+<meta property="og:locale" content="fr_FR">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="A Beyrouth — Restaurant Libanais La Défense">
+<meta name="twitter:description" content="Cuisine libanaise authentique à La Défense. Commandez en ligne.">
+<meta name="twitter:image" content="https://beyrouth.express/img/beyrouth-poulet.jpg">
+
+<!-- Favicon -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧆</text></svg>">
+
+<!-- Structured Data (JSON-LD) pour SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Restaurant",
+  "name": "A Beyrouth",
+  "image": "https://beyrouth.express/img/beyrouth-poulet.jpg",
+  "description": "Restaurant libanais à La Défense, cuisine authentique, click & collect express",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "4 Esplanade du Général de Gaulle, Sortie 4 du métro",
+    "addressLocality": "Courbevoie",
+    "addressRegion": "Île-de-France",
+    "postalCode": "92400",
+    "addressCountry": "FR"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": 48.8920,
+    "longitude": 2.2380
+  },
+  "url": "https://beyrouth.express",
+  "servesCuisine": "Libanaise",
+  "priceRange": "€€",
+  "openingHoursSpecification": [
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"],
+      "opens": "11:00",
+      "closes": "14:30"
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"],
+      "opens": "18:00",
+      "closes": "22:00"
+    }
+  ],
+  "acceptsReservations": "False",
+  "paymentAccepted": "Carte bancaire, Swile, Ticket Restaurant, Restoflash, Conecs",
+  "hasMenu": "https://beyrouth.express/#menu"
+}
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -451,12 +517,12 @@ a{color:inherit;text-decoration:none}
 
       <div class="cart-form">
         <input type="hidden" id="pickupTime" value="">
-        <input type="text" id="clientName" placeholder="Prénom" required>
+        <input type="text" id="clientName" placeholder="Prénom" required minlength="2" maxlength="50" pattern="[a-zA-ZÀ-ÿ\s'-]{2,50}">
         <div class="form-row">
-          <input type="tel" id="clientPhone" placeholder="Téléphone" required>
-          <input type="email" id="clientEmail" placeholder="Email" required>
+          <input type="tel" id="clientPhone" placeholder="Téléphone (ex: 0612345678)" required pattern="(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}">
+          <input type="email" id="clientEmail" placeholder="Email" required pattern="[^\s@]+@[^\s@]+\.[^\s@]+">
         </div>
-        <textarea id="clientNote" placeholder="Note : allergies, sans oignon, etc."></textarea>
+        <textarea id="clientNote" placeholder="Note : allergies, sans oignon, etc." maxlength="500"></textarea>
         <label class="cart-optin">
           <input type="checkbox" id="optinPromos" checked>
           <span>Me tenir informé des offres et promotions</span>
@@ -1427,15 +1493,38 @@ async function generateUniqueOrderNum() {
   return orderNum;
 }
 
+// 🔒 VALIDATIONS STRICTES pour sécurité et qualité des données
+function validateEmail(email) {
+  // RFC 5322 simplifié - Format: text@domain.tld
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function validatePhone(phone) {
+  // Format français : 06/07 + 8 chiffres OU +33 6/7 + 8 chiffres OU 01-05 + 8 chiffres
+  return /^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/.test(phone);
+}
+
+function validateName(name) {
+  // Lettres, espaces, tirets, apostrophes uniquement - Min 2, Max 50 caractères
+  return /^[a-zA-ZÀ-ÿ\s'-]{2,50}$/.test(name);
+}
+
 async function submitOrder() {
   const name = document.getElementById('clientName').value.trim();
   const email = document.getElementById('clientEmail').value.trim();
   const phone = document.getElementById('clientPhone').value.trim();
   const pickup = document.getElementById('pickupTime').value;
+
+  // Validations strictes 🔒
   if (!name) { showToast('⚠️ Entrez votre prénom', 'error'); return; }
+  if (!validateName(name)) { showToast('⚠️ Prénom invalide (lettres uniquement, 2-50 car.)', 'error'); return; }
+
   if (!phone) { showToast('⚠️ Entrez votre téléphone', 'error'); return; }
+  if (!validatePhone(phone)) { showToast('⚠️ Numéro invalide (ex: 0612345678 ou +33612345678)', 'error'); return; }
+
   if (!email) { showToast('⚠️ Email OBLIGATOIRE pour recevoir la confirmation', 'error'); return; }
-  if (!email.includes('@') || !email.includes('.')) { showToast('⚠️ Email invalide (ex: nom@gmail.com)', 'error'); return; }
+  if (!validateEmail(email)) { showToast('⚠️ Email invalide (ex: nom@gmail.com)', 'error'); return; }
+
   if (!pickup) { showToast('Choisissez une heure de retrait', 'error'); return; }
   // Vérifier que ASAP n'est pas choisi quand le restaurant est fermé (ne devrait plus arriver)
   if (pickup === 'asap' && !isOpenNow()) {

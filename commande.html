@@ -218,6 +218,19 @@ const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SU
 
 const STATUSES = ['payee','acceptee','en_preparation','prete','recuperee'];
 let currentOrder = null;
+
+// 🔒 SÉCURITÉ : Fonction d'échappement HTML pour prévenir les XSS
+function escapeHtml(text) {
+  if (!text) return '';
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return String(text).replace(/[&<>"']/g, m => map[m]);
+}
 let subscription = null;
 
 // Check URL param
@@ -281,19 +294,25 @@ function displayOrder(order) {
 
   updateProgress(order.statut);
 
-  // Order details
+  // Order details - 🔒 SÉCURISÉ contre XSS
   const details = document.getElementById('orderDetails');
   const items = order.items || [];
   let html = '<h3>Détail</h3>';
   items.forEach(item => {
+    // Échapper les données utilisateur pour prévenir XSS
+    const safeImageUrl = escapeHtml(item.image_url);
+    const safeName = escapeHtml(item.nom);
+
     const imgHtml = item.image_url
-      ? `<img src="${item.image_url}" alt="${item.nom}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-right:8px;">`
+      ? `<img src="${safeImageUrl}" alt="${safeName}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-right:8px;">`
       : '';
+
     const componentsHtml = item.isFormule && item.components
-      ? `<div style="font-size:.7rem;color:#666;padding-left:48px;margin-top:2px;">→ ${item.components.join(', ')}</div>`
+      ? `<div style="font-size:.7rem;color:#666;padding-left:48px;margin-top:2px;">→ ${item.components.map(c => escapeHtml(c)).join(', ')}</div>`
       : '';
+
     html += `<div class="detail-item" style="align-items:center;">
-      <span style="display:flex;align-items:center;">${imgHtml}${item.qty}x ${item.nom}</span>
+      <span style="display:flex;align-items:center;">${imgHtml}${item.qty}x ${safeName}</span>
       <span>${(item.prix * item.qty).toFixed(2).replace('.',',')} €</span>
     </div>${componentsHtml}`;
   });
@@ -475,10 +494,13 @@ async function downloadInvoice(orderId) {
 
     const html = await response.text();
 
-    // Ouvrir dans un nouvel onglet
-    const win = window.open('', '_blank');
-    win.document.write(html);
-    win.document.close();
+    // 🔒 SÉCURITÉ : Utiliser Blob au lieu de document.write() pour éviter XSS
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, '_blank');
+
+    // Nettoyer l'URL après ouverture
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (err) {
     console.error('Erreur téléchargement facture:', err);
     alert('Erreur lors du téléchargement de la facture');

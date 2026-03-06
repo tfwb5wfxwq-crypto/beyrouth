@@ -94,32 +94,67 @@
   </div>
 
   <script>
-    const ADMIN_CODE = 'A5qYIeJatg';
+    // 🔒 SÉCURITÉ : Authentification via Edge Function (code stocké côté serveur)
+    const SUPABASE_URL = 'https://xbuftfwcyontgqbbrrjt.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidWZ0ZndjeW9udGdxYmJycmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2Njg1NzksImV4cCI6MjA4NjI0NDU3OX0.ROkSccADlpLsWMgqyiX_xNaFdJNR8P4R-LJCnZV2Gzg';
 
     // Enter key to submit
     document.getElementById('codeInput').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') login();
     });
 
-    function login() {
+    async function login() {
       const code = document.getElementById('codeInput').value.trim();
+      if (!code) return;
 
-      if (code === ADMIN_CODE) {
-        // Sauvegarder le code
-        localStorage.setItem('adminCode', code);
+      // Désactiver le bouton pendant la vérification
+      const button = document.querySelector('button');
+      const originalText = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Vérification...';
 
-        // Rediriger vers l'admin
-        window.location.href = './index.html';
-      } else {
-        // Afficher erreur
+      try {
+        // 🔒 Appeler l'Edge Function pour valider le code côté serveur
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-auth`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          },
+          body: JSON.stringify({ code })
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.token) {
+          // Sauvegarder le token (PAS le code)
+          localStorage.setItem('adminToken', data.token);
+          localStorage.setItem('adminTokenExpiry', Date.now() + data.expiresIn * 1000);
+
+          // Rediriger vers l'admin
+          window.location.href = './index.html';
+        } else {
+          // Afficher erreur
+          document.getElementById('error').style.display = 'block';
+          document.getElementById('codeInput').value = '';
+          document.getElementById('codeInput').focus();
+
+          // Cacher l'erreur après 3s
+          setTimeout(() => {
+            document.getElementById('error').style.display = 'none';
+          }, 3000);
+        }
+      } catch (error) {
+        console.error('Erreur auth:', error);
+        document.getElementById('error').textContent = '❌ Erreur de connexion';
         document.getElementById('error').style.display = 'block';
-        document.getElementById('codeInput').value = '';
-        document.getElementById('codeInput').focus();
-
-        // Cacher l'erreur après 3s
         setTimeout(() => {
           document.getElementById('error').style.display = 'none';
+          document.getElementById('error').textContent = '❌ Code incorrect';
         }, 3000);
+      } finally {
+        button.disabled = false;
+        button.textContent = originalText;
       }
     }
   </script>

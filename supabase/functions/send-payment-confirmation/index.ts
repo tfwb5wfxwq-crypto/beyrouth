@@ -73,9 +73,8 @@ serve(async (req) => {
   <div style="max-width: 600px; margin: 0 auto; background: #fff;">
     <!-- Header -->
     <div style="background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); padding: 40px 20px; text-align: center;">
-      <div style="font-size: 48px; margin-bottom: 10px;">🧆</div>
-      <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 700;">A Beyrouth</h1>
-      <p style="color: rgba(255,255,255,0.8); margin: 8px 0 0 0; font-size: 16px;">Confirmation de paiement</p>
+      <h1 style="color: #D4A853; margin: 0 0 8px 0; font-size: 32px; font-weight: 700; letter-spacing: 1px;">Beyrouth Express</h1>
+      <p style="color: rgba(255,255,255,0.8); margin: 0; font-size: 15px; line-height: 1.5;">Service Click and Collect<br>restaurant A Beyrouth</p>
     </div>
 
     <!-- Success Badge -->

@@ -299,8 +299,35 @@ function displayOrder(order) {
   });
   html += `<div class="detail-item"><span>Total</span><span>${(order.total || 0).toFixed(2).replace('.',',')} €</span></div>`;
 
-  // Section facture (disponible pour toutes les commandes acceptées)
-  if (order.statut === 'acceptee' || order.statut === 'en_preparation' || order.statut === 'prete' || order.statut === 'recuperee') {
+  // Section facture - Système mixte : disponible si récupérée OU 2h après heure retrait
+  if (order.statut !== 'cancelled') {
+    // Vérifier si facture disponible
+    let invoiceAvailable = false;
+    let waitMessage = '';
+
+    if (order.invoice_number) {
+      // Facture déjà générée
+      invoiceAvailable = true;
+    } else if (order.statut === 'recuperee') {
+      // Commande récupérée → facture dispo
+      invoiceAvailable = true;
+    } else if (order.heure_retrait && order.heure_retrait !== 'asap') {
+      // Vérifier délai 2h après heure retrait
+      const now = new Date();
+      const pickupTime = parsePickupTime(order.heure_retrait);
+      const availableTime = new Date(pickupTime.getTime() + 2 * 60 * 60 * 1000); // +2h
+
+      if (now >= availableTime) {
+        invoiceAvailable = true;
+      } else {
+        const hoursLeft = Math.floor((availableTime - now) / (1000 * 60 * 60));
+        const minsLeft = Math.floor(((availableTime - now) % (1000 * 60 * 60)) / (1000 * 60));
+        waitMessage = `Facture disponible ${hoursLeft > 0 ? hoursLeft + 'h' : ''}${minsLeft}min après le retrait`;
+      }
+    } else {
+      waitMessage = 'Facture disponible après le retrait de votre commande';
+    }
+
     if (order.invoice_number) {
       // Facture déjà générée
       html += `
@@ -313,11 +340,11 @@ function displayOrder(order) {
           </button>
         </div>
       `;
-    } else {
-      // Pas encore de facture
+    } else if (invoiceAvailable) {
+      // Facture pas encore générée mais disponible
       html += `
         <button onclick="showInvoiceForm()"
-          style="width:100%;margin-top:20px;padding:14px;background:linear-gradient(135deg,#1a1a1a 0%,#000 100%);color:var(--gold);border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2);">
+          style="width:100%;margin-top:20px;padding:14px;background:linear-gradient(135deg,#1a1a1a 0%,#000 100%);color:#D4A853;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2);">
           💼 Demander une facture
         </button>
         <div class="invoice-form" id="invoiceForm">
@@ -344,6 +371,14 @@ function displayOrder(order) {
             <button class="btn-secondary" onclick="hideInvoiceForm()">Annuler</button>
             <button class="btn-primary" onclick="generateInvoice()">Générer ma facture</button>
           </div>
+        </div>
+      `;
+    } else if (waitMessage) {
+      // Pas encore disponible
+      html += `
+        <div style="margin-top:20px;padding:14px;background:#FFF8F0;border-radius:8px;border:1px solid #E0D5C0;text-align:center;">
+          <div style="font-size:.9rem;color:#666;margin-bottom:8px;">📄 Facture</div>
+          <div style="font-size:.85rem;color:#888;">${waitMessage}</div>
         </div>
       `;
     }
@@ -458,6 +493,19 @@ function updateProgress(currentStatus) {
     else if (i === idx) step.classList.add('current');
     else step.classList.add('pending');
   });
+}
+
+// Parser l'heure de retrait (format "12h30" ou "12:30")
+function parsePickupTime(timeStr) {
+  const today = new Date();
+  const match = timeStr.match(/(\d{1,2})[h:](\d{2})/);
+  if (match) {
+    const hours = parseInt(match[1]);
+    const mins = parseInt(match[2]);
+    const pickupDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, mins);
+    return pickupDate;
+  }
+  return new Date(); // Fallback
 }
 
 function subscribeToOrder(num) {

@@ -497,6 +497,21 @@ let paygreen = null;
 try { sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null; } catch(e) { console.error('Supabase init error:', e); }
 try { if (window.Paygreen) paygreen = new window.Paygreen(PAYGREEN_PUBLIC_KEY); } catch(e) { console.error('Paygreen init error:', e); }
 
+// ===== HAPTICS =====
+const haptic = {
+  presets: {
+    success: [100, 30, 100],           // Double tap léger
+    error: [200, 50, 200, 50, 200],   // Triple tap alerte
+    nudge: [50, 50, 50],              // Tap très léger
+    buzz: [500]                        // Vibration longue
+  },
+  trigger(type) {
+    if (!navigator.vibrate) return;
+    const pattern = typeof type === 'string' ? this.presets[type] : type;
+    if (pattern) navigator.vibrate(pattern);
+  }
+};
+
 // ===== STATE =====
 let categories = [];
 let menuItems = [];
@@ -762,6 +777,10 @@ function subscribeRealtime() {
 
 // ===== TOAST NOTIFICATIONS =====
 function showToast(message, type = 'info') {
+  // Vibration selon le type
+  if (type === 'error' || type === 'warning') haptic.trigger('error');
+  else if (type === 'success') haptic.trigger('success');
+
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
@@ -886,6 +905,7 @@ function addToCart(itemId) {
       qty: 1
     });
   }
+  haptic.trigger('success'); // Vibration ajout panier
   saveCart(); updateCartUI(); renderMenu();
   if (isNew) showUpsellBubble(itemId);
 }
@@ -1053,6 +1073,7 @@ function addFormuleToCart() {
 function changeQty(itemId, delta) {
   const item = cart.find(c => c.id === itemId);
   if (!item) return;
+  haptic.trigger('nudge'); // Vibration légère +/-
   item.qty += delta;
   if (item.qty <= 0) cart = cart.filter(c => c.id !== itemId);
   saveCart(); updateCartUI(); renderMenu();

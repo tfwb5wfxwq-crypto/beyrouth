@@ -810,6 +810,21 @@ const SUPABASE_URL = 'https://xbuftfwcyontgqbbrrjt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidWZ0ZndjeW9udGdxYmJycmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2Njg1NzksImV4cCI6MjA4NjI0NDU3OX0.ROkSccADlpLsWMgqyiX_xNaFdJNR8P4R-LJCnZV2Gzg';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ===== HAPTICS =====
+const haptic = {
+  presets: {
+    success: [100, 30, 100],           // Double tap léger
+    error: [200, 50, 200, 50, 200],   // Triple tap alerte
+    nudge: [50, 50, 50],              // Tap très léger
+    buzz: [500]                        // Vibration longue
+  },
+  trigger(type) {
+    if (!navigator.vibrate) return;
+    const pattern = typeof type === 'string' ? this.presets[type] : type;
+    if (pattern) navigator.vibrate(pattern);
+  }
+};
+
 // ===== PULL TO REFRESH =====
 const pullRefreshEl = document.createElement('div');
 pullRefreshEl.id = 'pullRefresh';
@@ -999,6 +1014,7 @@ async function toggleClickCollect() {
 
 async function toggleAutoAccept() {
   autoAcceptOrders = document.getElementById('toggleAutoAccept').checked;
+  haptic.trigger('nudge'); // Vibration toggle
   try {
     await sb.from('settings').upsert({
       key: 'auto_accept_orders',
@@ -1011,12 +1027,14 @@ async function toggleAutoAccept() {
       for (const order of payedOrders) {
         await updateStatus(order.id, 'acceptee');
       }
+      haptic.trigger('success'); // Vibration auto-accept
       alert(`✅ Auto-Accept activé${payedOrders.length > 0 ? ` - ${payedOrders.length} commande(s) acceptée(s)` : ''}`);
     } else {
       alert('⏸️ Auto-Accept désactivé - Validation manuelle requise');
     }
   } catch (err) {
     console.error('Erreur sauvegarde:', err);
+    haptic.trigger('error'); // Vibration erreur
   }
 }
 
@@ -1133,6 +1151,7 @@ function closeSlotPauseModal() {
 }
 
 async function pauseSlots(minutes) {
+  haptic.trigger('buzz'); // Vibration forte pour pause
   const now = new Date();
   let pauseUntil;
 
@@ -1170,6 +1189,7 @@ async function pauseSlots(minutes) {
 }
 
 async function resumeSlots() {
+  haptic.trigger('success'); // Vibration confirmation reprise
   nextSlotAvailableAt = '';
 
   try {
@@ -1183,6 +1203,7 @@ async function resumeSlots() {
   } catch (err) {
     console.error('Erreur reprise:', err);
     alert('❌ Erreur lors de la reprise');
+    haptic.trigger('error'); // Vibration erreur
   }
 }
 
@@ -1609,6 +1630,7 @@ async function updateStatus(orderId, newStatus) {
 
     // Envoyer email de confirmation quand commande acceptée
     if (newStatus === 'acceptee') {
+      haptic.trigger('success'); // Vibration confirmation acceptation
       try {
         const { data, error } = await sb.functions.invoke('send-order-confirmation', {
           body: { orderId: orderId }
@@ -1681,9 +1703,11 @@ async function toggleIngredient(id, newValue) {
   if (error || !data?.success) {
     console.error('❌ Erreur toggle ingredient:', error || data?.error);
     alert('Erreur: ' + (data?.error || error?.message || 'Erreur inconnue'));
+    haptic.trigger('error'); // Vibration erreur
     return;
   }
 
+  haptic.trigger('success'); // Vibration confirmation
   const ing = ingredients.find(i => i.id === id);
   if (ing) ing.disponible = newValue;
   renderIngredients();
@@ -1744,15 +1768,18 @@ async function toggleMenuItem(id, newValue) {
   if (error) {
     console.error('❌ Erreur toggle menu item:', error);
     alert('Erreur lors de la modification: ' + error.message);
+    haptic.trigger('error'); // Vibration erreur
     return;
   }
 
   if (!data || !data.success) {
     console.error('❌ Erreur:', data?.error || 'Erreur inconnue');
     alert('Erreur: ' + (data?.error || 'Item introuvable'));
+    haptic.trigger('error'); // Vibration erreur
     return;
   }
 
+  haptic.trigger('success'); // Vibration confirmation
   console.log('🎯 Ligne modifiée avec succès:', data.data);
   const item = menuItemsList.find(i => i.id === numId);
   if (item) item.disponible = boolValue;

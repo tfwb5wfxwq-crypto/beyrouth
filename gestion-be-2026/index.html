@@ -217,6 +217,7 @@ button{cursor:pointer;font-family:inherit;border:none}
   display:flex;
   flex-direction:column;
   gap:8px;
+  width:100%;
 }
 @media (max-width:1200px){
   .status-section-cards{grid-template-columns:repeat(2, 1fr)}
@@ -253,7 +254,7 @@ button{cursor:pointer;font-family:inherit;border:none}
 @keyframes slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:none}}
 @keyframes pulse-red{0%,100%{opacity:1}50%{opacity:0.85}}
 .order-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.order-num{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:var(--bordeaux)}
+.order-num{font-family:'Courier New',monospace;font-size:1.2rem;font-weight:700;color:#1a1a1a;letter-spacing:1px}
 .order-time-badge{
   padding:4px 10px;border-radius:12px;font-size:.75rem;font-weight:600;
   background:var(--cream);color:var(--noir);cursor:pointer;
@@ -1439,6 +1440,13 @@ function isToday(order) {
 
 // Helper: check if order is future (J+1, J+2...)
 function isFuture(order) {
+  // Check if pickup time contains "Demain" or future date indicators
+  const heureRetrait = (order.heure_retrait || '').toLowerCase();
+  if (heureRetrait.includes('demain') || heureRetrait.includes('tomorrow')) {
+    return true;
+  }
+
+  // Fallback: check created_at date
   const orderDate = new Date(order.created_at);
   const today = new Date();
   today.setHours(0, 0, 0, 0);

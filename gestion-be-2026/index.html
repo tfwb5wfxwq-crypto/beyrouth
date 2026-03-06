@@ -213,8 +213,19 @@ button{cursor:pointer;font-family:inherit;border:none}
   grid-template-columns:repeat(3, 1fr);
   gap:10px;
 }
-@media (max-width:1200px){.status-section-cards{grid-template-columns:repeat(2, 1fr)}}
-@media (max-width:768px){.status-section-cards{grid-template-columns:1fr}}
+.orders-grid{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:12px;
+}
+@media (max-width:1200px){
+  .status-section-cards{grid-template-columns:repeat(2, 1fr)}
+  .orders-grid{grid-template-columns:repeat(2, 1fr)}
+}
+@media (max-width:768px){
+  .status-section-cards{grid-template-columns:1fr}
+  .orders-grid{grid-template-columns:1fr}
+}
 .order-card{
   background:#fff;border-radius:var(--radius);padding:14px;
   box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid #ddd;
@@ -227,6 +238,12 @@ button{cursor:pointer;font-family:inherit;border:none}
 .order-card.urgency-late{border-left-color:#C62828;border-left-width:6px}
 .order-card.urgency-urgent{border-left-color:#FF6F00;border-left-width:5px}
 .order-card.urgency-soon{border-left-color:#FFA726;border-left-width:4px}
+.status-badge{
+  font-size:.65rem;font-weight:700;padding:4px 10px;
+  border-radius:12px;display:inline-flex;align-items:center;gap:3px;
+  box-shadow:0 2px 4px rgba(0,0,0,0.1);
+  letter-spacing:0.5px;
+}
 .urgency-badge{
   font-size:.65rem;font-weight:700;padding:3px 8px;
   border-radius:8px;display:inline-flex;align-items:center;gap:3px;
@@ -1480,83 +1497,37 @@ function renderOrders() {
   normales.sort(sortByPickup);
   futureOrders.sort(sortByPickup);
 
-  let html = '';
+  // Créer une liste unique triée intelligemment (nouvelles → retard → urgentes → normales → futures)
+  let allOrders = [];
 
   // Apply filter
   const showAll = orderFilter === 'all';
-  const showNouvelles = showAll || orderFilter === 'nouvelles';
-  const showRetard = showAll || orderFilter === 'retard';
-  const showUrgentes = showAll || orderFilter === 'urgentes';
-  const showNormales = showAll || orderFilter === 'normales';
-  const showFutures = showAll || orderFilter === 'futures';
 
-  // 1. NOUVELLES (à accepter)
-  if (nouvelles.length && showNouvelles) {
-    html += `<div id="section-nouvelles" class="status-section status-nouvelles">
-      <div class="status-section-header" onclick="scrollToSection('section-nouvelles')" style="background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); color: #D4A853;">
-        🆕 Nouvelles <span class="status-section-count">${nouvelles.length}</span>
-      </div>
-      <div class="status-section-cards">`;
-    nouvelles.forEach(order => {
-      html += renderOrderCard(order, 'new');
-    });
-    html += `</div></div>`;
+  if (showAll || orderFilter === 'nouvelles') {
+    allOrders.push(...nouvelles.map(o => ({ ...o, priority: 1, badge: 'new' })));
+  }
+  if (showAll || orderFilter === 'retard') {
+    allOrders.push(...enRetard.map(o => ({ ...o, priority: 2, badge: 'late' })));
+  }
+  if (showAll || orderFilter === 'urgentes') {
+    allOrders.push(...urgentes.map(o => ({ ...o, priority: 3, badge: 'urgent' })));
+  }
+  if (showAll || orderFilter === 'normales') {
+    allOrders.push(...normales.map(o => ({ ...o, priority: 4, badge: 'normal' })));
+  }
+  if (showAll || orderFilter === 'futures') {
+    allOrders.push(...futureOrders.map(o => ({ ...o, priority: 5, badge: 'future' })));
   }
 
-  // 2. EN RETARD (+15min)
-  if (enRetard.length && showRetard) {
-    html += `<div id="section-retard" class="status-section status-retard">
-      <div class="status-section-header" onclick="scrollToSection('section-retard')" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); animation: pulse-red 2s infinite;">
-        🔴 En retard <span class="status-section-count">${enRetard.length}</span>
-      </div>
-      <div class="status-section-cards">`;
-    enRetard.forEach(order => {
-      html += renderOrderCard(order, 'late');
-    });
-    html += `</div></div>`;
-  }
+  // Sort by priority, then by pickup time
+  allOrders.sort((a, b) => {
+    if (a.priority !== b.priority) return a.priority - b.priority;
+    return parsePickupTime(a) - parsePickupTime(b);
+  });
 
-  // 3. URGENTES (<30min)
-  if (urgentes.length && showUrgentes) {
-    html += `<div id="section-urgentes" class="status-section status-urgent">
-      <div class="status-section-header" onclick="scrollToSection('section-urgentes')" style="background: linear-gradient(135deg, #ea580c 0%, #fb923c 100%);">
-        ⚠️ Urgentes <span class="status-section-count">${urgentes.length}</span>
-      </div>
-      <div class="status-section-cards">`;
-    urgentes.forEach(order => {
-      html += renderOrderCard(order, 'urgent');
-    });
-    html += `</div></div>`;
-  }
-
-  // 4. NORMALES (acceptées, future)
-  if (normales.length && showNormales) {
-    html += `<div id="section-normales" class="status-section">
-      <div class="status-section-header" onclick="scrollToSection('section-normales')">
-        ✅ En cours <span class="status-section-count">${normales.length}</span>
-      </div>
-      <div class="status-section-cards">`;
-    normales.forEach(order => {
-      html += renderOrderCard(order, '');
-    });
-    html += `</div></div>`;
-  }
-
-  // 5. COMMANDES FUTURES (J+1, J+2...)
-  if (futureOrders.length && showFutures) {
-    html += `<div id="section-futures" class="status-section status-future" style="opacity:0.6;">
-      <div class="status-section-header" onclick="scrollToSection('section-futures')" style="background:#e5e7eb; color:#6b7280;">
-        📅 Futures <span class="status-section-count">${futureOrders.length}</span>
-      </div>
-      <div class="status-section-cards">`;
-    futureOrders.forEach(order => {
-      html += renderOrderCard(order, 'future');
-    });
-    html += `</div></div>`;
-  }
-
-  // Message si aucune commande avec ce filtre
-  if (!html && orderFilter !== 'all') {
+  // Render cards in grid
+  let html = '';
+  if (allOrders.length === 0) {
     const filterNames = {
       nouvelles: 'nouvelles commandes',
       retard: 'commandes en retard',
@@ -1564,7 +1535,13 @@ function renderOrders() {
       normales: 'commandes normales',
       futures: 'commandes futures'
     };
-    html = `<div class="no-orders">Aucune ${filterNames[orderFilter]} pour le moment</div>`;
+    html = `<div class="no-orders">Aucune ${orderFilter === 'all' ? 'commande' : filterNames[orderFilter]} pour le moment</div>`;
+  } else {
+    html = '<div class="orders-grid">';
+    allOrders.forEach(order => {
+      html += renderOrderCard(order, order.badge);
+    });
+    html += '</div>';
   }
 
   list.innerHTML = html;
@@ -1582,22 +1559,33 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
   const urgency = !isHistory ? getUrgency(order) : '';
   const urgencyClass = urgency ? `urgency-${urgency}` : '';
 
-  // Urgency badge
-  let urgencyBadge = '';
-  if (!isHistory && urgency === 'late') {
-    urgencyBadge = '<span class="urgency-badge late">⚠️ EN RETARD</span>';
-  } else if (!isHistory && urgency === 'urgent') {
-    urgencyBadge = '<span class="urgency-badge urgent">🔥 URGENT</span>';
-  } else if (!isHistory && urgency === 'soon') {
-    urgencyBadge = '<span class="urgency-badge soon">⏰ BIENTÔT</span>';
-  }
+  // Status badge (NOUVELLE, EN RETARD, URGENTE, EN COURS, FUTURE)
+  const statusBadges = {
+    new: { text: '🆕 NOUVELLE', bg: '#B8860B', color: '#fff' },
+    late: { text: '⏰ RETARD', bg: '#8B4513', color: '#fff' },
+    urgent: { text: '⚠️ URGENTE', bg: '#D4A853', color: '#fff' },
+    normal: { text: '✅ EN COURS', bg: '#6B7B4C', color: '#fff' },
+    future: { text: '📅 FUTURE', bg: '#A0958B', color: '#fff' }
+  };
+
+  // Background color for card (très léger)
+  const cardBgColors = {
+    new: '#FFF8DC',      // Beige or léger
+    late: '#FFF0F0',     // Rose très clair
+    urgent: '#FFFBF0',   // Ambre très clair
+    normal: '#F5F8F0',   // Vert olive très clair
+    future: '#F8F8F8'    // Gris très clair
+  };
+
+  const badge = !isHistory && statusBadges[statusClass] ? statusBadges[statusClass] : null;
+  const cardBg = !isHistory && cardBgColors[statusClass] ? cardBgColors[statusClass] : '#fff';
 
   return `
-    <div class="order-card ${statusClass} ${urgencyClass}" id="order-${order.id}">
+    <div class="order-card ${statusClass} ${urgencyClass}" id="order-${order.id}" style="background:${cardBg};">
       <div class="order-top">
         <span class="order-num">${order.numero}</span>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          ${urgencyBadge}
+          ${badge ? `<span class="status-badge" style="background:${badge.bg};color:${badge.color};">${badge.text}</span>` : ''}
           ${isHistory
             ? `<span class="order-time-badge" style="cursor:default;">${statusEmoji} ${statusLabel} — ${dateStr} ${timeStr}</span>`
             : `<span class="order-time-badge" onclick="rescheduleOrder(${order.id},'${order.heure_retrait}')">${order.heure_retrait === 'asap' ? '⚡ Dès que possible' : '🕐 ' + order.heure_retrait}</span>`

@@ -242,12 +242,13 @@ function generateInvoiceHTML(order: any): string {
   <div style="display: flex; justify-content: space-between; margin-bottom: 40px;">
     <div class="restaurant-info">
       <div class="section-title">Restaurant</div>
-      <div class="info-line"><strong>Beyrouth Express</strong></div>
+      <div class="info-line"><strong>A Beyrouth</strong></div>
       <div class="info-line">PAPA (SARL)</div>
       <div class="info-line">4 Esplanade du Général de Gaulle</div>
       <div class="info-line">92400 Courbevoie</div>
       <div class="info-line" style="margin-top:10px;">SIRET : 830 675 047 RCS Nanterre</div>
       <div class="info-line">TVA : FR93 830 675 047</div>
+      <div class="info-line" style="margin-top:10px; font-size:12px; color:#888;">Commande via beyrouth.express</div>
     </div>
 
     <div class="client-info" style="text-align: right;">
@@ -298,11 +299,12 @@ function generateInvoiceHTML(order: any): string {
   ` : ''}
 
   <div class="footer">
-    <p style="margin:5px 0;"><strong>Beyrouth Express</strong> - Restaurant libanais</p>
+    <p style="margin:5px 0;"><strong>A Beyrouth</strong> - Restaurant libanais</p>
     <p style="margin:5px 0;">PAPA (SARL) - Capital social : 350 000€</p>
     <p style="margin:5px 0;">4 Esplanade du Général de Gaulle, 92400 Courbevoie</p>
     <p style="margin:5px 0;">SIRET : 830 675 047 RCS Nanterre - TVA : FR93 830 675 047</p>
     <p style="margin:5px 0;">Métro : La Défense (lignes 1, A, T2)</p>
+    <p style="margin:5px 0; font-size:11px; color:#aaa;">Commande via beyrouth.express</p>
   </div>
 </body>
 </html>

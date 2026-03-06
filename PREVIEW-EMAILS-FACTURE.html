@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preview Emails & Facture - Beyrouth Express</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: #f0f0f0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 40px;
+      font-size: 14px;
+    }
+    .email-preview {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .email-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 5px;
+    }
+    .email-meta {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 15px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #eee;
+    }
+    .email-frame {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .nav {
+      position: sticky;
+      top: 20px;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .nav a {
+      padding: 8px 16px;
+      background: #667eea;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .nav a:hover {
+      background: #5568d3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📧 Preview Emails & Facture</h1>
+    <p class="subtitle">Beyrouth Express - Tous les templates</p>
+
+    <div class="nav">
+      <a href="#email1">Email Confirmation</a>
+      <a href="#email2">Email Paiement</a>
+      <a href="#email3">Email Relance</a>
+      <a href="#facture">Facture PDF</a>
+    </div>
+
+    <!-- EMAIL 1: CONFIRMATION COMMANDE (acceptee) -->
+    <div class="email-preview" id="email1">
+      <div class="email-title">📧 Email 1 : Confirmation de commande (acceptee)</div>
+      <div class="email-meta">
+        <strong>De :</strong> Beyrouth Express &lt;noreply@beyrouth.express&gt;<br>
+        <strong>Sujet :</strong> ✅ Commande 4728 KP confirmée<br>
+        <strong>Trigger :</strong> Quand admin accepte la commande (statut: acceptee)
+      </div>
+      <div class="email-frame">
+        <div style="max-width: 600px; margin: 0 auto; background: #fff;">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); padding: 40px 20px; text-align: center;">
+            <h1 style="color: #D4A853; margin: 0 0 8px 0; font-size: 32px; font-weight: 700; letter-spacing: 1px;">Beyrouth Express</h1>
+            <p style="color: rgba(255,255,255,0.8); margin: 0; font-size: 15px; line-height: 1.5;">Service Click and Collect<br>restaurant A Beyrouth</p>
+          </div>
+
+          <!-- Success Badge -->
+          <div style="text-align: center; padding: 30px 20px;">
+            <div style="width: 80px; height: 80px; background: #E8F5E9; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+              <span style="font-size: 40px; color: #4CAF50;">✓</span>
+            </div>
+            <h2 style="margin: 0 0 10px 0; font-size: 24px; color: #1a1a1a;">Commande confirmée</h2>
+            <p style="margin: 0; color: #666; font-size: 14px;">Nous préparons votre commande avec soin</p>
+          </div>
+
+          <!-- Order Number -->
+          <div style="background: #FFF8F0; padding: 30px 20px; text-align: center; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+            <div>
+              <p style="margin: 0 0 5px 0; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Numéro de commande</p>
+              <p style="margin: 0; font-size: 48px; font-weight: 700; color: #4CAF50; font-family: 'Courier New', monospace; letter-spacing: 8px;">4728 KP</p>
+              <p style="margin: 10px 0 0 0; font-size: 13px; color: #666;">Présentez ce numéro lors du retrait</p>
+            </div>
+          </div>
+
+          <!-- Customer Info -->
+          <div style="padding: 30px 20px; background: #fafafa;">
+            <h3 style="margin: 0 0 15px 0; font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Vos informations</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 8px 0; color: #666; font-size: 14px;"><strong>Nom :</strong></td>
+                <td style="padding: 8px 0; text-align: right; color: #1a1a1a; font-size: 14px;">Mohamed</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #666; font-size: 14px;"><strong>Heure de retrait :</strong></td>
+                <td style="padding: 8px 0; text-align: right; color: #1a1a1a; font-size: 14px;">12h30</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #666; font-size: 14px; vertical-align: top;"><strong>Lieu :</strong></td>
+                <td style="padding: 8px 0; text-align: right; color: #1a1a1a; font-size: 14px; line-height: 1.5;">
+                  4 Esplanade du Général de Gaulle<br>
+                  92400 Courbevoie (La Défense)<br>
+                  <a href="https://maps.google.com/?q=4+Esplanade+du+Général+de+Gaulle+92400+Courbevoie" style="color: #4CAF50; text-decoration: none; font-weight: 600;">📍 Voir sur Google Maps</a>
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Order Items -->
+          <div style="padding: 30px 20px;">
+            <h3 style="margin: 0 0 15px 0; font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Détail de la commande</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 8px 0; border-bottom: 1px solid #eee;">2x Chawarma poulet</td>
+                <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">18,00 €</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; border-bottom: 1px solid #eee;">1x Houmous</td>
+                <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">6,50 €</td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 0 4px 20px; border-bottom: 1px solid #eee; font-size: 13px; color: #666;">+ Pita supplémentaire</td>
+                <td style="padding: 4px 0; border-bottom: 1px solid #eee; text-align: right; font-size: 13px; color: #666;">1,00 €</td>
+              </tr>
+              <tr>
+                <td style="padding: 15px 0 8px 0; font-size: 14px; color: #666;">Total HT</td>
+                <td style="padding: 15px 0 8px 0; font-size: 14px; text-align: right; color: #666;">23,18 €</td>
+              </tr>
+              <tr>
+                <td style="padding: 0 0 12px 0; font-size: 14px; color: #666;">TVA 10%</td>
+                <td style="padding: 0 0 12px 0; font-size: 14px; text-align: right; color: #666;">2,32 €</td>
+              </tr>
+              <tr style="border-top: 2px solid #1a1a1a;">
+                <td style="padding: 12px 0 0 0; font-weight: 700; font-size: 16px; color: #1a1a1a;">Total TTC</td>
+                <td style="padding: 12px 0 0 0; font-weight: 700; font-size: 16px; text-align: right; color: #1a1a1a;">25,50 €</td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Note -->
+          <div style="padding: 0 20px 30px 20px;">
+            <div style="background: #FFF8F0; padding: 15px; border-left: 4px solid #D4A853; border-radius: 4px;">
+              <p style="margin: 0 0 5px 0; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Votre note</p>
+              <p style="margin: 0; color: #1a1a1a; font-size: 14px;">Sans oignons s'il vous plaît</p>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="background: #1a1a1a; padding: 30px 20px; text-align: center;">
+            <p style="margin: 0 0 10px 0; color: rgba(255,255,255,0.6); font-size: 13px;">À bientôt chez A Beyrouth !</p>
+            <p style="margin: 0; color: rgba(255,255,255,0.4); font-size: 12px;">4 Esplanade du Général de Gaulle, 92400 Courbevoie</p>
+            <div style="margin-top: 20px;">
+              <a href="https://beyrouth.express" style="color: #D4A853; text-decoration: none; font-size: 13px;">beyrouth.express</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMAIL 2: PAIEMENT CONFIRMÉ (payee) -->
+    <div class="email-preview" id="email2">
+      <div class="email-title">📧 Email 2 : Paiement confirmé (payee)</div>
+      <div class="email-meta">
+        <strong>De :</strong> Beyrouth Express &lt;noreply@beyrouth.express&gt;<br>
+        <strong>Sujet :</strong> ✅ Paiement confirmé - Commande 4728 KP<br>
+        <strong>Trigger :</strong> Webhook PayGreen (uniquement si auto-accept désactivé)
+      </div>
+      <div class="email-frame">
+        <div style="max-width: 600px; margin: 0 auto; background: #fff;">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); padding: 40px 20px; text-align: center;">
+            <h1 style="color: #D4A853; margin: 0 0 8px 0; font-size: 32px; font-weight: 700; letter-spacing: 1px;">Beyrouth Express</h1>
+            <p style="color: rgba(255,255,255,0.8); margin: 0; font-size: 15px; line-height: 1.5;">Service Click and Collect<br>restaurant A Beyrouth</p>
+          </div>
+
+          <!-- Success Badge -->
+          <div style="text-align: center; padding: 30px 20px;">
+            <div style="width: 80px; height: 80px; background: #E8F5E9; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+              <span style="font-size: 40px; color: #4CAF50;">✓</span>
+            </div>
+            <h2 style="margin: 0 0 10px 0; font-size: 24px; color: #1a1a1a;">Paiement confirmé</h2>
+            <p style="margin: 0; color: #666; font-size: 14px;">Votre commande est en cours de validation</p>
+          </div>
+
+          <!-- Order Number -->
+          <div style="background: #FFF8F0; padding: 30px 20px; text-align: center; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+            <div>
+              <p style="margin: 0 0 5px 0; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Numéro de commande</p>
+              <p style="margin: 0; font-size: 48px; font-weight: 700; color: #4CAF50; font-family: 'Courier New', monospace; letter-spacing: 8px;">4728 KP</p>
+              <p style="margin: 10px 0 0 0; font-size: 13px; color: #666;">Présentez ce numéro lors du retrait</p>
+            </div>
+          </div>
+
+          <!-- Info Box -->
+          <div style="padding: 30px 20px;">
+            <div style="background: #E8F5E9; padding: 20px; border-left: 4px solid #4CAF50; border-radius: 4px;">
+              <p style="margin: 0 0 10px 0; font-size: 14px; color: #1a1a1a; font-weight: 600;">✅ Paiement bien reçu</p>
+              <p style="margin: 0 0 5px 0; font-size: 14px; color: #666;">Montant : <strong>25,50 €</strong></p>
+              <p style="margin: 0; font-size: 14px; color: #666;">Heure de retrait prévue : <strong>12h30</strong></p>
+            </div>
+          </div>
+
+          <!-- Next Step -->
+          <div style="padding: 0 20px 30px 20px;">
+            <div style="background: #FFF8F0; padding: 20px; border-left: 4px solid #D4A853; border-radius: 4px;">
+              <p style="margin: 0 0 10px 0; font-size: 14px; color: #1a1a1a; font-weight: 600;">⏳ Prochaine étape</p>
+              <p style="margin: 0; font-size: 14px; color: #666; line-height: 1.5;">Vous recevrez un <strong>second email de confirmation</strong> dès que le restaurant aura validé votre commande, avec le récapitulatif complet.</p>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="background: #1a1a1a; padding: 30px 20px; text-align: center;">
+            <p style="margin: 0 0 10px 0; color: rgba(255,255,255,0.6); font-size: 13px;">À bientôt chez A Beyrouth !</p>
+            <p style="margin: 0; color: rgba(255,255,255,0.4); font-size: 12px;">4 Esplanade du Général de Gaulle, 92400 Courbevoie</p>
+            <div style="margin-top: 20px;">
+              <a href="https://beyrouth.express" style="color: #D4A853; text-decoration: none; font-size: 13px;">beyrouth.express</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMAIL 3: RELANCE (reminder) -->
+    <div class="email-preview" id="email3">
+      <div class="email-title">📧 Email 3 : Relance client (reminder)</div>
+      <div class="email-meta">
+        <strong>De :</strong> Beyrouth Express &lt;noreply@beyrouth.express&gt;<br>
+        <strong>Sujet :</strong> ⏰ 4728 KP - Votre commande vous attend !<br>
+        <strong>Trigger :</strong> Bouton "Relancer" dans admin (si client pas venu +15min)
+      </div>
+      <div class="email-frame">
+        <div style="max-width: 600px; margin: 0 auto; background: #fff;">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); padding: 40px 20px; text-align: center;">
+            <h1 style="color: #D4A853; margin: 0 0 8px 0; font-size: 32px; font-weight: 700; letter-spacing: 1px;">Beyrouth Express</h1>
+            <p style="color: rgba(255,255,255,0.8); margin: 0; font-size: 15px; line-height: 1.5;">Service Click and Collect<br>restaurant A Beyrouth</p>
+          </div>
+
+          <!-- Alert Badge -->
+          <div style="text-align: center; padding: 30px 20px;">
+            <div style="width: 80px; height: 80px; background: #FFF3E0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+              <span style="font-size: 40px; color: #f97316;">⏰</span>
+            </div>
+            <h2 style="margin: 0 0 10px 0; font-size: 24px; color: #1a1a1a;">Votre commande vous attend !</h2>
+            <p style="margin: 0; color: #666; font-size: 14px;">Bonjour Mohamed, n'oubliez pas de récupérer votre commande</p>
+          </div>
+
+          <!-- Order Number -->
+          <div style="background: #FFF8F0; padding: 30px 20px; text-align: center; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+            <div>
+              <p style="margin: 0 0 5px 0; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Numéro de commande</p>
+              <p style="margin: 0; font-size: 48px; font-weight: 700; color: #f97316; font-family: 'Courier New', monospace; letter-spacing: 8px;">4728 KP</p>
+              <p style="margin: 10px 0 0 0; font-size: 13px; color: #666;">Présentez ce numéro lors du retrait</p>
+            </div>
+          </div>
+
+          <!-- Info -->
+          <div style="padding: 30px 20px; background: #fafafa;">
+            <h3 style="margin: 0 0 15px 0; font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Informations de retrait</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 8px 0; color: #666; font-size: 14px;"><strong>Heure prévue :</strong></td>
+                <td style="padding: 8px 0; text-align: right; color: #1a1a1a; font-size: 14px;">12h30</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #666; font-size: 14px; vertical-align: top;"><strong>Lieu :</strong></td>
+                <td style="padding: 8px 0; text-align: right; color: #1a1a1a; font-size: 14px; line-height: 1.5;">
+                  4 Esplanade du Général de Gaulle<br>
+                  92400 Courbevoie (La Défense)<br>
+                  <a href="https://maps.google.com/?q=4+Esplanade+du+Général+de+Gaulle+92400+Courbevoie" style="color: #f97316; text-decoration: none; font-weight: 600;">📍 Voir sur Google Maps</a>
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Footer -->
+          <div style="background: #1a1a1a; padding: 30px 20px; text-align: center;">
+            <p style="margin: 0 0 10px 0; color: rgba(255,255,255,0.6); font-size: 13px;">À très bientôt chez A Beyrouth !</p>
+            <p style="margin: 0; color: rgba(255,255,255,0.4); font-size: 12px;">4 Esplanade du Général de Gaulle, 92400 Courbevoie</p>
+            <div style="margin-top: 20px;">
+              <a href="https://beyrouth.express" style="color: #D4A853; text-decoration: none; font-size: 13px;">beyrouth.express</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FACTURE PDF -->
+    <div class="email-preview" id="facture">
+      <div class="email-title">💼 Facture PDF (print-to-PDF)</div>
+      <div class="email-meta">
+        <strong>Trigger :</strong> Client demande facture après récupération (ou +2h après heure retrait)<br>
+        <strong>Numéro :</strong> Séquentiel (2026-001, 2026-002...)<br>
+        <strong>Support PRO :</strong> SIRET, société, adresse facturation
+      </div>
+      <div class="email-frame">
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 40px; color: #333;">
+          <button style="position: fixed; top: 20px; right: 20px; padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">🖨️ Imprimer / Télécharger PDF</button>
+
+          <div style="display: flex; justify-content: space-between; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 3px solid #667eea;">
+            <div>
+              <div style="font-size: 32px; font-weight: 700; color: #667eea;">FACTURE</div>
+              <div style="font-size: 18px; color: #666; margin-top: 10px;">N° 2026-001</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 15px; line-height: 1.8;"><strong>Date :</strong> 06/03/2026</div>
+              <div style="font-size: 15px; line-height: 1.8;"><strong>Heure :</strong> 12:45</div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; margin-bottom: 40px;">
+            <div>
+              <div style="font-size: 14px; font-weight: 700; color: #888; text-transform: uppercase; margin-bottom: 10px;">Restaurant</div>
+              <div style="font-size: 15px; line-height: 1.8;"><strong>Beyrouth Express</strong></div>
+              <div style="font-size: 15px; line-height: 1.8;">PAPA (SARL)</div>
+              <div style="font-size: 15px; line-height: 1.8;">4 Esplanade du Général de Gaulle</div>
+              <div style="font-size: 15px; line-height: 1.8;">92400 Courbevoie</div>
+              <div style="font-size: 15px; line-height: 1.8; margin-top:10px;">SIRET : 830 675 047 RCS Nanterre</div>
+              <div style="font-size: 15px; line-height: 1.8;">TVA : FR93 830 675 047</div>
+            </div>
+
+            <div style="text-align: right;">
+              <div style="font-size: 14px; font-weight: 700; color: #888; text-transform: uppercase; margin-bottom: 10px;">Client</div>
+              <div style="font-size: 15px; line-height: 1.8;"><strong>Mohamed Benali</strong></div>
+              <div style="font-size: 15px; line-height: 1.8;">mohamed@example.com</div>
+              <div style="font-size: 15px; line-height: 1.8;">06 12 34 56 78</div>
+            </div>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; margin: 30px 0;">
+            <thead>
+              <tr>
+                <th style="text-align: left; padding: 12px 0; border-bottom: 2px solid #333; font-size: 14px; font-weight: 700; text-transform: uppercase; color: #666;">Désignation</th>
+                <th style="text-align: center; padding: 12px 0; border-bottom: 2px solid #333; font-size: 14px; font-weight: 700; text-transform: uppercase; color: #666;">Qté</th>
+                <th style="text-align: right; padding: 12px 0; border-bottom: 2px solid #333; font-size: 14px; font-weight: 700; text-transform: uppercase; color: #666;">P.U. TTC</th>
+                <th style="text-align: right; padding: 12px 0; border-bottom: 2px solid #333; font-size: 14px; font-weight: 700; text-transform: uppercase; color: #666;">Total TTC</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding:8px 0; border-bottom:1px solid #eee; font-size: 15px;">Chawarma poulet</td>
+                <td style="padding:8px 0; border-bottom:1px solid #eee; text-align:center; font-size: 15px;">2</td>
+                <td style="padding:8px 0; border-bottom:1px solid #eee; text-align:right; font-size: 15px;">9.00€</td>
+                <td style="padding:8px 0; border-bottom:1px solid #eee; text-align:right; font-size: 15px;">18.00€</td>
+              </tr>
+              <tr>
+                <td style="padding:8px 0; border-bottom:1px solid #eee; font-size: 15px;">Houmous</td>
+                <td style="padding:8px 0; border-bottom:1px solid #eee; text-align:center; font-size: 15px;">1</td>
+                <td style="padding:8px 0; border-bottom:1px solid #eee; text-align:right; font-size: 15px;">6.50€</td>
+                <td style="padding:8px 0; border-bottom:1px solid #eee; text-align:right; font-size: 15px;">6.50€</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 0 4px 20px; border-bottom:1px solid #eee; font-size:13px; color:#666;">+ Pita supplémentaire</td>
+                <td style="padding:4px 0; border-bottom:1px solid #eee;"></td>
+                <td style="padding:4px 0; border-bottom:1px solid #eee; text-align:right; font-size:13px;">1.00€</td>
+                <td style="padding:4px 0; border-bottom:1px solid #eee; text-align:right; font-size:13px;">1.00€</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="margin-top: 30px; text-align: right;">
+            <div style="display: flex; justify-content: flex-end; padding: 8px 0; font-size: 15px;">
+              <div style="width: 150px; text-align: right; padding-right: 20px; color: #666;">Total HT :</div>
+              <div style="width: 100px; text-align: right; font-weight: 600;">23.18€</div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; padding: 8px 0; font-size: 15px;">
+              <div style="width: 150px; text-align: right; padding-right: 20px; color: #666;">TVA 10% :</div>
+              <div style="width: 100px; text-align: right; font-weight: 600;">2.32€</div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; border-top: 2px solid #333; padding-top: 12px; margin-top: 12px; font-size: 18px; font-weight: 700; color: #667eea;">
+              <div style="width: 150px; text-align: right; padding-right: 20px;">Total TTC :</div>
+              <div style="width: 100px; text-align: right;">25.50€</div>
+            </div>
+          </div>
+
+          <div style="margin-top:40px; padding:15px; background:#f8f9ff; border-left:4px solid #667eea; border-radius:4px;">
+            <div style="font-size:14px; font-weight:600; color:#667eea; margin-bottom:5px;">Note :</div>
+            <div style="font-size:14px; color:#666;">Sans oignons s'il vous plaît</div>
+          </div>
+
+          <div style="margin-top: 60px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #888; text-align: center;">
+            <p style="margin:5px 0;"><strong>Beyrouth Express</strong> - Restaurant libanais</p>
+            <p style="margin:5px 0;">PAPA (SARL) - Capital social : 350 000€</p>
+            <p style="margin:5px 0;">4 Esplanade du Général de Gaulle, 92400 Courbevoie</p>
+            <p style="margin:5px 0;">SIRET : 830 675 047 RCS Nanterre - TVA : FR93 830 675 047</p>
+            <p style="margin:5px 0;">Métro : La Défense (lignes 1, A, T2)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Smooth scroll pour la nav
+    document.querySelectorAll('.nav a').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(link.getAttribute('href'));
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  </script>
+</body>
+</html>

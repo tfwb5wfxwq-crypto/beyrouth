@@ -870,14 +870,14 @@ function updateSlotPauseButton() {
       const minsStr = String(mins).padStart(2, '0');
       const secsStr = String(secs).padStart(2, '0');
 
-      text.innerHTML = `<div style="text-align:center"><div style="font-size:2.5rem;line-height:1">⏸️</div><div style="font-size:1.1rem;font-weight:600;margin-top:4px">${hoursStr}:${minsStr}:${secsStr}</div></div>`;
+      text.innerHTML = `⏸️ En pause jusqu'à ${endHours}h${endMins}<br><small style="font-size:0.8em;opacity:0.85;">Reprise dans ${hoursStr}:${minsStr}:${secsStr}</small>`;
 
       btn.style.background = 'rgba(255,200,100,.2)';
       btn.onclick = () => resumeSlots();
     } else {
       // La pause est terminée - revenir au bouton normal
       nextSlotAvailableAt = '';
-      text.textContent = '⏸️ Pause créneaux';
+      text.textContent = '⏸️ Pause';
       btn.style.background = 'rgba(255,255,255,.1)';
       btn.onclick = () => openSlotPauseModal();
 

@@ -868,9 +868,9 @@ function renderMenu() {
           </div>
           ${qty > 0 ? `
           <div class="menu-card-stepper">
-            <button onclick="event.stopPropagation();changeQty(${item.id},-1)">&minus;</button>
+            <button onclick="event.stopPropagation();changeQty(${item.id},-1)" ${!item.disponible ? 'disabled' : ''}>&minus;</button>
             <span>${qty}</span>
-            <button onclick="event.stopPropagation();addToCart(${item.id})">+</button>
+            <button onclick="event.stopPropagation();addToCart(${item.id})" ${!item.disponible ? 'disabled' : ''}>+</button>
           </div>` : `
           <button class="menu-card-add"
                   onclick="event.stopPropagation();addToCart(${item.id})"

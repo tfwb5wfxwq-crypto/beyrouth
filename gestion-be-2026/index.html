@@ -190,7 +190,7 @@ button{cursor:pointer;font-family:inherit;border:none}
 .filter-btn.filter-futures.active{background:linear-gradient(135deg, #6366f1, #4f46e5)}
 
 /* Content */
-.content{max-width:100%;margin:0;padding:24px 32px}
+.content{max-width:100%;margin:0;padding:12px 32px 24px 32px}
 
 /* ========= ORDERS TAB ========= */
 .orders-list{display:flex;flex-direction:column;gap:16px}
@@ -1367,6 +1367,15 @@ async function showDashboard() {
       }
     }
   }, 5000);
+
+  // REFRESH automatique toutes les 30s pour re-classifier les commandes
+  // (nouvelle → retard, urgente → normale, etc.)
+  setInterval(() => {
+    if (currentTab === 'orders') {
+      debouncedRenderOrders();
+      updateTopbarStats();
+    }
+  }, 30000);
 
   // Mode kiosque: demander permissions + wake lock + plein écran
   requestNotificationPermission();

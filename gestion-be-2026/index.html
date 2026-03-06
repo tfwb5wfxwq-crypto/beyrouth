@@ -581,21 +581,23 @@ button{cursor:pointer;font-family:inherit;border:none}
 </div>
 
 <!-- Modal Pause Créneaux -->
-<div id="slotPauseModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:10000;align-items:center;justify-content:center">
-  <div style="background:#fff;border-radius:16px;padding:32px;max-width:400px;width:90%">
-    <h3 style="margin-bottom:20px;color:var(--bordeaux);font-size:1.3rem">⏸️ Pause Créneaux</h3>
-    <p style="color:#666;margin-bottom:24px;font-size:.95rem">Décaler le premier créneau disponible :</p>
+<div id="slotPauseModal" style="display:none;position:absolute;z-index:10000;top:0;left:0">
+  <div style="background:#fff;border-radius:12px;padding:20px;width:280px;box-shadow:0 4px 20px rgba(0,0,0,.15);border:1px solid #e0e0e0">
+    <p style="color:#666;margin-bottom:16px;font-size:.9rem;font-weight:600">⏸️ Décaler créneaux :</p>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
-      <button onclick="pauseSlots(15)" class="pause-btn">15 min</button>
-      <button onclick="pauseSlots(30)" class="pause-btn">30 min</button>
-      <button onclick="pauseSlots(60)" class="pause-btn">1 heure</button>
-      <button onclick="pauseSlots(120)" class="pause-btn">2 heures</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <button onclick="pauseSlots(15); closeSlotPauseModal()" class="pause-btn" style="padding:10px;font-size:.9rem">15 min</button>
+      <button onclick="pauseSlots(30); closeSlotPauseModal()" class="pause-btn" style="padding:10px;font-size:.9rem">30 min</button>
+      <button onclick="pauseSlots(60); closeSlotPauseModal()" class="pause-btn" style="padding:10px;font-size:.9rem">1h</button>
+      <button onclick="pauseSlots(120); closeSlotPauseModal()" class="pause-btn" style="padding:10px;font-size:.9rem">2h</button>
     </div>
 
-    <button onclick="closeSlotPauseModal()" style="width:100%;padding:12px;background:#f0f0f0;color:#666;border:none;border-radius:8px;font-weight:600;cursor:pointer">Annuler</button>
+    <button onclick="closeSlotPauseModal()" style="width:100%;padding:8px;background:#f0f0f0;color:#666;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:.85rem">Annuler</button>
   </div>
 </div>
+
+<!-- Overlay pour fermer le dropdown en cliquant dehors -->
+<div id="slotPauseOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999" onclick="closeSlotPauseModal()"></div>
 
 <!-- Alert sound -->
 <audio id="alertSound" preload="auto">
@@ -897,13 +899,25 @@ function updateSlotPauseButton() {
 }
 
 function openSlotPauseModal() {
+  const btn = document.getElementById('slotPauseBtn');
   const modal = document.getElementById('slotPauseModal');
-  modal.style.display = 'flex';
+  const overlay = document.getElementById('slotPauseOverlay');
+
+  // Position du bouton
+  const rect = btn.getBoundingClientRect();
+
+  // Positionner le dropdown juste sous le bouton
+  modal.style.top = (rect.bottom + 8) + 'px';
+  modal.style.left = rect.left + 'px';
+  modal.style.display = 'block';
+  overlay.style.display = 'block';
 }
 
 function closeSlotPauseModal() {
   const modal = document.getElementById('slotPauseModal');
+  const overlay = document.getElementById('slotPauseOverlay');
   modal.style.display = 'none';
+  overlay.style.display = 'none';
 }
 
 async function pauseSlots(minutes) {

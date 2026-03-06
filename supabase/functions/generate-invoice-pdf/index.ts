@@ -61,9 +61,14 @@ serve(async (req) => {
 })
 
 function generateInvoiceHTML(order: any): string {
-  const date = new Date(order.created_at)
+  // Utiliser la date de génération de facture si disponible, sinon date de commande
+  const invoiceDate = order.invoice_generated_at || order.created_at
+  const date = new Date(invoiceDate)
   const dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
   const timeStr = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+
+  // Utiliser le numéro de facture si disponible, sinon numéro de commande
+  const invoiceNumber = order.invoice_number || order.numero
 
   // Calculer TVA (10% restauration)
   const totalTTC = order.total
@@ -226,7 +231,7 @@ function generateInvoiceHTML(order: any): string {
   <div class="invoice-header">
     <div>
       <div class="invoice-title">FACTURE</div>
-      <div class="invoice-number">N° ${order.numero}</div>
+      <div class="invoice-number">N° ${invoiceNumber}</div>
     </div>
     <div style="text-align: right;">
       <div class="info-line"><strong>Date :</strong> ${dateStr}</div>
@@ -247,9 +252,12 @@ function generateInvoiceHTML(order: any): string {
 
     <div class="client-info" style="text-align: right;">
       <div class="section-title">Client</div>
+      ${order.invoice_company ? `<div class="info-line"><strong>${order.invoice_company}</strong></div>` : ''}
       <div class="info-line"><strong>${order.client_prenom}</strong></div>
       <div class="info-line">${order.client_email}</div>
       ${order.client_telephone ? `<div class="info-line">${order.client_telephone}</div>` : ''}
+      ${order.invoice_siret ? `<div class="info-line" style="margin-top:10px;">SIRET : ${order.invoice_siret}</div>` : ''}
+      ${order.invoice_address ? `<div class="info-line">${order.invoice_address}</div>` : ''}
     </div>
   </div>
 

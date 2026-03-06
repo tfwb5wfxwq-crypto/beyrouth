@@ -104,6 +104,36 @@ h1,h2,h3{font-family:'Playfair Display',serif}
 /* Footer */
 .footer{text-align:center;padding:24px;color:#999;font-size:.85rem}
 .footer a{color:var(--bordeaux)}
+
+/* Invoice form */
+.invoice-form{
+  background:#FFF8F0;border-radius:var(--radius);padding:20px;margin-top:20px;
+  border:1px solid #E0D5C0;display:none;
+}
+.invoice-form.visible{display:block;animation:fadeIn .3s ease}
+.invoice-form h4{font-size:1.1rem;color:var(--bordeaux);margin-bottom:16px}
+.invoice-form label{display:block;margin-bottom:12px;font-size:.9rem}
+.invoice-form label span{display:block;margin-bottom:6px;font-weight:600;color:#666}
+.invoice-form input{
+  width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;
+  font-size:.95rem;font-family:inherit;
+}
+.invoice-form input:focus{border-color:var(--gold);outline:none}
+.invoice-form .checkbox-label{
+  display:flex;align-items:center;gap:8px;margin-bottom:16px;
+}
+.invoice-form .checkbox-label input{width:auto}
+.invoice-form .pro-fields{display:none;margin-top:12px;padding-top:12px;border-top:1px solid #E0D5C0}
+.invoice-form .pro-fields.visible{display:block}
+.invoice-form .btn-group{display:flex;gap:8px;margin-top:16px}
+.invoice-form button{
+  flex:1;padding:12px;border:none;border-radius:8px;font-size:.95rem;
+  font-weight:600;cursor:pointer;transition:all .3s;
+}
+.invoice-form .btn-primary{background:var(--bordeaux);color:#fff}
+.invoice-form .btn-primary:hover{background:#6B1414}
+.invoice-form .btn-secondary{background:#f0f0f0;color:#666}
+.invoice-form .btn-secondary:hover{background:#e0e0e0}
 </style>
 </head>
 <body>
@@ -269,17 +299,129 @@ function displayOrder(order) {
   });
   html += `<div class="detail-item"><span>Total</span><span>${(order.total || 0).toFixed(2).replace('.',',')} €</span></div>`;
 
-  // Bouton facture si commande récupérée
-  if (order.statut === 'recuperee') {
-    html += `
-      <button onclick="downloadInvoice(${order.id})"
-        style="width:100%;margin-top:20px;padding:14px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(102,126,234,0.3);">
-        📄 Télécharger la facture
-      </button>
-    `;
+  // Section facture (disponible pour toutes les commandes acceptées)
+  if (order.statut === 'acceptee' || order.statut === 'en_preparation' || order.statut === 'prete' || order.statut === 'recuperee') {
+    if (order.invoice_number) {
+      // Facture déjà générée
+      html += `
+        <div style="margin-top:20px;padding:14px;background:#E8F5E9;border-radius:8px;border:1px solid #C8E6C9;text-align:center;">
+          <div style="font-size:.9rem;color:#2E7D32;margin-bottom:8px;">✅ Facture générée</div>
+          <div style="font-size:1.1rem;font-weight:700;color:#1B5E20;margin-bottom:12px;">N° ${order.invoice_number}</div>
+          <button onclick="downloadInvoice('${order.id}')"
+            style="width:100%;padding:12px;background:#4CAF50;color:#fff;border:none;border-radius:8px;font-size:.95rem;font-weight:600;cursor:pointer;">
+            📄 Télécharger la facture
+          </button>
+        </div>
+      `;
+    } else {
+      // Pas encore de facture
+      html += `
+        <button onclick="showInvoiceForm()"
+          style="width:100%;margin-top:20px;padding:14px;background:linear-gradient(135deg,#1a1a1a 0%,#000 100%);color:var(--gold);border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2);">
+          💼 Demander une facture
+        </button>
+        <div class="invoice-form" id="invoiceForm">
+          <h4>📄 Génération de facture</h4>
+          <label class="checkbox-label">
+            <input type="checkbox" id="isPro" onchange="toggleProFields()">
+            <span>Je suis un professionnel</span>
+          </label>
+          <div class="pro-fields" id="proFields">
+            <label>
+              <span>SIRET</span>
+              <input type="text" id="siretInput" placeholder="123 456 789 00012">
+            </label>
+            <label>
+              <span>Nom de la société</span>
+              <input type="text" id="companyInput" placeholder="Ma Société SARL">
+            </label>
+            <label>
+              <span>Adresse de facturation</span>
+              <input type="text" id="addressInput" placeholder="1 rue de la Paix, 75001 Paris">
+            </label>
+          </div>
+          <div class="btn-group">
+            <button class="btn-secondary" onclick="hideInvoiceForm()">Annuler</button>
+            <button class="btn-primary" onclick="generateInvoice()">Générer ma facture</button>
+          </div>
+        </div>
+      `;
+    }
   }
 
   details.innerHTML = html;
+}
+
+// Gestion du formulaire de facture
+function showInvoiceForm() {
+  document.getElementById('invoiceForm').classList.add('visible');
+}
+
+function hideInvoiceForm() {
+  document.getElementById('invoiceForm').classList.remove('visible');
+  document.getElementById('isPro').checked = false;
+  document.getElementById('proFields').classList.remove('visible');
+  document.getElementById('siretInput').value = '';
+  document.getElementById('companyInput').value = '';
+  document.getElementById('addressInput').value = '';
+}
+
+function toggleProFields() {
+  const isPro = document.getElementById('isPro').checked;
+  document.getElementById('proFields').classList.toggle('visible', isPro);
+}
+
+async function generateInvoice() {
+  if (!currentOrder) return;
+
+  const isPro = document.getElementById('isPro').checked;
+  const siret = isPro ? document.getElementById('siretInput').value.trim() : null;
+  const company = isPro ? document.getElementById('companyInput').value.trim() : null;
+  const address = isPro ? document.getElementById('addressInput').value.trim() : null;
+
+  // Validation pour les pros
+  if (isPro && (!siret || !company)) {
+    alert('Veuillez remplir le SIRET et le nom de la société');
+    return;
+  }
+
+  try {
+    // 1. Assigner un numéro de facture
+    const assignResponse = await fetch(`${SUPABASE_URL}/functions/v1/assign-invoice-number`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      },
+      body: JSON.stringify({
+        orderId: currentOrder.id,
+        siret,
+        company,
+        address
+      })
+    });
+
+    if (!assignResponse.ok) throw new Error('Erreur attribution numéro');
+
+    const assignData = await assignResponse.json();
+    console.log('✅ Numéro de facture:', assignData.invoiceNumber);
+
+    // 2. Mettre à jour la commande locale
+    currentOrder.invoice_number = assignData.invoiceNumber;
+    currentOrder.invoice_siret = siret;
+    currentOrder.invoice_company = company;
+    currentOrder.invoice_address = address;
+
+    // 3. Rafraîchir l'affichage
+    displayOrder(currentOrder);
+
+    // 4. Télécharger la facture
+    await downloadInvoice(currentOrder.id);
+
+  } catch (err) {
+    console.error('Erreur génération facture:', err);
+    alert('Erreur lors de la génération de la facture');
+  }
 }
 
 async function downloadInvoice(orderId) {

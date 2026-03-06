@@ -922,10 +922,10 @@ async function pauseSlots(minutes) {
 
     const hours = String(pauseUntil.getHours()).padStart(2, '0');
     const mins = String(pauseUntil.getMinutes()).padStart(2, '0');
-    alert(`✅ Créneaux en pause jusqu'à ${hours}h${mins}`);
+    showToast(`⏸️ Créneaux en pause jusqu'à ${hours}h${mins}`, 'info');
   } catch (err) {
     console.error('Erreur pause:', err);
-    alert('❌ Erreur lors de la pause');
+    showToast('❌ Erreur lors de la pause', 'warning');
   }
 }
 
@@ -939,7 +939,7 @@ async function resumeSlots() {
     });
 
     updateSlotPauseButton();
-    alert('✅ Créneaux repris immédiatement');
+    showToast('▶️ Créneaux repris immédiatement', 'success');
   } catch (err) {
     console.error('Erreur reprise:', err);
     alert('❌ Erreur lors de la reprise');

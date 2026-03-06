@@ -2143,17 +2143,21 @@ function renderTimeSlots() {
     minTimeMinutes += delayMinutes;
   }
 
-  // Si pause active, prendre le max
-  if (nextSlotAvailableAt && day.isToday) {
-    const pauseMinutes = nextSlotAvailableAt.getHours() * 60 + nextSlotAvailableAt.getMinutes();
-    minTimeMinutes = Math.max(minTimeMinutes, pauseMinutes);
-  }
-
   for (let m = startMin; m < endMin; m += 30) { // Créneaux toutes les 30 min jusqu'à 21h00
     const h = Math.floor(m / 60), min = m % 60;
     const label = `${h}h${min.toString().padStart(2, '0')}`;
+
+    // Créer la date complète du créneau pour comparaison avec la pause
+    const slotDate = new Date(day.date);
+    slotDate.setHours(h, min, 0, 0);
+
+    // Vérifier si le créneau est dans le passé
     const isPast = day.isToday && minTimeMinutes >= m;
-    if (isPast) continue; // Ne pas afficher les créneaux passés ou en pause
+
+    // Vérifier si le créneau est bloqué par la pause (compare dates complètes)
+    const isPaused = nextSlotAvailableAt && slotDate < nextSlotAvailableAt;
+
+    if (isPast || isPaused) continue; // Ne pas afficher les créneaux passés ou en pause
     const value = day.isToday ? label : `${day.label} ${label}`;
     html += `<div class="timepicker-slot ${selectedPickup === value ? 'active' : ''}"
       onclick="selectTime('${value}')">${label}</div>`;

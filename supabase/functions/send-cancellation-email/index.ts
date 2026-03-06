@@ -192,11 +192,100 @@ serve(async (req) => {
 
     console.log(`✅ Email d'annulation envoyé pour ${order.numero}`)
 
-    // TODO: Gérer le remboursement via API PayGreen
-    // Si order.paygreen_transaction_id existe, appeler l'API de remboursement
+    // Remboursement automatique PayGreen
+    let refundResult = null
+    if (order.paygreen_transaction_id && order.total > 0) {
+      try {
+        console.log(`💳 Remboursement de ${(order.total / 100).toFixed(2)}€ pour ${order.numero}...`)
+
+        // Étape 1: Obtenir un JWT token PayGreen
+        const PAYGREEN_SECRET_KEY = Deno.env.get('PAYGREEN_SECRET_KEY')
+        const PAYGREEN_SHOP_ID = Deno.env.get('PAYGREEN_SHOP_ID')
+
+        const authResponse = await fetch(`https://api.paygreen.fr/auth/authentication/${PAYGREEN_SHOP_ID}/secret-key`, {
+          method: 'POST',
+          headers: {
+            'Authorization': PAYGREEN_SECRET_KEY,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        })
+
+        if (!authResponse.ok) {
+          throw new Error(`Auth PayGreen échouée: ${authResponse.status}`)
+        }
+
+        const authData = await authResponse.json()
+        const jwtToken = authData.data?.token || authData.token
+
+        if (!jwtToken) {
+          throw new Error('JWT token non reçu de PayGreen')
+        }
+
+        // Étape 2: Créer le remboursement
+        const refundResponse = await fetch(
+          `https://api.paygreen.fr/payment/payment-orders/${order.paygreen_transaction_id}/refunds`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${jwtToken}`,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              amount: order.total, // En centimes
+              reason: 'customer_request'
+            })
+          }
+        )
+
+        if (!refundResponse.ok) {
+          const errorText = await refundResponse.text()
+          throw new Error(`Remboursement échoué (${refundResponse.status}): ${errorText}`)
+        }
+
+        const refundData = await refundResponse.json()
+        const refund = refundData.data || refundData
+
+        refundResult = {
+          refund_transaction_id: refund.id,
+          refund_amount: order.total,
+          refund_requested_at: new Date().toISOString(),
+          refund_completed_at: new Date().toISOString(),
+          refund_error: null
+        }
+
+        console.log(`✅ Remboursement réussi pour ${order.numero}: ${refund.id}`)
+
+      } catch (refundError) {
+        console.error(`❌ Erreur remboursement pour ${order.numero}:`, refundError)
+
+        refundResult = {
+          refund_requested_at: new Date().toISOString(),
+          refund_error: refundError.message
+        }
+
+        // Ne pas bloquer l'email si le remboursement échoue
+        // L'admin devra le faire manuellement
+      }
+
+      // Sauvegarder le résultat du remboursement
+      await supabase
+        .from('orders')
+        .update(refundResult)
+        .eq('id', orderId)
+    }
 
     return new Response(
-      JSON.stringify({ success: true, emailId: emailResult.id }),
+      JSON.stringify({
+        success: true,
+        emailId: emailResult.id,
+        refund: refundResult ? {
+          success: !refundResult.refund_error,
+          transactionId: refundResult.refund_transaction_id,
+          error: refundResult.refund_error
+        } : null
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 

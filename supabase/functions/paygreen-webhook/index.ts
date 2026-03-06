@@ -104,8 +104,20 @@ serve(async (req) => {
 
     console.log(`✅ Commande ${orderId} mise à jour: ${newStatus}`)
 
-    // Envoyer email immédiat après paiement si pas déjà payé
-    if (newStatus === 'payee' && !wasAlreadyPaid && data && data[0]) {
+    // Vérifier si auto-accept est activé
+    const { data: autoAcceptSetting } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'auto_accept_orders')
+      .maybeSingle()
+
+    const autoAcceptEnabled = autoAcceptSetting?.value === 'true'
+
+    // Envoyer email immédiat après paiement UNIQUEMENT si:
+    // - Statut = payee
+    // - Pas déjà payé
+    // - Auto-accept DÉSACTIVÉ (sinon email d'acceptation va suivre immédiatement)
+    if (newStatus === 'payee' && !wasAlreadyPaid && !autoAcceptEnabled && data && data[0]) {
       try {
         const emailResponse = await supabase.functions.invoke('send-payment-confirmation', {
           body: { orderId: data[0].id }
@@ -120,6 +132,8 @@ serve(async (req) => {
         console.error('Erreur appel send-payment-confirmation:', emailError)
         // Ne pas bloquer le webhook si l'email échoue
       }
+    } else if (autoAcceptEnabled && newStatus === 'payee') {
+      console.log(`⏭️  Email paiement skippé (auto-accept activé, email d'acceptation va suivre)`)
     }
 
     return new Response(

@@ -194,6 +194,7 @@ button{cursor:pointer;font-family:inherit;border:none}
 
 /* ========= ORDERS TAB ========= */
 .orders-list{display:flex;flex-direction:column;gap:24px}
+.orders-list.grid-view{display:grid;grid-template-columns:repeat(3, 1fr);gap:16px}
 .status-section{margin-bottom:24px}
 .status-section-header{
   font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;
@@ -395,7 +396,7 @@ button{cursor:pointer;font-family:inherit;border:none}
   box-shadow:0 2px 8px rgba(0,0,0,.06);gap:16px;
   transition:all .3s;
 }
-.client-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.1);transform:translateY(-2px)}
+.client-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.1);transform:translateY(-2px);cursor:pointer}
 .client-info{flex:1;min-width:0}
 .client-name{font-weight:600;font-size:1rem;color:var(--bordeaux);margin-bottom:4px}
 .client-contact{font-size:.85rem;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -403,6 +404,63 @@ button{cursor:pointer;font-family:inherit;border:none}
 .client-stat{text-align:center}
 .client-stat-value{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--noir)}
 .client-stat-label{font-size:.7rem;color:#999;text-transform:uppercase;letter-spacing:.5px}
+
+/* Client detail modal */
+.client-detail-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.5);backdrop-filter:blur(4px);
+  z-index:9999;display:flex;align-items:center;justify-content:center;
+  padding:20px;
+}
+.client-detail-modal{
+  background:#fff;border-radius:16px;max-width:900px;width:100%;
+  max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2);
+}
+.client-detail-header{
+  padding:24px 32px;border-bottom:1px solid #e5e5e5;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.client-detail-title{
+  font-family:'Playfair Display',serif;font-size:1.5rem;
+  color:var(--bordeaux);display:flex;align-items:center;gap:12px;
+}
+.client-vip-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:linear-gradient(135deg, var(--gold), #C49843);
+  color:#fff;padding:4px 12px;border-radius:12px;
+  font-size:.75rem;font-weight:700;letter-spacing:.5px;
+}
+.client-detail-close{
+  background:none;color:#888;font-size:1.5rem;
+  width:36px;height:36px;border-radius:50%;
+  transition:all .3s;
+}
+.client-detail-close:hover{background:#f0f0f0;color:var(--noir)}
+.client-detail-body{padding:24px 32px}
+.client-section{margin-bottom:32px}
+.client-section-title{
+  font-family:'Playfair Display',serif;font-size:1.1rem;
+  color:var(--noir);margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;
+}
+.client-orders-list{display:flex;flex-direction:column;gap:12px}
+.client-order-item{
+  background:#f8f9fa;padding:12px 16px;border-radius:8px;
+  display:flex;justify-content:space-between;align-items:center;
+  border-left:3px solid var(--gold);
+}
+.client-order-date{font-size:.85rem;color:#888}
+.client-order-amount{font-weight:700;color:var(--bordeaux)}
+.client-top-dishes{display:grid;gap:8px}
+.client-dish-item{
+  background:#f8f9fa;padding:10px 14px;border-radius:6px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.client-dish-name{font-weight:600;font-size:.95rem}
+.client-dish-count{
+  background:var(--gold);color:#fff;padding:2px 10px;
+  border-radius:12px;font-size:.8rem;font-weight:700;
+}
 
 /* ========= RESPONSIVE ========= */
 @media(max-width:600px){
@@ -421,6 +479,11 @@ button{cursor:pointer;font-family:inherit;border:none}
   .toggle::after{width:26px;height:26px}
   .toggle.on::after{transform:translateX(24px)}
   .order-time-badge{padding:8px 16px;font-size:.9rem}
+}
+
+/* Tablet optimization (2 columns for grid) */
+@media(max-width:1024px) and (min-width:768px){
+  .orders-list.grid-view{grid-template-columns:repeat(2, 1fr)}
 }
 
 /* Mobile optimization (phones only - not tablets) */
@@ -497,6 +560,7 @@ button{cursor:pointer;font-family:inherit;border:none}
   /* Content spacing */
   .content{padding:16px 12px}
   .orders-list{gap:16px}
+  .orders-list.grid-view{grid-template-columns:1fr}
   .status-section{margin-bottom:16px}
   .status-section-header{
     font-size:1rem;
@@ -617,7 +681,7 @@ button{cursor:pointer;font-family:inherit;border:none}
         <button class="history-filter" data-days="7" onclick="loadCompleted(7)">7 derniers jours</button>
         <button class="history-filter" data-days="30" onclick="loadCompleted(30)">30 derniers jours</button>
       </div>
-      <div class="orders-list" id="completedList">
+      <div class="orders-list grid-view" id="completedList">
         <div class="no-orders">Chargement...</div>
       </div>
     </div>
@@ -673,6 +737,7 @@ button{cursor:pointer;font-family:inherit;border:none}
           <button class="stats-filter active" data-period="today" onclick="loadStats('today')">Jour</button>
           <button class="stats-filter" data-period="week" onclick="loadStats('week')">Semaine</button>
           <button class="stats-filter" data-period="month" onclick="loadStats('month')">Mois</button>
+          <button class="stats-filter" data-period="year" onclick="loadStats('year')">Année</button>
         </div>
       </div>
       <div class="stats-grid">
@@ -717,6 +782,22 @@ button{cursor:pointer;font-family:inherit;border:none}
 
 <!-- Overlay pour fermer le dropdown en cliquant dehors -->
 <div id="slotPauseOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999" onclick="closeSlotPauseModal()"></div>
+
+<!-- Client Detail Modal -->
+<div id="clientDetailOverlay" class="client-detail-overlay" style="display:none" onclick="closeClientDetail()">
+  <div class="client-detail-modal" onclick="event.stopPropagation()">
+    <div class="client-detail-header">
+      <div class="client-detail-title">
+        <span id="clientDetailName">Client</span>
+        <span id="clientVipBadge" class="client-vip-badge" style="display:none">🏆 VIP</span>
+      </div>
+      <button class="client-detail-close" onclick="closeClientDetail()">✕</button>
+    </div>
+    <div class="client-detail-body" id="clientDetailBody">
+      <div class="no-orders">Chargement...</div>
+    </div>
+  </div>
+</div>
 
 <!-- Alert sound -->
 <audio id="alertSound" preload="auto">
@@ -1484,7 +1565,7 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
       </div>
       ${!isHistory
         ? `<div class="order-actions">${getActionButtons(order)}</div>`
-        : `<div class="order-actions"><button class="order-action btn-secondary" onclick="resendInvoice(${order.id}, '${order.client_email}')">📧 Renvoyer facture</button></div>`
+        : ''
       }
     </div>`;
 }
@@ -1576,30 +1657,6 @@ async function remindOrder(orderId) {
   }
 }
 
-async function resendInvoice(orderId, clientEmail) {
-  if (!confirm(`Renvoyer la facture à ${clientEmail} ?`)) return;
-
-  try {
-    // Ouvrir la facture dans un nouvel onglet
-    const response = await sb.functions.invoke('generate-invoice-pdf', {
-      body: { orderId }
-    });
-
-    if (response.error) throw response.error;
-
-    // Ouvrir dans nouvel onglet
-    const html = response.data;
-    const win = window.open('', '_blank');
-    win.document.write(html);
-    win.document.close();
-
-    alert('✅ Facture ouverte ! Le client peut l\'imprimer ou télécharger.');
-  } catch (err) {
-    console.error('❌ Erreur ouverture facture:', err);
-    alert('❌ Erreur lors de l\'ouverture de la facture');
-  }
-}
-
 // ===== INGREDIENTS =====
 async function loadIngredients() {
   const {data} = await sb.from('ingredients').select('*').order('nom');
@@ -1684,7 +1741,8 @@ async function loadStats(period) {
   // Build query based on period
   let query = sb.from('orders')
     .select('*')
-    .in('statut', ['payee', 'acceptee', 'recuperee', 'cancelled']);
+    .in('statut', ['payee', 'acceptee', 'recuperee', 'cancelled'])
+    .eq('archived', false);
 
   if (period === 'today') {
     const today = new Date().toISOString().split('T')[0];
@@ -1696,6 +1754,10 @@ async function loadStats(period) {
   } else if (period === 'month') {
     const date = new Date();
     date.setDate(date.getDate() - 30);
+    query = query.gte('created_at', date.toISOString());
+  } else if (period === 'year') {
+    const date = new Date();
+    date.setDate(date.getDate() - 365);
     query = query.gte('created_at', date.toISOString());
   }
 
@@ -1992,6 +2054,7 @@ async function loadCompleted(days) {
   let query = sb.from('orders')
     .select('*')
     .in('statut', ['recuperee', 'annulee'])
+    .eq('archived', false)
     .order('created_at', {ascending: false});
 
   if (days === 'today') {
@@ -2003,7 +2066,7 @@ async function loadCompleted(days) {
     query = query.gte('created_at', date.toISOString());
   }
 
-  const {data, error} = await query.limit(100);
+  const {data, error} = await query.limit(500);
 
   if (error) {
     list.innerHTML = '<div class="no-orders">Erreur de chargement</div>';
@@ -2058,9 +2121,9 @@ async function loadClients() {
   // Top clients
   const topClients = [...clients].slice(0, 10);
   const topHtml = topClients.map(c => `
-    <div class="client-card">
+    <div class="client-card" onclick="showClientDetail('${c.email}')">
       <div class="client-info">
-        <div class="client-name">${c.prenom || 'Client'}</div>
+        <div class="client-name">${c.prenom || 'Client'}${c.nb_commandes >= 10 ? ' 🏆' : ''}</div>
         <div class="client-contact">${c.email || ''} ${c.telephone ? '· ' + c.telephone : ''}</div>
       </div>
       <div class="client-stats">
@@ -2094,9 +2157,9 @@ async function loadClients() {
 
 function renderAllClients(clientList) {
   const html = clientList.map(c => `
-    <div class="client-card" style="margin-bottom:8px;">
+    <div class="client-card" style="margin-bottom:8px;" onclick="showClientDetail('${c.email}')">
       <div class="client-info">
-        <div class="client-name">${c.prenom || 'Client'}</div>
+        <div class="client-name">${c.prenom || 'Client'}${c.nb_commandes >= 10 ? ' 🏆' : ''}</div>
         <div class="client-contact">${c.email || ''} ${c.telephone ? '· ' + c.telephone : ''}</div>
       </div>
       <div class="client-stats">
@@ -2116,6 +2179,116 @@ function renderAllClients(clientList) {
     </div>
   `).join('');
   document.getElementById('allClientsList').innerHTML = html;
+}
+
+async function showClientDetail(clientEmail) {
+  // Find client
+  const client = clients.find(c => c.email === clientEmail);
+  if (!client) return;
+
+  // Show modal
+  document.getElementById('clientDetailOverlay').style.display = 'flex';
+  document.getElementById('clientDetailName').textContent = client.prenom || 'Client';
+  document.getElementById('clientDetailBody').innerHTML = '<div class="no-orders">Chargement...</div>';
+
+  // Show VIP badge if 10+ commandes
+  const vipBadge = document.getElementById('clientVipBadge');
+  if (client.nb_commandes >= 10) {
+    vipBadge.style.display = 'inline-flex';
+  } else {
+    vipBadge.style.display = 'none';
+  }
+
+  // Load client orders
+  const { data: clientOrders, error } = await sb
+    .from('orders')
+    .select('*')
+    .eq('client_email', clientEmail)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    document.getElementById('clientDetailBody').innerHTML = '<div class="no-orders">Erreur de chargement</div>';
+    return;
+  }
+
+  // Calculate top dishes
+  const dishCount = {};
+  clientOrders.forEach(order => {
+    if (order.items && Array.isArray(order.items)) {
+      order.items.forEach(item => {
+        dishCount[item.nom] = (dishCount[item.nom] || 0) + item.quantite;
+      });
+    }
+  });
+
+  const topDishes = Object.entries(dishCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  // Render modal content
+  const ordersHtml = clientOrders.map(o => {
+    const date = new Date(o.created_at);
+    const dateStr = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+    const statusEmoji = o.statut === 'recuperee' ? '✅' : o.statut === 'annulee' ? '❌' : '⏳';
+    return `
+      <div class="client-order-item">
+        <div>
+          <div style="font-weight:600;margin-bottom:4px">${statusEmoji} Commande ${o.numero}</div>
+          <div class="client-order-date">${dateStr} · ${o.heure_retrait || 'ASAP'}</div>
+        </div>
+        <div class="client-order-amount">${o.total.toFixed(2).replace('.', ',')} €</div>
+      </div>
+    `;
+  }).join('');
+
+  const dishesHtml = topDishes.length > 0 ? topDishes.map(([nom, count]) => `
+    <div class="client-dish-item">
+      <span class="client-dish-name">${nom}</span>
+      <span class="client-dish-count">${count}×</span>
+    </div>
+  `).join('') : '<div style="color:#888;font-size:.9rem">Aucune commande</div>';
+
+  const bodyHtml = `
+    <div class="client-section">
+      <div class="client-section-title">📊 Informations</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px">
+        <div style="background:#f8f9fa;padding:16px;border-radius:8px;text-align:center">
+          <div style="font-size:1.5rem;font-weight:700;color:var(--bordeaux)">${client.nb_commandes || 0}</div>
+          <div style="font-size:.85rem;color:#888">Commandes</div>
+        </div>
+        <div style="background:#f8f9fa;padding:16px;border-radius:8px;text-align:center">
+          <div style="font-size:1.5rem;font-weight:700;color:var(--bordeaux)">${(client.total_depense || 0).toFixed(0)} €</div>
+          <div style="font-size:.85rem;color:#888">Total dépensé</div>
+        </div>
+        <div style="background:#f8f9fa;padding:16px;border-radius:8px;text-align:center">
+          <div style="font-size:1.5rem;font-weight:700;color:var(--bordeaux)">${client.nb_commandes > 0 ? (client.total_depense / client.nb_commandes).toFixed(0) : 0} €</div>
+          <div style="font-size:.85rem;color:#888">Panier moyen</div>
+        </div>
+      </div>
+      <div style="color:#888;font-size:.9rem">
+        📧 ${client.email}<br>
+        ${client.telephone ? '📱 ' + client.telephone + '<br>' : ''}
+        📅 Client depuis ${new Date(client.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}<br>
+        ${client.optin_promo ? '✉️ Inscrit à la newsletter' : ''}
+      </div>
+    </div>
+
+    <div class="client-section">
+      <div class="client-section-title">🍽️ Plats préférés</div>
+      <div class="client-top-dishes">${dishesHtml}</div>
+    </div>
+
+    <div class="client-section">
+      <div class="client-section-title">📦 Historique des commandes (${clientOrders.length})</div>
+      <div class="client-orders-list">${ordersHtml || '<div style="color:#888;font-size:.9rem">Aucune commande</div>'}</div>
+    </div>
+  `;
+
+  document.getElementById('clientDetailBody').innerHTML = bodyHtml;
+}
+
+function closeClientDetail() {
+  document.getElementById('clientDetailOverlay').style.display = 'none';
 }
 
 // ============ FORCE CACHE CLEAR ON RELOAD ============

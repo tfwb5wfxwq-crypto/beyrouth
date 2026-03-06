@@ -860,7 +860,7 @@ function updateSlotPauseButton() {
       const minsStr = String(mins).padStart(2, '0');
       const secsStr = String(secs).padStart(2, '0');
 
-      text.textContent = `⏸️ En pause jusqu'à ${endHours}h${endMins} — Reprise dans ${hoursStr}:${minsStr}:${secsStr}`;
+      text.innerHTML = `⏸️ En pause jusqu'à ${endHours}h${endMins}<br><small style="font-size:0.8em;opacity:0.85;">Reprise dans ${hoursStr}:${minsStr}:${secsStr}</small>`;
 
       btn.style.background = 'rgba(255,200,100,.2)';
       btn.onclick = () => resumeSlots();

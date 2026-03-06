@@ -42,11 +42,11 @@ a{color:inherit;text-decoration:none}
 .header{background:var(--dark);color:#fff;padding:24px 24px;margin-bottom:0;height:auto;min-height:92px}
 .header-inner{max-width:1000px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:24px}
 .brand{font-family:'DM Serif Display',Georgia,serif;font-size:1.5rem;font-weight:400;letter-spacing:.3px;line-height:1.2;display:flex;align-items:center;gap:8px}
-.brand-express{font-weight:800;font-style:normal;transform:skewX(-5deg);letter-spacing:2px;position:relative;color:var(--gold);text-transform:uppercase;font-size:1.1em;animation:expressRise 3s ease-in-out infinite}
+.brand-express{font-weight:800;font-style:normal;transform:skewX(-5deg);letter-spacing:2px;position:relative;color:var(--gold);text-transform:uppercase;font-size:1.1em;animation:expressSpeed 2s ease-in-out infinite}
 .brand-logo-svg{display:none!important}
 .brand-logo-text{display:block!important;line-height:1.1}
-.brand-dot{display:inline-block;color:var(--gold);font-size:1.6em;line-height:0.5;vertical-align:middle;margin-right:2px}
-@keyframes expressRise{0%,100%{transform:skewX(-5deg) translateY(0)}50%{transform:skewX(-5deg) translateY(-3px)}}
+.brand-dot{display:inline-block;color:var(--gold);font-size:1.5em;line-height:1;vertical-align:baseline;margin-right:1px;position:relative;top:-2px}
+@keyframes expressSpeed{0%,100%{transform:skewX(-5deg) translateX(0);text-shadow:0 0 0 transparent}50%{transform:skewX(-5deg) translateX(2px);text-shadow:-2px 0 8px rgba(212,168,83,0.6),-4px 0 12px rgba(212,168,83,0.4),-6px 0 16px rgba(212,168,83,0.2)}}
 .header-right{display:flex;align-items:center;gap:14px}
 .header-mode-active{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg, var(--gold) 0%, #B8956A 100%);color:#1a1a1a;padding:8px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.3);font-size:.7rem;font-weight:700;letter-spacing:0.2px;text-decoration:none;box-shadow:0 3px 15px rgba(212,175,55,0.35), inset 0 1px 0 rgba(255,255,255,0.2);white-space:nowrap}
 .header-mode-link{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:rgba(255,255,255,0.7);padding:8px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.15);font-size:.7rem;font-weight:600;letter-spacing:0.2px;text-decoration:none;transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);box-shadow:0 2px 8px rgba(0,0,0,0.1)}

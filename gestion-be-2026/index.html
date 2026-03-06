@@ -1721,7 +1721,14 @@ function renderMenuItems() {
 }
 
 async function toggleMenuItem(id, newValue) {
-  await sb.from('menu_items').update({disponible: newValue}).eq('id', id);
+  console.log('🔄 Toggle menu item:', id, 'to', newValue);
+  const { data, error } = await sb.from('menu_items').update({disponible: newValue}).eq('id', id);
+  if (error) {
+    console.error('❌ Erreur toggle menu item:', error);
+    alert('Erreur lors de la modification: ' + error.message);
+    return;
+  }
+  console.log('✅ Menu item updated:', data);
   const item = menuItemsList.find(i => i.id === id);
   if (item) item.disponible = newValue;
   renderMenuItems();

@@ -30,7 +30,7 @@ img{max-width:100%;display:block}
 a{color:inherit;text-decoration:none}
 
 /* ===== HEADER ===== */
-.header{background:var(--dark);color:#fff;padding:24px 24px;margin-bottom:0;min-height:92px}
+.header{background:var(--dark);color:#fff;padding:24px 24px;margin-bottom:0;height:92px}
 .header-inner{max-width:1000px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:20px}
 .brand{font-family:'DM Serif Display',Georgia,serif;font-size:1.5rem;font-weight:400;letter-spacing:.3px;line-height:1.2;display:flex;align-items:center;gap:8px}
 .brand-express{font-weight:700;font-style:italic;transform:skewX(-8deg);letter-spacing:1px;position:relative;color:var(--gold)}
@@ -244,7 +244,7 @@ a{color:inherit;text-decoration:none}
   .menu-grid{grid-template-columns:repeat(4,1fr)}
 }
 @media(max-width:640px){
-  .header{padding:18px 16px;min-height:130px}
+  .header{padding:18px 16px;height:130px}
   .header-inner{flex-wrap:wrap;gap:8px}
   .brand{font-size:1.3rem}
   .brand-logo-svg{display:none!important}
@@ -781,7 +781,10 @@ function subscribeRealtime() {
     })
     .on('postgres_changes', {event:'*', schema:'public', table:'menu_items'}, () => {
       console.log('🔔 Realtime: Menu item changé');
-      loadFromSupabase().then(renderMenu);
+      loadFromSupabase().then(() => {
+        cleanUnavailableFromCart();
+        renderMenu();
+      });
     })
     .subscribe((status) => {
       console.log('📡 Realtime menu status:', status);
@@ -1375,6 +1378,19 @@ function toggleCart() {
 }
 
 function saveCart() { localStorage.setItem('be_cart', JSON.stringify(cart)); }
+function cleanUnavailableFromCart() {
+  const beforeLength = cart.length;
+  cart = cart.filter(cartItem => {
+    const item = menuItems.find(i => i.id === cartItem.id);
+    return item && item.disponible;
+  });
+  if (cart.length < beforeLength) {
+    console.log(`🧹 ${beforeLength - cart.length} item(s) indisponible(s) retiré(s) du panier`);
+    saveCart();
+    updateCartUI();
+    showToast('⚠️ Certains plats ne sont plus disponibles et ont été retirés de votre panier', 'error');
+  }
+}
 
 // ===== CLIENT MEMORY =====
 function saveClientInfo() {
@@ -2378,6 +2394,19 @@ function setupScrollReveal() {
 }
 
 // Modal confirmModal créé dynamiquement, plus besoin de cet event listener
+
+// ===== VIEW TRANSITIONS (navigation fluide) =====
+if (document.startViewTransition) {
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a.header-mode-link');
+    if (link && link.href) {
+      e.preventDefault();
+      document.startViewTransition(() => {
+        window.location.href = link.href;
+      });
+    }
+  });
+}
 </script>
 </body>
 </html>

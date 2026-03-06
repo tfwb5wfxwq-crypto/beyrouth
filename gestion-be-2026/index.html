@@ -1368,14 +1368,28 @@ async function showDashboard() {
     }
   }, 5000);
 
-  // REFRESH automatique toutes les 30s pour re-classifier les commandes
-  // (nouvelle → retard, urgente → normale, etc.)
+  // REFRESH INTELLIGENT toutes les 10s pour re-classifier les commandes
+  // Compare les catégories avant/après → 0 flash si rien n'a changé
+  let lastOrdersSignature = '';
   setInterval(() => {
-    if (currentTab === 'orders') {
+    if (currentTab !== 'orders') return;
+
+    // Calculer signature (ID + statut + catégorie)
+    const newSignature = orders.map(o => {
+      const cat = o.statut === 'payee' ? 'new' :
+                  isFuture(o) ? 'future' :
+                  getUrgency(o);
+      return `${o.id}-${o.statut}-${cat}`;
+    }).join('|');
+
+    // Comparer avec état précédent
+    if (newSignature !== lastOrdersSignature) {
+      console.log('🔄 Catégories changées, re-render smooth...');
+      lastOrdersSignature = newSignature;
       debouncedRenderOrders();
       updateTopbarStats();
     }
-  }, 30000);
+  }, 10000);
 
   // Mode kiosque: demander permissions + wake lock + plein écran
   requestNotificationPermission();
@@ -1475,6 +1489,44 @@ function getUrgency(order) {
   if (diffMinutes < 0) return 'urgent'; // Heure passée mais -15min
   if (diffMinutes < 30) return 'urgent'; // < 30 min
   return 'normal';
+}
+
+// Helper: get elapsed time string for order card
+function getElapsedTime(order) {
+  const now = new Date();
+  const urgency = getUrgency(order);
+
+  // Pour les nouvelles commandes : "Il y a X min"
+  if (order.statut === 'payee') {
+    const createdAt = new Date(order.payment_confirmed_at || order.created_at);
+    const diffMs = now - createdAt;
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return 'À l\'instant';
+    if (mins < 60) return `Il y a ${mins} min`;
+    const hours = Math.floor(mins / 60);
+    return `Il y a ${hours}h${mins % 60 > 0 ? (mins % 60).toString().padStart(2,'0') : ''}`;
+  }
+
+  // Pour les commandes en retard : "Retard +X min"
+  if (urgency === 'late') {
+    const pickupTime = parsePickupTime(order);
+    const diffMs = now - pickupTime;
+    const mins = Math.floor(diffMs / 60000);
+    return `⏰ Retard +${mins} min`;
+  }
+
+  // Pour les commandes urgentes/normales : "Dans X min"
+  if (urgency === 'urgent' || urgency === 'normal') {
+    const pickupTime = parsePickupTime(order);
+    const diffMs = pickupTime - now;
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return '⏰ Maintenant !';
+    if (mins < 60) return `Dans ${mins} min`;
+    const hours = Math.floor(mins / 60);
+    return `Dans ${hours}h${mins % 60 > 0 ? (mins % 60).toString().padStart(2,'0') : ''}`;
+  }
+
+  return '';
 }
 
 // Debounce pour éviter les flash blancs (attendre 100ms avant render)
@@ -1609,6 +1661,13 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
       <div style="min-width:120px;flex-shrink:0;">
         <div style="font-size:0.85rem;font-weight:600;color:#1a1a1a;">${order.client_prenom || 'Client'}</div>
         <div style="font-size:0.7rem;color:#888;">${order.client_telephone || ''}</div>
+        ${!isHistory ? `<div style="font-size:0.65rem;color:#999;margin-top:2px;font-style:italic;">${getElapsedTime(order)}</div>` : ''}
+        ${!isHistory && order.reminder_sent_at ? (() => {
+          const now = new Date();
+          const reminderTime = new Date(order.reminder_sent_at);
+          const mins = Math.floor((now - reminderTime) / 60000);
+          return `<div style="font-size:0.65rem;color:#f97316;margin-top:2px;font-weight:600;">📧 Relancé il y a ${mins} min</div>`;
+        })() : ''}
       </div>
 
       <div style="flex:1;min-width:200px;font-size:0.8rem;color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
@@ -1705,17 +1764,34 @@ async function updateStatus(orderId, newStatus) {
 }
 
 async function remindOrder(orderId) {
-  if (!confirm('Envoyer un email de relance au client ?')) return;
+  // Toast de confirmation au lieu de confirm()
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+
+  showToast(`📧 Envoi de l'email de relance à ${order.client_prenom}...`, 'info');
 
   try {
     const { data, error } = await sb.functions.invoke('send-order-reminder', {
       body: { orderId: orderId }
     });
     if (error) throw error;
-    alert('✅ Email de relance envoyé !');
+
+    // Marquer la commande comme "relancée"
+    await sb.from('orders')
+      .update({ reminder_sent_at: new Date().toISOString() })
+      .eq('id', orderId);
+
+    // Mettre à jour l'ordre local
+    const idx = orders.findIndex(o => o.id === orderId);
+    if (idx !== -1) {
+      orders[idx].reminder_sent_at = new Date().toISOString();
+      debouncedRenderOrders();
+    }
+
+    showToast('✅ Email de relance envoyé !', 'success');
   } catch (err) {
     console.error('❌ Erreur envoi email:', err);
-    alert('❌ Erreur lors de l\'envoi de l\'email');
+    showToast('❌ Erreur lors de l\'envoi de l\'email', 'error');
   }
 }
 

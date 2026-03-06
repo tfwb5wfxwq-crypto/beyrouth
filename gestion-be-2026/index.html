@@ -1187,10 +1187,15 @@ async function resumeSlots() {
 }
 
 // ===== AUTH =====
+const ADMIN_CODE = 'A5qYIeJatg';
+
 async function checkSession() {
-  const savedToken = localStorage.getItem('adminToken');
-  if (savedToken) {
+  const savedCode = localStorage.getItem('adminCode');
+  if (savedCode === ADMIN_CODE) {
     showDashboard();
+  } else {
+    // Code invalide ou absent, forcer reconnexion
+    localStorage.removeItem('adminCode');
   }
 }
 checkSession();
@@ -1199,7 +1204,7 @@ document.getElementById('loginCode').addEventListener('keydown', e => {
   if (e.key === 'Enter') doLogin();
 });
 
-async function doLogin() {
+function doLogin() {
   const code = document.getElementById('loginCode').value.trim();
   const errEl = document.getElementById('loginError');
   const btn = document.querySelector('.login-btn');
@@ -1213,41 +1218,25 @@ async function doLogin() {
   btn.disabled = true;
   btn.textContent = 'Vérification...';
 
-  try {
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-auth`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-      },
-      body: JSON.stringify({ code })
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      localStorage.setItem('adminToken', data.token);
-      showDashboard();
-    } else {
-      errEl.textContent = 'Code incorrect';
-      errEl.style.display = 'block';
-      setTimeout(() => {
-        errEl.style.display = 'none';
-        document.getElementById('loginCode').value = '';
-      }, 2000);
-    }
-  } catch (error) {
-    console.error('Erreur de connexion:', error);
-    errEl.textContent = 'Erreur de connexion';
+  // Vérification directe du code
+  if (code === ADMIN_CODE) {
+    localStorage.setItem('adminCode', code);
+    errEl.style.display = 'none';
+    showDashboard();
+  } else {
+    errEl.textContent = 'Code incorrect';
     errEl.style.display = 'block';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Se connecter';
+    setTimeout(() => {
+      errEl.style.display = 'none';
+      document.getElementById('loginCode').value = '';
+      btn.disabled = false;
+      btn.textContent = 'Se connecter';
+    }, 2000);
   }
 }
 
 async function doLogout() {
-  localStorage.removeItem('adminToken');
+  localStorage.removeItem('adminCode');
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('loginPage').style.display = 'flex';
 }

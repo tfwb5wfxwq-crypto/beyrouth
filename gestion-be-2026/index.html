@@ -812,13 +812,6 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ===== HAPTICS =====
 const haptic = (() => {
-  // Créer checkbox invisible pour iOS (iOS vibre sur toggle checkbox)
-  const iOSCheckbox = document.createElement('input');
-  iOSCheckbox.type = 'checkbox';
-  iOSCheckbox.style.cssText = 'position:absolute;opacity:0;pointer-events:none;width:1px;height:1px';
-  if ('switch' in iOSCheckbox) iOSCheckbox.setAttribute('switch', ''); // iOS 18+
-  document.body?.appendChild(iOSCheckbox) || document.addEventListener('DOMContentLoaded', () => document.body.appendChild(iOSCheckbox));
-
   const presets = {
     success: [100, 30, 100],           // Double tap
     error: [200, 50, 200, 50, 200],   // Triple tap
@@ -828,19 +821,30 @@ const haptic = (() => {
 
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
 
+  // iOS : créer/supprimer checkbox à chaque appel (iOS 17.4+)
+  function triggerIOSHaptic(count = 1, delay = 80) {
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.setAttribute('switch', ''); // iOS 17.4+ haptic
+        checkbox.style.cssText = 'position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;left:-9999px';
+        document.body.appendChild(checkbox);
+        checkbox.checked = true; // Toggle pour vibration
+        setTimeout(() => checkbox.remove(), 10); // Supprimer après 10ms
+      }, i * delay);
+    }
+  }
+
   return {
     trigger(type) {
       const pattern = typeof type === 'string' ? presets[type] : type;
       if (!pattern) return;
 
-      // iOS : toggle checkbox pour vibration
+      // iOS : créer/toggle/supprimer checkbox
       if (isIOS) {
         const count = type === 'success' ? 2 : type === 'error' ? 3 : type === 'buzz' ? 1 : 1;
-        for (let i = 0; i < count; i++) {
-          setTimeout(() => {
-            iOSCheckbox.checked = !iOSCheckbox.checked;
-          }, i * 80);
-        }
+        triggerIOSHaptic(count, 80);
       }
       // Android/autres : Vibration API
       else if (navigator.vibrate) {

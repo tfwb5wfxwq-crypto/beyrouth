@@ -49,94 +49,68 @@ serve(async (req) => {
     }
 
     // Formater l'heure de retrait
-    const heureRetrait = order.heure_retrait || 'dès que possible'
+    const pickupText = order.heure_retrait || 'Dès que possible'
 
-    // Template email simple
+    // Template email (design original noir et or)
     const emailHtml = `
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Votre commande vous attend - A Beyrouth</title>
 </head>
-<body style="margin:0; padding:0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color:#f5f5f5;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f5f5; padding:20px 0;">
-    <tr>
-      <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5;">
+  <div style="max-width: 600px; margin: 0 auto; background: #fff;">
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); padding: 40px 20px; text-align: center;">
+      <div style="font-size: 48px; margin-bottom: 10px;">🧆</div>
+      <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 700;">A Beyrouth</h1>
+      <p style="color: rgba(255,255,255,0.8); margin: 8px 0 0 0; font-size: 16px;">Rappel de commande</p>
+    </div>
 
-          <!-- Header -->
-          <tr>
-            <td style="padding:40px 40px 20px; text-align:center; background: linear-gradient(135deg, #f97316 0%, #fb923c 100%); border-radius:12px 12px 0 0;">
-              <h1 style="margin:0; color:#ffffff; font-size:28px; font-weight:700;">
-                ⏰ Votre commande vous attend !
-              </h1>
-            </td>
-          </tr>
+    <!-- Alert Badge -->
+    <div style="text-align: center; padding: 30px 20px;">
+      <div style="width: 80px; height: 80px; background: #FFF3E0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+        <span style="font-size: 40px; color: #f97316;">⏰</span>
+      </div>
+      <h2 style="margin: 0 0 10px 0; font-size: 24px; color: #1a1a1a;">Votre commande vous attend !</h2>
+      <p style="margin: 0; color: #666; font-size: 14px;">Bonjour ${order.client_prenom}, n'oubliez pas de récupérer votre commande</p>
+    </div>
 
-          <!-- Message -->
-          <tr>
-            <td style="padding:30px 40px; text-align:center;">
-              <p style="margin:0 0 20px; font-size:18px; color:#333; line-height:1.6;">
-                Bonjour ${order.client_prenom},
-              </p>
-              <p style="margin:0 0 20px; font-size:16px; color:#666; line-height:1.6;">
-                Votre commande <strong style="color:#f97316;">${order.numero}</strong> est prête et vous attend au restaurant !
-              </p>
-              <p style="margin:0; font-size:16px; color:#666; line-height:1.6;">
-                Heure de retrait prévue : <strong>${heureRetrait}</strong>
-              </p>
-            </td>
-          </tr>
+    <!-- Order Number -->
+    <div style="background: #FFF8F0; padding: 30px 20px; text-align: center; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+      <div>
+        <p style="margin: 0 0 5px 0; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Numéro de commande</p>
+        <p style="margin: 0; font-size: 48px; font-weight: 700; color: #f97316; font-family: 'Courier New', monospace; letter-spacing: 8px;">${order.numero}</p>
+        <p style="margin: 10px 0 0 0; font-size: 13px; color: #666;">Présentez ce numéro lors du retrait</p>
+      </div>
+    </div>
 
-          <!-- Adresse restaurant -->
-          <tr>
-            <td style="padding:20px 40px 40px;">
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="padding:20px; background-color:#f8f9ff; border-radius:8px; text-align:center;">
-                    <h3 style="margin:0 0 15px; font-size:18px; color:#333;">
-                      📍 Adresse
-                    </h3>
-                    <p style="margin:0; font-size:16px; color:#666; line-height:1.6;">
-                      <strong>A Beyrouth</strong><br>
-                      4 Esplanade du Général de Gaulle<br>
-                      92400 Courbevoie
-                    </p>
-                    <p style="margin:15px 0 0; font-size:14px; color:#888;">
-                      Métro : La Défense - Sortie 4
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
+    <!-- Info -->
+    <div style="padding: 30px 20px; background: #fafafa;">
+      <h3 style="margin: 0 0 15px 0; font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Informations de retrait</h3>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; color: #666; font-size: 14px;"><strong>Heure prévue :</strong></td>
+          <td style="padding: 8px 0; text-align: right; color: #1a1a1a; font-size: 14px;">${pickupText}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #666; font-size: 14px;"><strong>Lieu :</strong></td>
+          <td style="padding: 8px 0; text-align: right; color: #1a1a1a; font-size: 14px;">La Défense — Sortie 4 Métro</td>
+        </tr>
+      </table>
+    </div>
 
-          <!-- Footer -->
-          <tr>
-            <td style="padding:30px 40px; background-color:#f8f9ff; text-align:center; border-radius:0 0 12px 12px;">
-              <p style="margin:0; font-size:14px; color:#888;">
-                À très bientôt ! 🙏
-              </p>
-            </td>
-          </tr>
-
-        </table>
-
-        <!-- Footer legal -->
-        <table width="600" cellpadding="0" cellspacing="0" style="margin-top:20px;">
-          <tr>
-            <td style="text-align:center; padding:20px; font-size:12px; color:#999;">
-              <p style="margin:0;">
-                A Beyrouth - 4 Esplanade du Général de Gaulle, 92400 Courbevoie (La Défense)
-              </p>
-            </td>
-          </tr>
-        </table>
-
-      </td>
-    </tr>
-  </table>
+    <!-- Footer -->
+    <div style="background: #1a1a1a; padding: 30px 20px; text-align: center;">
+      <p style="margin: 0 0 10px 0; color: rgba(255,255,255,0.6); font-size: 13px;">À très bientôt chez A Beyrouth !</p>
+      <p style="margin: 0; color: rgba(255,255,255,0.4); font-size: 12px;">4 Esplanade du Général de Gaulle, 92400 Courbevoie</p>
+      <div style="margin-top: 20px;">
+        <a href="https://beyrouth.express" style="color: #D4A853; text-decoration: none; font-size: 13px;">beyrouth.express</a>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
     `

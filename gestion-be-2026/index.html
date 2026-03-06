@@ -193,23 +193,25 @@ button{cursor:pointer;font-family:inherit;border:none}
 .content{max-width:900px;margin:0 auto;padding:24px}
 
 /* ========= ORDERS TAB ========= */
-.orders-list{display:flex;flex-direction:column;gap:24px}
+.orders-list{display:flex;flex-direction:column;gap:16px}
 .orders-list.grid-view{display:grid;grid-template-columns:repeat(3, 1fr);gap:16px}
-.status-section{margin-bottom:24px}
+.status-section{margin-bottom:16px;scroll-margin-top:80px}
 .status-section-header{
-  font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;
-  color:var(--bordeaux);margin-bottom:14px;padding:12px 16px;
+  font-family:'Playfair Display',serif;font-size:0.9rem;font-weight:700;
+  color:var(--bordeaux);margin-bottom:10px;padding:8px 12px;
   background:var(--cream);border-radius:var(--radius);
-  display:flex;align-items:center;gap:8px;
+  display:flex;align-items:center;gap:8px;cursor:pointer;
+  transition:all 0.2s;user-select:none;
 }
+.status-section-header:hover{transform:translateX(2px);box-shadow:0 2px 6px rgba(0,0,0,0.08)}
 .status-section-count{
-  font-size:.85rem;font-weight:600;color:#888;
-  background:#fff;padding:2px 10px;border-radius:12px;
+  font-size:.75rem;font-weight:600;color:#888;
+  background:#fff;padding:1px 8px;border-radius:10px;margin-left:auto;
 }
 .status-section-cards{
   display:grid;
   grid-template-columns:repeat(3, 1fr);
-  gap:12px;
+  gap:10px;
 }
 @media (max-width:1200px){.status-section-cards{grid-template-columns:repeat(2, 1fr)}}
 @media (max-width:768px){.status-section-cards{grid-template-columns:1fr}}
@@ -467,8 +469,10 @@ button{cursor:pointer;font-family:inherit;border:none}
   .order-actions{flex-direction:column}
   .order-action{text-align:center;min-width:100%}
   .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .status-section-header{font-size:1.1rem;padding:10px 14px}
+  .status-section-header{font-size:0.85rem;padding:6px 10px}
   .order-num{font-size:1.2rem}
+  .status-section{margin-bottom:12px}
+  .status-section-cards{gap:8px}
 }
 
 /* Touch optimization */
@@ -562,9 +566,12 @@ button{cursor:pointer;font-family:inherit;border:none}
   .orders-list.grid-view{grid-template-columns:1fr}
   .status-section{margin-bottom:16px}
   .status-section-header{
-    font-size:1rem;
-    padding:8px 12px;
+    font-size:0.8rem;
+    padding:6px 10px;
   }
+  .status-section{margin-bottom:10px}
+  .status-section-cards{gap:6px}
+  .orders-list{gap:12px}
 
   /* Order cards compact */
   .order-card{padding:14px}
@@ -1377,6 +1384,13 @@ function setOrderFilter(filter) {
   renderOrders();
 }
 
+function scrollToSection(sectionId) {
+  const section = document.getElementById(sectionId);
+  if (section) {
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
 // ===== ORDERS =====
 async function loadOrders() {
   const {data} = await sb.from('orders')
@@ -1478,9 +1492,9 @@ function renderOrders() {
 
   // 1. NOUVELLES (à accepter)
   if (nouvelles.length && showNouvelles) {
-    html += `<div class="status-section status-nouvelles">
-      <div class="status-section-header" style="background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); color: #D4A853;">
-        🆕 NOUVELLES COMMANDES <span class="status-section-count">${nouvelles.length}</span>
+    html += `<div id="section-nouvelles" class="status-section status-nouvelles">
+      <div class="status-section-header" onclick="scrollToSection('section-nouvelles')" style="background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); color: #D4A853;">
+        🆕 Nouvelles <span class="status-section-count">${nouvelles.length}</span>
       </div>
       <div class="status-section-cards">`;
     nouvelles.forEach(order => {
@@ -1491,9 +1505,9 @@ function renderOrders() {
 
   // 2. EN RETARD (+15min)
   if (enRetard.length && showRetard) {
-    html += `<div class="status-section status-retard">
-      <div class="status-section-header" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); animation: pulse-red 2s infinite;">
-        🔴 EN RETARD <span class="status-section-count">${enRetard.length}</span>
+    html += `<div id="section-retard" class="status-section status-retard">
+      <div class="status-section-header" onclick="scrollToSection('section-retard')" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); animation: pulse-red 2s infinite;">
+        🔴 En retard <span class="status-section-count">${enRetard.length}</span>
       </div>
       <div class="status-section-cards">`;
     enRetard.forEach(order => {
@@ -1504,9 +1518,9 @@ function renderOrders() {
 
   // 3. URGENTES (<30min)
   if (urgentes.length && showUrgentes) {
-    html += `<div class="status-section status-urgent">
-      <div class="status-section-header" style="background: linear-gradient(135deg, #ea580c 0%, #fb923c 100%);">
-        ⚠️ URGENTES <span class="status-section-count">${urgentes.length}</span>
+    html += `<div id="section-urgentes" class="status-section status-urgent">
+      <div class="status-section-header" onclick="scrollToSection('section-urgentes')" style="background: linear-gradient(135deg, #ea580c 0%, #fb923c 100%);">
+        ⚠️ Urgentes <span class="status-section-count">${urgentes.length}</span>
       </div>
       <div class="status-section-cards">`;
     urgentes.forEach(order => {
@@ -1517,9 +1531,9 @@ function renderOrders() {
 
   // 4. NORMALES (acceptées, future)
   if (normales.length && showNormales) {
-    html += `<div class="status-section">
-      <div class="status-section-header">
-        ✅ EN COURS <span class="status-section-count">${normales.length}</span>
+    html += `<div id="section-normales" class="status-section">
+      <div class="status-section-header" onclick="scrollToSection('section-normales')">
+        ✅ En cours <span class="status-section-count">${normales.length}</span>
       </div>
       <div class="status-section-cards">`;
     normales.forEach(order => {
@@ -1530,9 +1544,9 @@ function renderOrders() {
 
   // 5. COMMANDES FUTURES (J+1, J+2...)
   if (futureOrders.length && showFutures) {
-    html += `<div class="status-section status-future" style="opacity:0.6;">
-      <div class="status-section-header" style="background:#e5e7eb; color:#6b7280;">
-        📅 COMMANDES À VENIR <span class="status-section-count">${futureOrders.length}</span>
+    html += `<div id="section-futures" class="status-section status-future" style="opacity:0.6;">
+      <div class="status-section-header" onclick="scrollToSection('section-futures')" style="background:#e5e7eb; color:#6b7280;">
+        📅 Futures <span class="status-section-count">${futureOrders.length}</span>
       </div>
       <div class="status-section-cards">`;
     futureOrders.forEach(order => {

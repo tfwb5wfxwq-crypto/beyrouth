@@ -2108,7 +2108,7 @@ function renderTimeSlots() {
     minTimeMinutes = Math.max(minTimeMinutes, pauseMinutes);
   }
 
-  for (let m = startMin; m < endMin; m += 30) { // Créneaux toutes les 30 min, dernier à 20h30
+  for (let m = startMin; m < endMin; m += 30) { // Créneaux toutes les 30 min jusqu'à 21h00
     const h = Math.floor(m / 60), min = m % 60;
     const label = `${h}h${min.toString().padStart(2, '0')}`;
     const isPast = day.isToday && minTimeMinutes >= m;
@@ -2116,8 +2116,6 @@ function renderTimeSlots() {
     const value = day.isToday ? label : `${day.label} ${label}`;
     html += `<div class="timepicker-slot ${selectedPickup === value ? 'active' : ''}"
       onclick="selectTime('${value}')">${label}</div>`;
-    count++;
-    if (count >= 8) break; // Max 8 créneaux affichés
   }
   slotsEl.innerHTML = html;
 }

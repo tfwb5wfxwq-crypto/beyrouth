@@ -422,6 +422,123 @@ button{cursor:pointer;font-family:inherit;border:none}
   .toggle.on::after{transform:translateX(24px)}
   .order-time-badge{padding:8px 16px;font-size:.9rem}
 }
+
+/* Mobile optimization (phones only - not tablets) */
+@media(max-width:767px){
+  /* Topbar compact */
+  .topbar{
+    padding:12px 16px;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .topbar h1{font-size:1.1rem}
+  .topbar img{height:32px!important}
+  #currentTime{font-size:.9rem!important}
+  .topbar-right{
+    flex-wrap:wrap;
+    gap:8px;
+    width:100%;
+    justify-content:space-between;
+  }
+  .topbar-stats{
+    font-size:.75rem;
+    padding:6px 12px;
+  }
+  .topbar-logout{
+    padding:8px 14px;
+    font-size:.8rem;
+  }
+  .toggle-label{
+    font-size:.8rem;
+    padding:6px 10px;
+  }
+
+  /* Tabs compact */
+  .tabs{
+    padding:0 16px;
+    top:auto;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{
+    padding:12px 16px;
+    font-size:.85rem;
+    white-space:nowrap;
+  }
+  .tab-badge{
+    font-size:.65rem;
+    min-width:18px;
+    height:18px;
+    margin-left:6px;
+  }
+
+  /* Filter bar - 2 rows layout */
+  .filter-bar{
+    padding:10px 16px;
+    top:auto;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .filter-label{
+    font-size:.8rem;
+    width:100%;
+    margin-right:0;
+    margin-bottom:4px;
+  }
+  .filter-btn{
+    padding:6px 12px;
+    font-size:.8rem;
+    flex:1 1 auto;
+    min-width:80px;
+  }
+
+  /* Content spacing */
+  .content{padding:16px 12px}
+  .orders-list{gap:16px}
+  .status-section{margin-bottom:16px}
+  .status-section-header{
+    font-size:1rem;
+    padding:8px 12px;
+  }
+
+  /* Order cards compact */
+  .order-card{padding:14px}
+  .order-num{font-size:1.1rem}
+  .order-pickup{font-size:.8rem}
+  .order-items{
+    font-size:.8rem;
+    margin:10px 0;
+  }
+  .order-total{font-size:1rem}
+  .order-actions{
+    gap:8px;
+    margin-top:12px;
+  }
+  .order-action{
+    padding:10px 14px;
+    font-size:.85rem;
+  }
+
+  /* Client card compact */
+  .client-card{padding:14px}
+  .client-name{font-size:.95rem}
+  .client-contact{font-size:.8rem}
+  .client-stats{gap:16px}
+  .client-stat-value{font-size:1.1rem}
+  .client-stat-label{font-size:.65rem}
+
+  /* Pause modal positioning */
+  #slotPauseModal{
+    position:fixed!important;
+    top:auto!important;
+    bottom:20px!important;
+    left:50%!important;
+    right:auto!important;
+    transform:translateX(-50%)!important;
+  }
+}
 </style>
 </head>
 <body>

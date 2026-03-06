@@ -539,8 +539,9 @@ const haptic = (() => {
 
       // iOS : créer/toggle/supprimer checkbox
       if (isIOS) {
-        const count = type === 'success' ? 2 : type === 'error' ? 3 : type === 'buzz' ? 1 : 1;
-        triggerIOSHaptic(count, 80);
+        const count = type === 'success' ? 2 : type === 'error' ? 3 : type === 'buzz' ? 4 : 1;
+        const delay = type === 'buzz' ? 50 : 80; // Buzz plus rapide et fort
+        triggerIOSHaptic(count, delay);
       }
       // Android/autres : Vibration API
       else if (navigator.vibrate) {
@@ -953,6 +954,7 @@ let currentFormule = null;
 let formuleSelections = {};
 
 function openFormuleModal(formuleItem) {
+  haptic.trigger('success'); // Vibration ouverture formule
   currentFormule = formuleItem;
   formuleSelections = {};
   const config = FORMULE_CONFIG[formuleItem.nom];
@@ -1000,6 +1002,7 @@ function openFormuleModal(formuleItem) {
 }
 
 function closeFormuleModal() {
+  haptic.trigger('nudge'); // Vibration légère fermeture formule
   document.getElementById('formuleOverlay').classList.remove('open');
   document.getElementById('formuleSheet').classList.remove('open');
   document.body.style.overflow = '';
@@ -1088,6 +1091,7 @@ function selectFormuleOption(compIdx, optIdx, maxQty) {
 
 function addFormuleToCart() {
   if (!currentFormule) return;
+  haptic.trigger('success'); // Vibration ajout formule au panier
   const config = FORMULE_CONFIG[currentFormule.nom];
   const components = config.map((c, i) => formuleSelections[i] || []).flat();
 
@@ -1328,7 +1332,13 @@ function showUpsellBubble(addedItemId) {
 }
 
 function applyUpsell() {
-  if (pendingUpsell) { pendingUpsell.action(); saveCart(); updateCartUI(); renderMenu(); }
+  if (pendingUpsell) {
+    haptic.trigger('success'); // Vibration confirmation upsell
+    pendingUpsell.action();
+    saveCart();
+    updateCartUI();
+    renderMenu();
+  }
   dismissUpsell();
 }
 
@@ -1336,12 +1346,15 @@ function dismissUpsell() {
   document.getElementById('upsellBubble').classList.remove('show');
   clearTimeout(upsellTimeout);
   pendingUpsell = null;
+  haptic.trigger('nudge'); // Vibration légère fermeture upsell
 }
 
 function toggleCart() {
+  const isOpening = !document.getElementById('cartPanel').classList.contains('open');
   document.getElementById('cartOverlay').classList.toggle('open');
   document.getElementById('cartPanel').classList.toggle('open');
   document.body.style.overflow = document.getElementById('cartPanel').classList.contains('open') ? 'hidden' : '';
+  haptic.trigger(isOpening ? 'success' : 'nudge'); // Vibration ouverture panier (forte) / fermeture (légère)
 }
 
 function saveCart() { localStorage.setItem('be_cart', JSON.stringify(cart)); }
@@ -1593,6 +1606,7 @@ function openPaymentModal(paymentOrderId, objectSecret, orderNum, total) {
 }
 
 function selectPaymentMethod(method) {
+  haptic.trigger('nudge'); // Vibration légère sélection moyen de paiement
   // Reset tous les styles (apple_pay et google_pay retirés - désactivés)
   ['bank_card', 'swile', 'conecs', 'restoflash'].forEach(m => {
     const el = document.getElementById(`method_${m}`);
@@ -1767,6 +1781,7 @@ let confirmOrderNum = null;
 
 async function showConfirmation(orderNum) {
   confirmOrderNum = orderNum;
+  haptic.trigger('buzz'); // Vibration forte confirmation paiement
 
   // Fermer la section paiement en douceur
   const paymentSection = document.getElementById('paymentSection');
@@ -1970,6 +1985,7 @@ function updateConfirmModalStatus(order) {
 }
 
 function closeConfirmModal() {
+  haptic.trigger('nudge'); // Vibration légère fermeture modal
   if (confirmModal) {
     confirmModal.remove();
     confirmModal = null;
@@ -1985,6 +2001,7 @@ function closeConfirmModal() {
 function scrollToCat(catId) {
   const el = document.getElementById('cat-' + catId);
   if (el) {
+    haptic.trigger('nudge'); // Vibration légère navigation catégorie
     const navH = document.getElementById('nav').offsetHeight;
     window.scrollTo({top: el.offsetTop - navH - 8, behavior:'smooth'});
   }
@@ -2041,11 +2058,13 @@ function openTimePicker() {
   buildTimePicker();
   document.getElementById('tpOverlay').classList.add('open');
   document.getElementById('tpSheet').classList.add('open');
+  haptic.trigger('nudge'); // Vibration légère ouverture timepicker
 }
 
 function closeTimePicker() {
   document.getElementById('tpOverlay').classList.remove('open');
   document.getElementById('tpSheet').classList.remove('open');
+  haptic.trigger('nudge'); // Vibration légère fermeture
 }
 
 function buildTimePicker() {
@@ -2100,6 +2119,7 @@ function buildTimePicker() {
 
 function selectPickerDay(idx) {
   tpSelectedDay = idx;
+  haptic.trigger('nudge'); // Vibration légère sélection jour
   document.querySelectorAll('.timepicker-day').forEach((el, i) => el.classList.toggle('active', i === idx));
   renderTimeSlots();
 }
@@ -2190,6 +2210,7 @@ function selectTime(value) {
 
   document.getElementById('timingPickLabel').textContent = topLabel;
   document.getElementById('cartPickupDisplay').innerHTML = cartLabel;
+  haptic.trigger('success'); // Vibration confirmation sélection créneau
   closeTimePicker();
 }
 

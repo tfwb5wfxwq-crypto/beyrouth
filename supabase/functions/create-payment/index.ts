@@ -11,6 +11,44 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Helper pour parser le pickup time (format: "Aujourd'hui 14h30", "Demain 11h00", "Lundi 12h00")
+function parsePickupTime(pickup: string): Date | null {
+  if (!pickup || pickup === 'asap') return null
+
+  const now = new Date()
+  let targetDate = new Date(now)
+
+  // Extraire l'heure (format: "14h30")
+  const timeMatch = pickup.match(/(\d+)h(\d+)/)
+  if (!timeMatch) return null
+
+  const hours = parseInt(timeMatch[1])
+  const minutes = parseInt(timeMatch[2])
+
+  // Déterminer le jour
+  if (pickup.includes('Aujourd\'hui') || pickup.includes("Aujourd'hui")) {
+    targetDate.setHours(hours, minutes, 0, 0)
+  } else if (pickup.includes('Demain')) {
+    targetDate.setDate(targetDate.getDate() + 1)
+    targetDate.setHours(hours, minutes, 0, 0)
+  } else {
+    // Jour de la semaine (Lundi, Mardi, etc.)
+    const jours = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
+    const jourIndex = jours.findIndex(j => pickup.includes(j))
+    if (jourIndex === -1) return null
+
+    // Trouver le prochain jour correspondant
+    const currentDay = now.getDay()
+    let daysToAdd = jourIndex - currentDay
+    if (daysToAdd <= 0) daysToAdd += 7 // Si déjà passé cette semaine, aller à la semaine prochaine
+
+    targetDate.setDate(targetDate.getDate() + daysToAdd)
+    targetDate.setHours(hours, minutes, 0, 0)
+  }
+
+  return targetDate
+}
+
 serve(async (req) => {
   // Handle CORS
   if (req.method === 'OPTIONS') {
@@ -20,12 +58,78 @@ serve(async (req) => {
   try {
     const { orderNum, total, email, name, phone, pickup, note, items } = await req.json()
 
-    // Validation
+    // Validation params
     if (!orderNum || !total || !email || !name) {
       return new Response(
         JSON.stringify({ error: 'Paramètres manquants' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
+    }
+
+    // Init Supabase client (on en aura besoin pour les validations)
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    // ===== VALIDATION #1 : PAUSE ADMIN =====
+    const { data: pauseData } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'next_slot_available_at')
+      .maybeSingle()
+
+    if (pauseData?.value) {
+      const pauseDate = new Date(pauseData.value)
+      const now = new Date()
+
+      // Si pause active et pickup = "asap", refuser
+      if (pickup === 'asap' && pauseDate > now) {
+        return new Response(
+          JSON.stringify({ error: 'Restaurant en pause. Actualisez la page et choisissez un autre créneau.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Si pickup est un créneau spécifique, valider qu'il est après la pause
+      if (pickup !== 'asap') {
+        // Parser "Aujourd'hui 14h30", "Demain 11h00", etc.
+        const pickupDate = parsePickupTime(pickup)
+        if (pickupDate && pickupDate < pauseDate) {
+          return new Response(
+            JSON.stringify({ error: 'Ce créneau n\'est plus disponible. Actualisez la page.' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+      }
+    }
+
+    // ===== VALIDATION #2 : MENU DISPONIBLE =====
+    if (items && items.length > 0) {
+      const itemIds = items.map((i: any) => i.id)
+      const { data: menuData } = await supabase
+        .from('menu_items')
+        .select('id, disponible, nom')
+        .in('id', itemIds)
+
+      // Vérifier que tous les items existent
+      if (!menuData || menuData.length !== itemIds.length) {
+        return new Response(
+          JSON.stringify({ error: 'Certains plats ne sont plus au menu. Actualisez la page.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Vérifier que tous les items sont disponibles
+      const unavailableItems = menuData.filter(i => !i.disponible)
+      if (unavailableItems.length > 0) {
+        return new Response(
+          JSON.stringify({
+            error: `Le plat "${unavailableItems[0].nom}" n'est plus disponible. Actualisez la page.`
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
     }
 
     // Étape 1 : Obtenir un JWT token depuis l'Auth API
@@ -143,11 +247,6 @@ serve(async (req) => {
     }
 
     // Mettre à jour la commande avec l'ID de transaction Paygreen
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
     await supabase
       .from('orders')
       .update({

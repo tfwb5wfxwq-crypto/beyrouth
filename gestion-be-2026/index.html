@@ -1679,7 +1679,22 @@ function renderIngredients() {
 }
 
 async function toggleIngredient(id, newValue) {
-  await sb.from('ingredients').update({disponible: newValue}).eq('id', id);
+  const adminCode = localStorage.getItem('adminCode');
+  if (!adminCode) {
+    alert('Erreur: Code admin manquant');
+    return;
+  }
+
+  const { data, error } = await sb.functions.invoke('toggle-ingredient', {
+    body: { code_admin: adminCode, ingredient_id: id, disponible: newValue }
+  });
+
+  if (error || !data?.success) {
+    console.error('❌ Erreur toggle ingredient:', error || data?.error);
+    alert('Erreur: ' + (data?.error || error?.message || 'Erreur inconnue'));
+    return;
+  }
+
   const ing = ingredients.find(i => i.id === id);
   if (ing) ing.disponible = newValue;
   renderIngredients();
@@ -1721,24 +1736,35 @@ function renderMenuItems() {
 }
 
 async function toggleMenuItem(id, newValue) {
-  console.log('🔄 Toggle menu item:', id, 'to', newValue, 'types:', typeof id, typeof newValue);
-  // Parser id en integer et newValue en boolean
+  console.log('🔄 Toggle menu item:', id, 'to', newValue);
   const numId = parseInt(id, 10);
   const boolValue = newValue === 'true' || newValue === true;
-  console.log('🔄 Parsed:', numId, boolValue);
-  const { data, error } = await sb.from('menu_items').update({disponible: boolValue}).eq('id', numId).select();
+
+  // Récupérer le code admin depuis localStorage
+  const adminCode = localStorage.getItem('adminCode');
+  if (!adminCode) {
+    alert('Erreur: Code admin manquant');
+    return;
+  }
+
+  // Appeler Edge Function sécurisée
+  const { data, error } = await sb.functions.invoke('toggle-menu-item', {
+    body: { code_admin: adminCode, item_id: numId, disponible: boolValue }
+  });
+
   if (error) {
     console.error('❌ Erreur toggle menu item:', error);
     alert('Erreur lors de la modification: ' + error.message);
     return;
   }
-  console.log('✅ Menu item updated:', data);
-  if (!data || data.length === 0) {
-    console.error('❌ Aucune ligne modifiée ! ID:', id);
-    alert('Erreur: Item introuvable (ID: ' + id + ')');
+
+  if (!data || !data.success) {
+    console.error('❌ Erreur:', data?.error || 'Erreur inconnue');
+    alert('Erreur: ' + (data?.error || 'Item introuvable'));
     return;
   }
-  console.log('🎯 Ligne modifiée avec succès:', data[0]);
+
+  console.log('🎯 Ligne modifiée avec succès:', data.data);
   const item = menuItemsList.find(i => i.id === numId);
   if (item) item.disponible = boolValue;
   renderMenuItems();

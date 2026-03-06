@@ -397,6 +397,10 @@ function updateOpenStatus() {
 updateOpenStatus();
 setInterval(updateOpenStatus, 60000);
 
+// Supabase config
+const SUPABASE_URL = 'https://xbuftfwcyontgqbbrrjt.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidWZ0ZndjeW9udGdxYmJycmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2Njg1NzksImV4cCI6MjA4NjI0NDU3OX0.ROkSccADlpLsWMgqyiX_xNaFdJNR8P4R-LJCnZV2Gzg';
+
 // Form
 document.getElementById('traiteurForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -408,37 +412,40 @@ document.getElementById('traiteurForm').addEventListener('submit', async (e) => 
   btn.textContent = 'Envoi en cours...';
 
   try {
-    const subject = `[Traiteur] Demande de ${data.prenom} ${data.nom}`;
-    const body = `
-Nouvelle demande de devis traiteur
+    // Appeler l'Edge Function pour envoyer l'email de confirmation
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/send-quote-confirmation`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      },
+      body: JSON.stringify({
+        name: `${data.prenom} ${data.nom}`,
+        email: data.email,
+        phone: data.telephone,
+        eventType: data.type,
+        guestCount: parseInt(data.personnes),
+        eventDate: data.date,
+        message: `${data.entreprise ? 'Entreprise: ' + data.entreprise + '\n' : ''}${data.budget ? 'Budget: ' + data.budget + '€/pers\n' : ''}${data.message}`
+      })
+    });
 
-CONTACT:
-Nom: ${data.nom}
-Prénom: ${data.prenom}
-Email: ${data.email}
-Téléphone: ${data.telephone}
-${data.entreprise ? `Entreprise: ${data.entreprise}` : ''}
+    if (!response.ok) {
+      throw new Error('Erreur lors de l\'envoi');
+    }
 
-ÉVÉNEMENT:
-Type: ${data.type}
-Date: ${data.date}
-Nombre de personnes: ${data.personnes}
-${data.budget ? `Budget indicatif: ${data.budget}€/personne` : ''}
-
-DÉTAILS:
-${data.message}
-    `.trim();
-
-    window.location.href = `mailto:traiteur@beyrouth.express?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
+    // Succès
+    alert('✅ Votre demande a bien été envoyée !\n\nVous allez recevoir un email de confirmation.\nNous vous répondrons sous 48h avec un devis personnalisé.');
+    e.target.reset();
+    btn.textContent = 'Demande envoyée ✓';
     setTimeout(() => {
-      alert('✅ Votre demande a été préparée ! Votre client email va s\'ouvrir.\n\nSi rien ne se passe, contactez-nous directement à traiteur@beyrouth.express');
-      btn.disabled = false;
       btn.textContent = 'Envoyer ma demande';
-    }, 1000);
+      btn.disabled = false;
+    }, 3000);
 
   } catch (error) {
-    alert('❌ Une erreur est survenue. Veuillez nous contacter directement à traiteur@beyrouth.express');
+    console.error('Erreur:', error);
+    alert('❌ Une erreur est survenue.\n\nVeuillez réessayer ou nous contacter directement à traiteur@beyrouth.express');
     btn.disabled = false;
     btn.textContent = 'Envoyer ma demande';
   }

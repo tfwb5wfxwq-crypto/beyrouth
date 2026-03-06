@@ -1148,8 +1148,28 @@ function updateCartUI() {
       // Si ouvert : créneau ASAP (dans ~15 min)
       selectedPickup = 'asap';
       const asapTime = getAsapTime();
-      document.getElementById('timingPickLabel').textContent = `Aujourd'hui ${asapTime}`;
-      document.getElementById('cartPickupDisplay').innerHTML = `Aujourd'hui ${asapTime}<br><span style="font-size:.85rem;opacity:.8;">Créneau le plus proche</span>`;
+
+      // Déterminer si c'est aujourd'hui ou demain
+      const now = new Date();
+      let dayLabel = 'Aujourd\'hui';
+
+      // Si pause active et que c'est demain ou plus tard
+      if (nextSlotAvailableAt) {
+        const pauseDate = new Date(nextSlotAvailableAt);
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const pauseDay = new Date(pauseDate.getFullYear(), pauseDate.getMonth(), pauseDate.getDate());
+
+        const daysDiff = Math.floor((pauseDay - today) / (1000 * 60 * 60 * 24));
+        if (daysDiff === 1) {
+          dayLabel = 'Demain';
+        } else if (daysDiff > 1) {
+          const JOURS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+          dayLabel = JOURS[pauseDate.getDay()];
+        }
+      }
+
+      document.getElementById('timingPickLabel').textContent = `${dayLabel} ${asapTime}`;
+      document.getElementById('cartPickupDisplay').innerHTML = `${dayLabel} ${asapTime}<br><span style="font-size:.85rem;opacity:.8;">Créneau le plus proche</span>`;
       document.getElementById('pickupTime').value = 'asap';
     } else {
       // Si fermé : prochaine ouverture
@@ -2178,15 +2198,21 @@ function getAsapTime() {
   const delayMinutes = isRushHour ? 20 : 5;
   now.setMinutes(now.getMinutes() + delayMinutes);
 
-  // Arrondir au prochain quart d'heure
+  // Arrondir à la prochaine demi-heure (créneaux de 30min)
   const minutes = now.getMinutes();
-  const rounded = Math.ceil(minutes / 15) * 15;
+  const rounded = Math.ceil(minutes / 30) * 30;
   now.setMinutes(rounded);
+  now.setSeconds(0, 0);
 
   // Si une pause est active et que c'est après ASAP, utiliser l'heure de pause
   let targetTime = now;
   if (nextSlotAvailableAt && nextSlotAvailableAt > now) {
-    targetTime = nextSlotAvailableAt;
+    targetTime = new Date(nextSlotAvailableAt);
+    // Arrondir la pause à la prochaine demi-heure aussi
+    const pauseMinutes = targetTime.getMinutes();
+    const roundedPause = Math.ceil(pauseMinutes / 30) * 30;
+    targetTime.setMinutes(roundedPause);
+    targetTime.setSeconds(0, 0);
   }
 
   const h = targetTime.getHours();
@@ -2251,8 +2277,28 @@ function updateAsapAfterPause() {
     if (open) {
       const asapTime = getAsapTime();
       selectedPickup = 'asap';
-      document.getElementById('timingPickLabel').textContent = `Aujourd'hui ${asapTime}`;
-      document.getElementById('cartPickupDisplay').innerHTML = `Aujourd'hui ${asapTime}<br><span style="font-size:.85rem;opacity:.8;">Créneau le plus proche</span>`;
+
+      // Déterminer si c'est aujourd'hui ou demain
+      const now = new Date();
+      let dayLabel = 'Aujourd\'hui';
+
+      // Si pause active et que c'est demain ou plus tard
+      if (nextSlotAvailableAt) {
+        const pauseDate = new Date(nextSlotAvailableAt);
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const pauseDay = new Date(pauseDate.getFullYear(), pauseDate.getMonth(), pauseDate.getDate());
+
+        const daysDiff = Math.floor((pauseDay - today) / (1000 * 60 * 60 * 24));
+        if (daysDiff === 1) {
+          dayLabel = 'Demain';
+        } else if (daysDiff > 1) {
+          const JOURS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+          dayLabel = JOURS[pauseDate.getDay()];
+        }
+      }
+
+      document.getElementById('timingPickLabel').textContent = `${dayLabel} ${asapTime}`;
+      document.getElementById('cartPickupDisplay').innerHTML = `${dayLabel} ${asapTime}<br><span style="font-size:.85rem;opacity:.8;">Créneau le plus proche</span>`;
       document.getElementById('pickupTime').value = 'asap';
     } else {
       // Si fermé, passer au prochain créneau disponible

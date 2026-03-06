@@ -2093,7 +2093,27 @@ function buildTimePicker() {
   if (open) {
     // Si ouvert : proposer dans 15 min
     const asapTime = getAsapTime();
-    const slot = `Aujourd'hui ${asapTime}`;
+
+    // Déterminer si c'est aujourd'hui ou demain
+    const now = new Date();
+    let dayLabel = 'Aujourd\'hui';
+
+    // Si pause active et que c'est demain ou plus tard
+    if (nextSlotAvailableAt) {
+      const pauseDate = new Date(nextSlotAvailableAt);
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const pauseDay = new Date(pauseDate.getFullYear(), pauseDate.getMonth(), pauseDate.getDate());
+
+      const daysDiff = Math.floor((pauseDay - today) / (1000 * 60 * 60 * 24));
+      if (daysDiff === 1) {
+        dayLabel = 'Demain';
+      } else if (daysDiff > 1) {
+        const JOURS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+        dayLabel = JOURS[pauseDate.getDay()];
+      }
+    }
+
+    const slot = `${dayLabel} ${asapTime}`;
     asapBtn.disabled = false;
     asapBtn.onclick = () => selectTime('asap');
     asapBtn.innerHTML = `Créneau le plus proche<span class="timepicker-asap-sub">${slot}</span>`;
@@ -2228,8 +2248,28 @@ function selectTime(value) {
   let topLabel, cartLabel;
   if (value === 'asap') {
     const asapTime = getAsapTime();
-    topLabel = `Aujourd'hui ${asapTime}`;
-    cartLabel = `Aujourd'hui ${asapTime}<br><span style="font-size:.85rem;opacity:.8;">Créneau le plus proche</span>`;
+
+    // Déterminer si c'est aujourd'hui ou demain
+    const now = new Date();
+    let dayLabel = 'Aujourd\'hui';
+
+    // Si pause active et que c'est demain ou plus tard
+    if (nextSlotAvailableAt) {
+      const pauseDate = new Date(nextSlotAvailableAt);
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const pauseDay = new Date(pauseDate.getFullYear(), pauseDate.getMonth(), pauseDate.getDate());
+
+      const daysDiff = Math.floor((pauseDay - today) / (1000 * 60 * 60 * 24));
+      if (daysDiff === 1) {
+        dayLabel = 'Demain';
+      } else if (daysDiff > 1) {
+        const JOURS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+        dayLabel = JOURS[pauseDate.getDay()];
+      }
+    }
+
+    topLabel = `${dayLabel} ${asapTime}`;
+    cartLabel = `${dayLabel} ${asapTime}<br><span style="font-size:.85rem;opacity:.8;">Créneau le plus proche</span>`;
   } else {
     topLabel = value;
     cartLabel = value;

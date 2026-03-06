@@ -2237,12 +2237,19 @@ function updateAsapAfterPause() {
   }
 
   // Si l'utilisateur a ASAP sélectionné, mettre à jour l'affichage
-  if (selectedPickup === 'asap' || document.getElementById('pickupTime').value === 'asap') {
+  const currentLabel = document.getElementById('timingPickLabel').textContent;
+  const isAsapDisplayed = selectedPickup === 'asap' ||
+                          document.getElementById('pickupTime').value === 'asap' ||
+                          currentLabel.startsWith('Aujourd\'hui');
+
+  if (isAsapDisplayed) {
     const open = isOpenNow();
     if (open) {
       const asapTime = getAsapTime();
+      selectedPickup = 'asap';
       document.getElementById('timingPickLabel').textContent = `Aujourd'hui ${asapTime}`;
       document.getElementById('cartPickupDisplay').innerHTML = `Aujourd'hui ${asapTime}<br><span style="font-size:.85rem;opacity:.8;">Créneau le plus proche</span>`;
+      document.getElementById('pickupTime').value = 'asap';
     } else {
       // Si fermé, passer au prochain créneau disponible
       const next = getNextOpenSlot();

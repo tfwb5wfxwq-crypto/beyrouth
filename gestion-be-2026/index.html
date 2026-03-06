@@ -1721,8 +1721,12 @@ function renderMenuItems() {
 }
 
 async function toggleMenuItem(id, newValue) {
-  console.log('🔄 Toggle menu item:', id, 'to', newValue);
-  const { data, error } = await sb.from('menu_items').update({disponible: newValue}).eq('id', id).select();
+  console.log('🔄 Toggle menu item:', id, 'to', newValue, 'types:', typeof id, typeof newValue);
+  // Parser id en integer et newValue en boolean
+  const numId = parseInt(id, 10);
+  const boolValue = newValue === 'true' || newValue === true;
+  console.log('🔄 Parsed:', numId, boolValue);
+  const { data, error } = await sb.from('menu_items').update({disponible: boolValue}).eq('id', numId).select();
   if (error) {
     console.error('❌ Erreur toggle menu item:', error);
     alert('Erreur lors de la modification: ' + error.message);
@@ -1735,8 +1739,8 @@ async function toggleMenuItem(id, newValue) {
     return;
   }
   console.log('🎯 Ligne modifiée avec succès:', data[0]);
-  const item = menuItemsList.find(i => i.id === id);
-  if (item) item.disponible = newValue;
+  const item = menuItemsList.find(i => i.id === numId);
+  if (item) item.disponible = boolValue;
   renderMenuItems();
 }
 

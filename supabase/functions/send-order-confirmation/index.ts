@@ -60,28 +60,28 @@ serve(async (req) => {
     // Construire le récapitulatif des items
     const itemsHtml = order.items.map((item: any) => {
       let html = `
-        <tr>
-          <td style="padding:8px 0; border-bottom:1px solid #eee;">
-            <strong>${item.nom}</strong>
-          </td>
-          <td style="padding:8px 0; border-bottom:1px solid #eee; text-align:right;">
-            ${item.quantite}x ${item.prix.toFixed(2)}€
-          </td>
-        </tr>
+      <tr>
+        <td style="padding: 8px 0; border-bottom: 1px solid #eee;">
+          ${item.quantite}x ${item.nom}
+        </td>
+        <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">
+          ${(item.prix * item.quantite).toFixed(2).replace('.', ',')} €
+        </td>
+      </tr>
       `
 
       // Ajouter les suppléments si présents
       if (item.supplements && item.supplements.length > 0) {
         item.supplements.forEach((supp: any) => {
           html += `
-            <tr>
-              <td style="padding:4px 0 4px 20px; border-bottom:1px solid #eee; font-size:14px; color:#666;">
-                + ${supp.nom}
-              </td>
-              <td style="padding:4px 0; border-bottom:1px solid #eee; text-align:right; font-size:14px; color:#666;">
-                ${supp.prix.toFixed(2)}€
-              </td>
-            </tr>
+      <tr>
+        <td style="padding: 4px 0 4px 20px; border-bottom: 1px solid #eee; font-size: 13px; color: #666;">
+          + ${supp.nom}
+        </td>
+        <td style="padding: 4px 0; border-bottom: 1px solid #eee; text-align: right; font-size: 13px; color: #666;">
+          ${supp.prix.toFixed(2).replace('.', ',')} €
+        </td>
+      </tr>
           `
         })
       }
@@ -90,147 +90,94 @@ serve(async (req) => {
     }).join('')
 
     // Formater l'heure de retrait
-    const heureRetrait = order.heure_retrait || 'dès que possible'
+    const pickupText = order.heure_retrait || 'Dès que possible'
 
-    // Template email
+    // Template email (design original noir et or)
     const emailHtml = `
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Commande confirmée - A Beyrouth</title>
 </head>
-<body style="margin:0; padding:0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color:#f5f5f5;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f5f5; padding:20px 0;">
-    <tr>
-      <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5;">
+  <div style="max-width: 600px; margin: 0 auto; background: #fff;">
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); padding: 40px 20px; text-align: center;">
+      <div style="font-size: 48px; margin-bottom: 10px;">🧆</div>
+      <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 700;">A Beyrouth</h1>
+      <p style="color: rgba(255,255,255,0.8); margin: 8px 0 0 0; font-size: 16px;">Reçu de commande</p>
+    </div>
 
-          <!-- Header -->
-          <tr>
-            <td style="padding:40px 40px 20px; text-align:center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius:12px 12px 0 0;">
-              <h1 style="margin:0; color:#ffffff; font-size:28px; font-weight:700;">
-                ✅ Commande confirmée !
-              </h1>
-            </td>
-          </tr>
+    <!-- Success Badge -->
+    <div style="text-align: center; padding: 30px 20px;">
+      <div style="width: 80px; height: 80px; background: #E8F5E9; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+        <span style="font-size: 40px; color: #4CAF50;">✓</span>
+      </div>
+      <h2 style="margin: 0 0 10px 0; font-size: 24px; color: #1a1a1a;">Commande confirmée</h2>
+      <p style="margin: 0; color: #666; font-size: 14px;">Nous préparons votre commande avec soin</p>
+    </div>
 
-          <!-- Numéro de commande -->
-          <tr>
-            <td style="padding:30px 40px; text-align:center; background-color:#f8f9ff;">
-              <p style="margin:0 0 10px; font-size:16px; color:#666;">Votre numéro de commande :</p>
-              <div style="display:inline-block; background-color:#667eea; color:#ffffff; padding:15px 30px; border-radius:8px; font-size:32px; font-weight:700; letter-spacing:2px;">
-                ${order.numero}
-              </div>
-              <p style="margin:15px 0 0; font-size:14px; color:#888;">
-                Présentez ce numéro lors du retrait
-              </p>
-            </td>
-          </tr>
+    <!-- Order Number -->
+    <div style="background: #FFF8F0; padding: 30px 20px; text-align: center; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+      <div>
+        <p style="margin: 0 0 5px 0; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Numéro de commande</p>
+        <p style="margin: 0; font-size: 48px; font-weight: 700; color: #4CAF50; font-family: 'Courier New', monospace; letter-spacing: 8px;">${order.numero}</p>
+        <p style="margin: 10px 0 0 0; font-size: 13px; color: #666;">Présentez ce numéro lors du retrait</p>
+      </div>
+    </div>
 
-          <!-- Heure de retrait -->
-          <tr>
-            <td style="padding:20px 40px; background-color:#fff;">
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="padding:15px; background-color:#f0fdf4; border-left:4px solid #22c55e; border-radius:6px;">
-                    <p style="margin:0; font-size:16px; color:#166534;">
-                      <strong>🕐 Heure de retrait :</strong> ${heureRetrait}
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
+    <!-- Customer Info -->
+    <div style="padding: 30px 20px; background: #fafafa;">
+      <h3 style="margin: 0 0 15px 0; font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Vos informations</h3>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; color: #666; font-size: 14px;"><strong>Nom :</strong></td>
+          <td style="padding: 8px 0; text-align: right; color: #1a1a1a; font-size: 14px;">${order.client_prenom}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #666; font-size: 14px;"><strong>Heure de retrait :</strong></td>
+          <td style="padding: 8px 0; text-align: right; color: #1a1a1a; font-size: 14px;">${pickupText}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #666; font-size: 14px;"><strong>Lieu :</strong></td>
+          <td style="padding: 8px 0; text-align: right; color: #1a1a1a; font-size: 14px;">La Défense — Sortie 4 Métro</td>
+        </tr>
+      </table>
+    </div>
 
-          <!-- Récapitulatif commande -->
-          <tr>
-            <td style="padding:20px 40px;">
-              <h2 style="margin:0 0 20px; font-size:20px; color:#333; border-bottom:2px solid #667eea; padding-bottom:10px;">
-                📋 Récapitulatif
-              </h2>
-              <table width="100%" cellpadding="0" cellspacing="0">
-                ${itemsHtml}
-                <tr>
-                  <td style="padding:15px 0 0; font-size:18px; font-weight:700; color:#333;">
-                    TOTAL
-                  </td>
-                  <td style="padding:15px 0 0; font-size:18px; font-weight:700; color:#667eea; text-align:right;">
-                    ${order.total.toFixed(2)}€
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
+    <!-- Order Items -->
+    <div style="padding: 30px 20px;">
+      <h3 style="margin: 0 0 15px 0; font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Détail de la commande</h3>
+      <table style="width: 100%; border-collapse: collapse;">
+        ${itemsHtml}
+        <tr>
+          <td style="padding: 15px 0 0 0; font-weight: 700; font-size: 16px; color: #1a1a1a;">Total</td>
+          <td style="padding: 15px 0 0 0; font-weight: 700; font-size: 16px; text-align: right; color: #1a1a1a;">${order.total.toFixed(2).replace('.', ',')} €</td>
+        </tr>
+      </table>
+    </div>
 
-          ${order.note ? `
-          <!-- Note -->
-          <tr>
-            <td style="padding:20px 40px;">
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="padding:15px; background-color:#fef9c3; border-left:4px solid #eab308; border-radius:6px;">
-                    <p style="margin:0; font-size:14px; color:#854d0e;">
-                      <strong>📝 Votre note :</strong> ${order.note}
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          ` : ''}
+    ${order.note ? `
+    <!-- Note -->
+    <div style="padding: 0 20px 30px 20px;">
+      <div style="background: #FFF8F0; padding: 15px; border-left: 4px solid #D4A853; border-radius: 4px;">
+        <p style="margin: 0 0 5px 0; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Votre note</p>
+        <p style="margin: 0; color: #1a1a1a; font-size: 14px;">${order.note}</p>
+      </div>
+    </div>
+    ` : ''}
 
-          <!-- Adresse restaurant -->
-          <tr>
-            <td style="padding:20px 40px 40px;">
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="padding:20px; background-color:#f8f9ff; border-radius:8px; text-align:center;">
-                    <h3 style="margin:0 0 15px; font-size:18px; color:#333;">
-                      📍 Adresse de retrait
-                    </h3>
-                    <p style="margin:0; font-size:16px; color:#666; line-height:1.6;">
-                      <strong>Beyrouth Express</strong><br>
-                      4 rue du Faubourg Poissonnière<br>
-                      75010 Paris
-                    </p>
-                    <p style="margin:15px 0 0; font-size:14px; color:#888;">
-                      Métro : Bonne Nouvelle (lignes 8, 9)
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="padding:30px 40px; background-color:#f8f9ff; text-align:center; border-radius:0 0 12px 12px;">
-              <p style="margin:0 0 10px; font-size:16px; color:#333;">
-                Merci pour votre commande ! 🙏
-              </p>
-              <p style="margin:0; font-size:14px; color:#888;">
-                À très bientôt chez Beyrouth Express
-              </p>
-            </td>
-          </tr>
-
-        </table>
-
-        <!-- Footer legal -->
-        <table width="600" cellpadding="0" cellspacing="0" style="margin-top:20px;">
-          <tr>
-            <td style="text-align:center; padding:20px; font-size:12px; color:#999;">
-              <p style="margin:0;">
-                Beyrouth Express - 4 rue du Faubourg Poissonnière, 75010 Paris
-              </p>
-            </td>
-          </tr>
-        </table>
-
-      </td>
-    </tr>
-  </table>
+    <!-- Footer -->
+    <div style="background: #1a1a1a; padding: 30px 20px; text-align: center;">
+      <p style="margin: 0 0 10px 0; color: rgba(255,255,255,0.6); font-size: 13px;">À bientôt chez A Beyrouth !</p>
+      <p style="margin: 0; color: rgba(255,255,255,0.4); font-size: 12px;">4 Esplanade du Général de Gaulle, 92400 Courbevoie</p>
+      <div style="margin-top: 20px;">
+        <a href="https://beyrouth.express" style="color: #D4A853; text-decoration: none; font-size: 13px;">beyrouth.express</a>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
     `
@@ -245,9 +192,9 @@ serve(async (req) => {
         'Authorization': `Bearer ${resendApiKey}`
       },
       body: JSON.stringify({
-        from: 'Beyrouth Express <noreply@beyrouth.express>',
+        from: 'A Beyrouth <noreply@beyrouth.express>',
         to: order.client_email,
-        subject: `✅ Commande ${order.numero} confirmée - À retirer à ${heureRetrait}`,
+        subject: `✅ Commande ${order.numero} confirmée`,
         html: emailHtml
       })
     })

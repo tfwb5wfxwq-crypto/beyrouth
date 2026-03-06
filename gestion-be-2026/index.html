@@ -1122,6 +1122,31 @@ function updateClock() {
   }
 }
 
+// ===== MISE À JOUR TIMERS (comme l'horloge, juste le texte) =====
+function updateTimers() {
+  if (currentTab !== 'orders') return;
+
+  // Parcourir toutes les commandes et mettre à jour JUSTE le texte
+  orders.forEach(order => {
+    // Timer principal
+    const timerEl = document.getElementById(`timer-${order.id}`);
+    if (timerEl) {
+      timerEl.textContent = getElapsedTime(order);
+    }
+
+    // Timer de relance
+    if (order.reminder_sent_at) {
+      const reminderEl = document.getElementById(`reminder-${order.id}`);
+      if (reminderEl) {
+        const now = new Date();
+        const reminderTime = new Date(order.reminder_sent_at);
+        const mins = Math.floor((now - reminderTime) / 60000);
+        reminderEl.textContent = `📧 Relancé il y a ${mins} min`;
+      }
+    }
+  });
+}
+
 function updateSlotPauseButton() {
   const btn = document.getElementById('slotPauseBtn');
   const text = document.getElementById('slotPauseText');
@@ -1335,6 +1360,9 @@ async function showDashboard() {
   // Horloge temps réel
   updateClock();
   setInterval(updateClock, 1000);
+
+  // Mise à jour des timers (juste le texte, pas de re-render)
+  setInterval(updateTimers, 10000); // toutes les 10s
 
   // Vérifier périodiquement si la pause est expirée
   setInterval(updateSlotPauseButton, 1000); // toutes les 1s pour le compte à rebours
@@ -1661,12 +1689,12 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
       <div style="min-width:120px;flex-shrink:0;">
         <div style="font-size:0.85rem;font-weight:600;color:#1a1a1a;">${order.client_prenom || 'Client'}</div>
         <div style="font-size:0.7rem;color:#888;">${order.client_telephone || ''}</div>
-        ${!isHistory ? `<div style="font-size:0.65rem;color:#999;margin-top:2px;font-style:italic;">${getElapsedTime(order)}</div>` : ''}
+        ${!isHistory ? `<div id="timer-${order.id}" style="font-size:0.65rem;color:#999;margin-top:2px;font-style:italic;">${getElapsedTime(order)}</div>` : ''}
         ${!isHistory && order.reminder_sent_at ? (() => {
           const now = new Date();
           const reminderTime = new Date(order.reminder_sent_at);
           const mins = Math.floor((now - reminderTime) / 60000);
-          return `<div style="font-size:0.65rem;color:#f97316;margin-top:2px;font-weight:600;">📧 Relancé il y a ${mins} min</div>`;
+          return `<div id="reminder-${order.id}" style="font-size:0.65rem;color:#f97316;margin-top:2px;font-weight:600;">📧 Relancé il y a ${mins} min</div>`;
         })() : ''}
       </div>
 

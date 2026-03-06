@@ -268,7 +268,44 @@ function displayOrder(order) {
     </div>${componentsHtml}`;
   });
   html += `<div class="detail-item"><span>Total</span><span>${(order.total || 0).toFixed(2).replace('.',',')} €</span></div>`;
+
+  // Bouton facture si commande récupérée
+  if (order.statut === 'recuperee') {
+    html += `
+      <button onclick="downloadInvoice(${order.id})"
+        style="width:100%;margin-top:20px;padding:14px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(102,126,234,0.3);">
+        📄 Télécharger la facture
+      </button>
+    `;
+  }
+
   details.innerHTML = html;
+}
+
+async function downloadInvoice(orderId) {
+  // Appeler l'Edge Function pour générer la facture HTML
+  try {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-invoice-pdf`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      },
+      body: JSON.stringify({ orderId })
+    });
+
+    if (!response.ok) throw new Error('Erreur génération facture');
+
+    const html = await response.text();
+
+    // Ouvrir dans un nouvel onglet
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+  } catch (err) {
+    console.error('Erreur téléchargement facture:', err);
+    alert('Erreur lors du téléchargement de la facture');
+  }
 }
 
 function updateProgress(currentStatus) {

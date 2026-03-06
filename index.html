@@ -436,10 +436,6 @@ a{color:inherit;text-decoration:none}
         </div>
         <textarea id="clientNote" placeholder="Note : allergies, sans oignon, etc."></textarea>
         <label class="cart-optin">
-          <input type="checkbox" id="wantReceipt" checked>
-          <span>Recevoir mon reçu par email</span>
-        </label>
-        <label class="cart-optin">
           <input type="checkbox" id="optinPromos" checked>
           <span>Me tenir informé des offres et promotions</span>
         </label>
@@ -1340,7 +1336,6 @@ async function submitOrder() {
   const orderNum = await generateUniqueOrderNum();
   const note = document.getElementById('clientNote').value.trim();
   const optin = document.getElementById('optinPromos').checked;
-  const wantReceipt = document.getElementById('wantReceipt').checked;
 
   // Créer la commande en statut "pending" (ou "payee" en mode test)
   const isTestMode = window.location.search.includes('test=1') || window.location.hostname === 'localhost';
@@ -1361,7 +1356,6 @@ async function submitOrder() {
     client_prenom: name, client_email: email,
     client_telephone: phone || null,
     note: note || null,
-    want_receipt: wantReceipt,
     created_at: new Date().toISOString(),
     ...(isTestMode && { payment_confirmed_at: new Date().toISOString() })
   };
@@ -1799,25 +1793,11 @@ async function showConfirmation(orderNum) {
   // Charger statut + realtime
   loadOrderStatus(orderNum);
 
-  // Envoyer email si demandé
-  const wantReceipt = document.getElementById('wantReceipt').checked;
-  if (wantReceipt && sb) {
-    const email = document.getElementById('clientEmail').value.trim();
-    const name = document.getElementById('clientName').value.trim();
-    const totalNum = cart.reduce((s, c) => s + c.prix * c.qty, 0);
-    try {
-      await sb.functions.invoke('send-receipt', { body: { email, name, orderNum, items: cart, total: totalNum, pickup } });
-    } catch (e) {
-      console.error('Erreur envoi reçu:', e);
-    }
-  }
-
   // Reset
   cart = []; saveCart(); updateCartUI(); renderMenu();
   document.getElementById('cartSubmit').disabled = false;
   document.getElementById('cartSubmit').textContent = 'Passer la commande';
   ['clientNote'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('wantReceipt').checked = true;
   document.getElementById('optinPromos').checked = true;
 }
 

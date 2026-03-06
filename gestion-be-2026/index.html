@@ -159,6 +159,33 @@ button{cursor:pointer;font-family:inherit;border:none}
   padding:0 6px;box-shadow:0 2px 6px rgba(212,168,83,.3);
 }
 
+/* Filter bar */
+.filter-bar{
+  background:#fff;border-bottom:1px solid #e5e5e5;
+  padding:12px 32px;display:flex;align-items:center;gap:8px;
+  position:sticky;top:117px;z-index:39;
+  box-shadow:0 2px 8px rgba(0,0,0,.04);
+}
+.filter-label{
+  font-size:.85rem;font-weight:600;color:#666;margin-right:8px;
+}
+.filter-btn{
+  padding:8px 16px;border-radius:20px;font-size:.85rem;font-weight:600;
+  background:#f5f5f5;color:#666;border:2px solid transparent;
+  transition:all .3s;cursor:pointer;
+}
+.filter-btn:hover{background:#e5e5e5}
+.filter-btn.active{
+  background:linear-gradient(135deg, var(--gold), #C49843);
+  color:#fff;border-color:var(--gold);
+  box-shadow:0 2px 8px rgba(212,168,83,.3);
+}
+.filter-btn.filter-nouvelles.active{background:linear-gradient(135deg, #f97316, #fb923c)}
+.filter-btn.filter-retard.active{background:linear-gradient(135deg, #dc2626, #ef4444)}
+.filter-btn.filter-urgentes.active{background:linear-gradient(135deg, #ea580c, #fb923c)}
+.filter-btn.filter-normales.active{background:linear-gradient(135deg, #22c55e, #16a34a)}
+.filter-btn.filter-futures.active{background:linear-gradient(135deg, #6366f1, #4f46e5)}
+
 /* Content */
 .content{max-width:900px;margin:0 auto;padding:24px}
 
@@ -195,6 +222,7 @@ button{cursor:pointer;font-family:inherit;border:none}
 .urgency-badge.urgent{background:#FFF3E0;color:#E65100;border:1px solid #FFE0B2}
 .urgency-badge.soon{background:#FFF8E1;color:#F57C00;border:1px solid #FFECB3}
 @keyframes slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:none}}
+@keyframes pulse-red{0%,100%{opacity:1}50%{opacity:0.85}}
 .order-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .order-num{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:800;color:var(--bordeaux)}
 .order-time-badge{
@@ -342,13 +370,13 @@ button{cursor:pointer;font-family:inherit;border:none}
 .stat-label{font-size:.85rem;color:#888;margin-top:4px}
 
 /* ========= HISTORY / COMPLETED ========= */
-.history-filter{
+.history-filter, .stats-filter{
   padding:10px 18px;border-radius:var(--radius);font-weight:600;
   font-size:.9rem;background:#f5f5f5;color:#666;
-  border:2px solid transparent;transition:all .3s;
+  border:2px solid transparent;transition:all .3s;cursor:pointer;
 }
-.history-filter.active{background:var(--cream);color:var(--bordeaux);border-color:var(--gold)}
-.history-filter:hover{background:#eee}
+.history-filter.active, .stats-filter.active{background:var(--cream);color:var(--bordeaux);border-color:var(--gold)}
+.history-filter:hover, .stats-filter:hover{background:#eee}
 
 /* ========= CLIENTS ========= */
 .client-card{
@@ -403,7 +431,9 @@ button{cursor:pointer;font-family:inherit;border:none}
 <div class="dashboard" id="dashboard">
   <div class="topbar">
     <div style="display:flex;align-items:center;gap:20px">
-      <img src="../img/logo-beyrouth-express-v10.svg" alt="Beyrouth Express" style="height:42px;filter:drop-shadow(0 0 6px rgba(212,175,55,0.15));">
+      <a href="https://beyrouth.express" target="_blank" style="display:flex;align-items:center;text-decoration:none;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        <img src="../img/logo-beyrouth-express-v10.svg" alt="Beyrouth Express" style="height:42px;filter:drop-shadow(0 0 6px rgba(212,175,55,0.15));">
+      </a>
       <div id="currentTime" style="font-size:1.1rem;font-weight:600;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:0.5px;text-shadow:0 2px 4px rgba(0,0,0,0.2)"></div>
     </div>
     <div class="topbar-right">
@@ -431,6 +461,17 @@ button{cursor:pointer;font-family:inherit;border:none}
     <button class="tab" data-tab="clients" onclick="switchTab('clients')">Clients</button>
     <button class="tab" data-tab="menu" onclick="switchTab('menu')">Menu</button>
     <button class="tab" data-tab="stats" onclick="switchTab('stats')">Stats</button>
+  </div>
+
+  <!-- Filter bar (visible only on "orders" tab) -->
+  <div class="filter-bar" id="filterBar" style="display:none">
+    <span class="filter-label">Afficher :</span>
+    <button class="filter-btn active" data-filter="all" onclick="setOrderFilter('all')">📋 Toutes</button>
+    <button class="filter-btn filter-nouvelles" data-filter="nouvelles" onclick="setOrderFilter('nouvelles')">🆕 Nouvelles</button>
+    <button class="filter-btn filter-retard" data-filter="retard" onclick="setOrderFilter('retard')">🔴 En retard</button>
+    <button class="filter-btn filter-urgentes" data-filter="urgentes" onclick="setOrderFilter('urgentes')">⚠️ Urgentes</button>
+    <button class="filter-btn filter-normales" data-filter="normales" onclick="setOrderFilter('normales')">✅ Normales</button>
+    <button class="filter-btn filter-futures" data-filter="futures" onclick="setOrderFilter('futures')">📅 Futures</button>
   </div>
 
   <div class="content">
@@ -499,7 +540,14 @@ button{cursor:pointer;font-family:inherit;border:none}
 
     <!-- Stats Tab -->
     <div class="tab-content" id="tab-stats" style="display:none">
-      <h2 style="margin-bottom:16px;color:var(--bordeaux)">Statistiques du jour</h2>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+        <h2 style="margin:0;color:var(--bordeaux)">Statistiques</h2>
+        <div style="display:flex;gap:8px;">
+          <button class="stats-filter active" data-period="today" onclick="loadStats('today')">Jour</button>
+          <button class="stats-filter" data-period="week" onclick="loadStats('week')">Semaine</button>
+          <button class="stats-filter" data-period="month" onclick="loadStats('month')">Mois</button>
+        </div>
+      </div>
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-value" id="statOrders">0</div>
@@ -695,6 +743,7 @@ let menuCategories = [];
 let menuItemsList = [];
 let clients = [];
 let completedOrders = [];
+let orderFilter = 'all'; // Filter: all, nouvelles, retard, urgentes, normales, futures
 let currentTab = 'orders';
 
 // ===== SETTINGS =====
@@ -748,7 +797,7 @@ async function toggleAutoAccept() {
     if (autoAcceptOrders) {
       const payedOrders = orders.filter(o => o.statut === 'payee');
       for (const order of payedOrders) {
-        await acceptOrder(order.id);
+        await updateStatus(order.id, 'acceptee');
       }
       alert(`✅ Auto-Accept activé${payedOrders.length > 0 ? ` - ${payedOrders.length} commande(s) acceptée(s)` : ''}`);
     } else {
@@ -956,6 +1005,11 @@ async function doLogout() {
 async function showDashboard() {
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
+
+  // Show filter bar (default tab is "orders")
+  const filterBar = document.getElementById('filterBar');
+  if (filterBar) filterBar.style.display = 'flex';
+
   await Promise.all([loadOrders(), loadIngredients(), loadMenuItems()]);
   await loadSettings();
   await loadSlotPause();
@@ -1009,16 +1063,32 @@ function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
   document.getElementById('tab-' + tab).style.display = '';
+
+  // Show/hide filter bar
+  const filterBar = document.getElementById('filterBar');
+  if (filterBar) {
+    filterBar.style.display = tab === 'orders' ? 'flex' : 'none';
+  }
+
   if (tab === 'stats') updateStats();
   if (tab === 'completed') loadCompleted('today');
   if (tab === 'clients') loadClients();
+}
+
+// ===== ORDER FILTER =====
+function setOrderFilter(filter) {
+  orderFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === filter);
+  });
+  renderOrders();
 }
 
 // ===== ORDERS =====
 async function loadOrders() {
   const {data} = await sb.from('orders')
     .select('*')
-    .in('statut', ['payee', 'acceptee', 'en_preparation', 'prete'])
+    .in('statut', ['payee', 'acceptee'])
     .order('created_at', {ascending: false});
   orders = data || [];
   debouncedRenderOrders();
@@ -1030,19 +1100,40 @@ function parsePickupTime(order) {
   if (order.heure_retrait === 'asap') return new Date(); // ASAP = now
   const match = order.heure_retrait.match(/(\d+)h(\d+)/);
   if (!match) return new Date(order.created_at);
-  const today = new Date().toISOString().split('T')[0];
-  return new Date(`${today}T${match[1].padStart(2, '0')}:${match[2].padStart(2, '0')}:00`);
+
+  // Use order's created_at date, not today
+  const orderDate = new Date(order.created_at);
+  const dateStr = orderDate.toISOString().split('T')[0];
+  return new Date(`${dateStr}T${match[1].padStart(2, '0')}:${match[2].padStart(2, '0')}:00`);
 }
 
-// Helper: get urgency level
+// Helper: check if order is for today
+function isToday(order) {
+  const orderDate = new Date(order.created_at);
+  const today = new Date();
+  return orderDate.toDateString() === today.toDateString();
+}
+
+// Helper: check if order is future (J+1, J+2...)
+function isFuture(order) {
+  const orderDate = new Date(order.created_at);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  orderDate.setHours(0, 0, 0, 0);
+  return orderDate > today;
+}
+
+// Helper: get urgency level (only for today's orders)
 function getUrgency(order) {
+  if (!isToday(order)) return 'future';
+
   const pickupTime = parsePickupTime(order);
   const now = new Date();
   const diffMinutes = (pickupTime - now) / 1000 / 60;
 
-  if (diffMinutes < 0) return 'late'; // En retard
+  if (diffMinutes < -15) return 'late'; // En retard +15min
+  if (diffMinutes < 0) return 'urgent'; // Heure passée mais -15min
   if (diffMinutes < 30) return 'urgent'; // < 30 min
-  if (diffMinutes < 60) return 'soon'; // < 1h
   return 'normal';
 }
 
@@ -1061,71 +1152,121 @@ function renderOrders() {
     return;
   }
 
-  // Group by status
-  const waiting = orders.filter(o => o.statut === 'payee' || o.statut === 'acceptee');
-  const preparing = orders.filter(o => o.statut === 'en_preparation');
-  const ready = orders.filter(o => o.statut === 'prete');
-  const done = orders.filter(o => o.statut === 'recuperee');
+  // Filter today's orders vs future orders (exclude "recuperee")
+  const todayOrders = orders.filter(o => isToday(o) && (o.statut === 'payee' || o.statut === 'acceptee'));
+  const futureOrders = orders.filter(o => isFuture(o) && (o.statut === 'payee' || o.statut === 'acceptee'));
 
-  // Sort each group by pickup time (soonest first)
+  // Group today's orders by priority
+  const nouvelles = todayOrders.filter(o => o.statut === 'payee');
+  const acceptees = todayOrders.filter(o => o.statut === 'acceptee');
+
+  // Sort accepted orders by urgency
+  const enRetard = acceptees.filter(o => getUrgency(o) === 'late');
+  const urgentes = acceptees.filter(o => getUrgency(o) === 'urgent');
+  const normales = acceptees.filter(o => getUrgency(o) === 'normal');
+
+  // Sort by pickup time
   const sortByPickup = (a, b) => parsePickupTime(a) - parsePickupTime(b);
-  waiting.sort(sortByPickup);
-  preparing.sort(sortByPickup);
-  ready.sort(sortByPickup);
+  nouvelles.sort(sortByPickup);
+  enRetard.sort(sortByPickup);
+  urgentes.sort(sortByPickup);
+  normales.sort(sortByPickup);
+  futureOrders.sort(sortByPickup);
 
   let html = '';
 
-  // Waiting section
-  if (waiting.length) {
-    html += `<div class="status-section">
-      <div class="status-section-header">⏳ EN ATTENTE <span class="status-section-count">${waiting.length}</span></div>
+  // Apply filter
+  const showAll = orderFilter === 'all';
+  const showNouvelles = showAll || orderFilter === 'nouvelles';
+  const showRetard = showAll || orderFilter === 'retard';
+  const showUrgentes = showAll || orderFilter === 'urgentes';
+  const showNormales = showAll || orderFilter === 'normales';
+  const showFutures = showAll || orderFilter === 'futures';
+
+  // 1. NOUVELLES (à accepter)
+  if (nouvelles.length && showNouvelles) {
+    html += `<div class="status-section status-nouvelles">
+      <div class="status-section-header" style="background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);">
+        🆕 NOUVELLES COMMANDES <span class="status-section-count">${nouvelles.length}</span>
+      </div>
       <div class="status-section-cards">`;
-    waiting.forEach(order => {
+    nouvelles.forEach(order => {
       html += renderOrderCard(order, 'new');
     });
     html += `</div></div>`;
   }
 
-  // Preparing section
-  if (preparing.length) {
-    html += `<div class="status-section">
-      <div class="status-section-header">👨‍🍳 EN PRÉPARATION <span class="status-section-count">${preparing.length}</span></div>
+  // 2. EN RETARD (+15min)
+  if (enRetard.length && showRetard) {
+    html += `<div class="status-section status-retard">
+      <div class="status-section-header" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); animation: pulse-red 2s infinite;">
+        🔴 EN RETARD <span class="status-section-count">${enRetard.length}</span>
+      </div>
       <div class="status-section-cards">`;
-    preparing.forEach(order => {
-      html += renderOrderCard(order, 'preparing');
+    enRetard.forEach(order => {
+      html += renderOrderCard(order, 'late');
     });
     html += `</div></div>`;
   }
 
-  // Ready section
-  if (ready.length) {
-    html += `<div class="status-section">
-      <div class="status-section-header">🎉 PRÊTES <span class="status-section-count">${ready.length}</span></div>
+  // 3. URGENTES (<30min)
+  if (urgentes.length && showUrgentes) {
+    html += `<div class="status-section status-urgent">
+      <div class="status-section-header" style="background: linear-gradient(135deg, #ea580c 0%, #fb923c 100%);">
+        ⚠️ URGENTES <span class="status-section-count">${urgentes.length}</span>
+      </div>
       <div class="status-section-cards">`;
-    ready.forEach(order => {
-      html += renderOrderCard(order, 'ready');
+    urgentes.forEach(order => {
+      html += renderOrderCard(order, 'urgent');
     });
     html += `</div></div>`;
   }
 
-  // Done section (collapsed, less visible)
-  if (done.length) {
-    html += `<div class="status-section" style="opacity:.5;">
-      <div class="status-section-header" style="background:#f5f5f5;">✅ RÉCUPÉRÉES <span class="status-section-count">${done.length}</span></div>
+  // 4. NORMALES (acceptées, future)
+  if (normales.length && showNormales) {
+    html += `<div class="status-section">
+      <div class="status-section-header">
+        ✅ EN COURS <span class="status-section-count">${normales.length}</span>
+      </div>
       <div class="status-section-cards">`;
-    done.forEach(order => {
+    normales.forEach(order => {
       html += renderOrderCard(order, '');
     });
     html += `</div></div>`;
   }
 
+  // 5. COMMANDES FUTURES (J+1, J+2...)
+  if (futureOrders.length && showFutures) {
+    html += `<div class="status-section status-future" style="opacity:0.6;">
+      <div class="status-section-header" style="background:#e5e7eb; color:#6b7280;">
+        📅 COMMANDES À VENIR <span class="status-section-count">${futureOrders.length}</span>
+      </div>
+      <div class="status-section-cards">`;
+    futureOrders.forEach(order => {
+      html += renderOrderCard(order, 'future');
+    });
+    html += `</div></div>`;
+  }
+
+  // Message si aucune commande avec ce filtre
+  if (!html && orderFilter !== 'all') {
+    const filterNames = {
+      nouvelles: 'nouvelles commandes',
+      retard: 'commandes en retard',
+      urgentes: 'commandes urgentes',
+      normales: 'commandes normales',
+      futures: 'commandes futures'
+    };
+    html = `<div class="no-orders">Aucune ${filterNames[orderFilter]} pour le moment</div>`;
+  }
+
   list.innerHTML = html;
 
-  // Badge
-  const pending = waiting.length;
+  // Badge (nouvelles + retard)
+  const alertCount = nouvelles.length + enRetard.length;
   const badge = document.getElementById('ordersBadge');
-  badge.style.display = pending > 0 ? '' : 'none';
-  badge.textContent = pending;
+  badge.style.display = alertCount > 0 ? '' : 'none';
+  badge.textContent = alertCount;
 }
 
 function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, statusLabel) {
@@ -1182,20 +1323,23 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
 function getActionButtons(order) {
   let buttons = '';
 
+  const urgency = getUrgency(order);
+  const isLate = urgency === 'late';
+
   switch(order.statut) {
     case 'payee':
+      // Nouvelles commandes à accepter
       buttons = `<button class="order-action btn-accept" onclick="updateStatus(${order.id},'acceptee')">✓ Accepter</button>`;
       buttons += `<button class="order-action btn-cancel" onclick="cancelOrder(${order.id})">✕ Annuler</button>`;
       break;
     case 'acceptee':
-      buttons = `<button class="order-action btn-prepare" onclick="updateStatus(${order.id},'en_preparation')">🔥 En préparation</button>`;
-      buttons += `<button class="order-action btn-cancel" onclick="cancelOrder(${order.id})">✕ Annuler</button>`;
-      break;
-    case 'en_preparation':
-      buttons = `<button class="order-action btn-ready" onclick="updateStatus(${order.id},'prete')">✅ Prête !</button>`;
-      break;
-    case 'prete':
+      // Acceptées → Récupérée (un seul bouton)
       buttons = `<button class="order-action btn-done" onclick="updateStatus(${order.id},'recuperee')">📦 Récupérée</button>`;
+
+      // Si en retard, ajouter bouton de relance
+      if (isLate) {
+        buttons += `<button class="order-action btn-remind" onclick="remindOrder(${order.id})" style="background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);">📧 Relancer</button>`;
+      }
       break;
     case 'recuperee':
       buttons = `<span style="color:#888;font-size:.85rem">✓ Terminée</span>`;
@@ -1214,35 +1358,61 @@ async function updateStatus(orderId, newStatus) {
   const order = orders.find(o => o.id === orderId);
   if (order) order.statut = newStatus;
 
-  // Envoyer email quand la commande est acceptée
-  if (newStatus === 'acceptee' && order) {
+  // Envoyer email de confirmation quand commande acceptée
+  if (newStatus === 'acceptee') {
     try {
-      const response = await fetch(`${sb.supabaseUrl}/functions/v1/send-order-notification`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sb.supabaseKey}`
-        },
-        body: JSON.stringify({
-          email: order.client_email,
-          name: order.client_nom,
-          orderNum: order.numero,
-          pickup: order.heure_retrait === 'asap' ? 'Dès que possible' : order.heure_retrait
-        })
+      const { data, error } = await sb.functions.invoke('send-order-confirmation', {
+        body: { orderId: orderId }
       });
-
-      if (response.ok) {
-        console.log('✅ Email acceptation envoyé');
-      } else {
-        console.error('❌ Erreur envoi email:', await response.text());
-      }
+      if (error) throw error;
+      console.log('✅ Email de confirmation envoyé');
     } catch (err) {
-      console.error('❌ Erreur appel send-order-notification:', err);
+      console.error('❌ Erreur envoi email:', err);
+      // Continuer même si email échoue
     }
   }
 
-  renderOrders();
+  debouncedRenderOrders();
   updateTopbarStats();
+}
+
+async function remindOrder(orderId) {
+  if (!confirm('Envoyer un email de relance au client ?')) return;
+
+  try {
+    const { data, error } = await sb.functions.invoke('send-order-reminder', {
+      body: { orderId: orderId }
+    });
+    if (error) throw error;
+    alert('✅ Email de relance envoyé !');
+  } catch (err) {
+    console.error('❌ Erreur envoi email:', err);
+    alert('❌ Erreur lors de l\'envoi de l\'email');
+  }
+}
+
+async function resendInvoice(orderId, clientEmail) {
+  if (!confirm(`Renvoyer la facture à ${clientEmail} ?`)) return;
+
+  try {
+    // Ouvrir la facture dans un nouvel onglet
+    const response = await sb.functions.invoke('generate-invoice-pdf', {
+      body: { orderId }
+    });
+
+    if (response.error) throw response.error;
+
+    // Ouvrir dans nouvel onglet
+    const html = response.data;
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+
+    alert('✅ Facture ouverte ! Le client peut l\'imprimer ou télécharger.');
+  } catch (err) {
+    console.error('❌ Erreur ouverture facture:', err);
+    alert('❌ Erreur lors de l\'ouverture de la facture');
+  }
 }
 
 // ===== INGREDIENTS =====
@@ -1316,11 +1486,59 @@ async function toggleMenuItem(id, newValue) {
 }
 
 // ===== STATS =====
+let currentStatsPeriod = 'today';
+
+async function loadStats(period) {
+  currentStatsPeriod = period;
+
+  // Update filter buttons
+  document.querySelectorAll('.stats-filter').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.period === period);
+  });
+
+  // Build query based on period
+  let query = sb.from('orders')
+    .select('*')
+    .in('statut', ['payee', 'acceptee', 'recuperee', 'cancelled']);
+
+  if (period === 'today') {
+    const today = new Date().toISOString().split('T')[0];
+    query = query.gte('created_at', today + 'T00:00:00');
+  } else if (period === 'week') {
+    const date = new Date();
+    date.setDate(date.getDate() - 7);
+    query = query.gte('created_at', date.toISOString());
+  } else if (period === 'month') {
+    const date = new Date();
+    date.setDate(date.getDate() - 30);
+    query = query.gte('created_at', date.toISOString());
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Erreur chargement stats:', error);
+    return;
+  }
+
+  const statsOrders = data || [];
+  updateStatsDisplay(statsOrders);
+}
+
 function updateStats() {
-  const total = orders.length;
-  const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+  // Called when switching to stats tab - load today by default
+  if (currentStatsPeriod === 'today') {
+    updateStatsDisplay(orders);
+  } else {
+    loadStats(currentStatsPeriod);
+  }
+}
+
+function updateStatsDisplay(statsOrders) {
+  const total = statsOrders.length;
+  const revenue = statsOrders.reduce((s, o) => s + (o.total || 0), 0);
   const avg = total > 0 ? revenue / total : 0;
-  const clients = new Set(orders.map(o => o.client_email)).size;
+  const clients = new Set(statsOrders.map(o => o.client_email)).size;
 
   document.getElementById('statOrders').textContent = total;
   document.getElementById('statRevenue').textContent = revenue.toFixed(2).replace('.',',') + ' €';
@@ -1349,7 +1567,7 @@ function subscribeRealtime() {
       // Auto-accept si activé
       if (autoAcceptOrders && payload.new.statut === 'payee') {
         console.log('🤖 Auto-accept activé, acceptation automatique de la commande', payload.new.numero);
-        acceptOrder(payload.new.id);
+        updateStatus(payload.new.id, 'acceptee');
       }
     })
     .on('postgres_changes', {event:'UPDATE', schema:'public', table:'orders'}, payload => {
@@ -1489,13 +1707,73 @@ function cancelOrder(orderId) {
 }
 
 async function confirmCancel(orderId) {
-  // Mettre en statut "annulee" pour garder l'historique
-  await sb.from('orders').update({statut: 'annulee'}).eq('id', orderId);
-  // Remove from local list (ne s'affiche plus dans "En cours")
-  orders = orders.filter(o => o.id !== orderId);
-  renderOrders();
-  updateTopbarStats();
-  document.querySelector('.modal-overlay').remove();
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+
+  try {
+    // 1. Mettre en statut "cancelled" pour garder l'historique
+    await sb.from('orders').update({statut: 'cancelled'}).eq('id', orderId);
+
+    // 2. Envoyer email d'annulation
+    try {
+      const { data, error } = await sb.functions.invoke('send-cancellation-email', {
+        body: { orderId: orderId }
+      });
+      if (error) throw error;
+      console.log('✅ Email d\'annulation envoyé');
+    } catch (err) {
+      console.error('❌ Erreur envoi email d\'annulation:', err);
+      // Continuer même si email échoue
+    }
+
+    // 3. Demander remboursement PayGreen (si payé par CB)
+    if (order.paygreen_transaction_id) {
+      try {
+        await refundPayGreenTransaction(order.paygreen_transaction_id, order.total);
+        console.log('✅ Remboursement PayGreen demandé');
+      } catch (err) {
+        console.error('❌ Erreur remboursement PayGreen:', err);
+        alert('⚠️ Commande annulée mais remboursement à faire manuellement via dashboard PayGreen');
+      }
+    }
+
+    // 4. Remove from local list (ne s'affiche plus dans "En cours")
+    orders = orders.filter(o => o.id !== orderId);
+    renderOrders();
+    updateTopbarStats();
+    document.querySelector('.modal-overlay').remove();
+
+    alert('✅ Commande annulée et email envoyé au client');
+  } catch (err) {
+    console.error('Erreur annulation:', err);
+    alert('❌ Erreur lors de l\'annulation');
+    document.querySelector('.modal-overlay')?.remove();
+  }
+}
+
+async function refundPayGreenTransaction(transactionId, amount) {
+  // Appeler l'API PayGreen pour demander le remboursement
+  // Documentation: https://paygreen.io/documentation/api-refund
+
+  const paygreenSecretKey = 'sk_0564063e4ef04dbf93f588e7967e3e61'; // À mettre dans env plus tard
+
+  const response = await fetch(`https://paygreen.fr/api/refund/${transactionId}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${paygreenSecretKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      amount: Math.round(amount * 100) // Montant en centimes
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(`Erreur remboursement PayGreen: ${error.message || response.statusText}`);
+  }
+
+  return await response.json();
 }
 
 // ===== COMPLETED ORDERS =====

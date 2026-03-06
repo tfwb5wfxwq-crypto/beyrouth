@@ -157,6 +157,49 @@ a{color:inherit;text-decoration:none}
   .prestations-content{padding:30px 32px}
   .prestations-content .section-title{font-size:1.4rem}
 }
+
+/* ===== TOAST NOTIFICATIONS ===== */
+.toast{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%) translateY(120px);
+  background:var(--white);
+  color:var(--text);
+  padding:16px 24px;
+  border-radius:var(--r-sm);
+  box-shadow:0 12px 28px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
+  z-index:10000;
+  font-size:0.94rem;
+  line-height:1.5;
+  max-width:calc(100vw - 48px);
+  width:max-content;
+  opacity:0;
+  transition:transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  pointer-events:none;
+}
+.toast.show{
+  transform:translateX(-50%) translateY(0);
+  opacity:1;
+}
+.toast.success{
+  border-left:3px solid var(--green);
+}
+.toast.error{
+  border-left:3px solid var(--red);
+}
+.toast-icon{
+  display:inline-block;
+  margin-right:8px;
+  font-size:1.1em;
+}
+@media(max-width:640px){
+  .toast{
+    bottom:16px;
+    font-size:0.88rem;
+    padding:14px 20px;
+  }
+}
 </style>
 </head>
 <body>
@@ -336,6 +379,22 @@ a{color:inherit;text-decoration:none}
 </footer>
 
 <script>
+// ===== TOAST NOTIFICATION =====
+function showToast(message, type = 'success') {
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  const icon = type === 'success' ? '✓' : '✕';
+  toast.innerHTML = `<span class="toast-icon">${icon}</span>${message}`;
+  document.body.appendChild(toast);
+
+  setTimeout(() => toast.classList.add('show'), 10);
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400);
+  }, type === 'success' ? 4000 : 5000);
+}
+
 // Horaires d'ouverture
 const BUSINESS_HOURS = [
   [1, 11, 30, 21, 0],  // Lundi: 11h30 - 21h00
@@ -435,7 +494,7 @@ document.getElementById('traiteurForm').addEventListener('submit', async (e) => 
     }
 
     // Succès
-    alert('✅ Votre demande a bien été envoyée !\n\nVous allez recevoir un email de confirmation.\nNous vous répondrons sous 48h avec un devis personnalisé.');
+    showToast('Demande envoyée ! Vous recevrez un email de confirmation. Réponse sous 48h.', 'success');
     e.target.reset();
     btn.textContent = 'Demande envoyée ✓';
     setTimeout(() => {
@@ -445,7 +504,7 @@ document.getElementById('traiteurForm').addEventListener('submit', async (e) => 
 
   } catch (error) {
     console.error('Erreur:', error);
-    alert('❌ Une erreur est survenue.\n\nVeuillez réessayer ou nous contacter directement à traiteur@beyrouth.express');
+    showToast('Erreur lors de l\'envoi. Veuillez réessayer ou nous contacter à traiteur@beyrouth.express', 'error');
     btn.disabled = false;
     btn.textContent = 'Envoyer ma demande';
   }

@@ -8,6 +8,9 @@
 <meta name="theme-color" content="#8B1A1A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧆</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -1955,6 +1958,18 @@ function renderAllClients(clientList) {
   `).join('');
   document.getElementById('allClientsList').innerHTML = html;
 }
+
+// ============ FORCE CACHE CLEAR ON RELOAD ============
+// Vide automatiquement tous les caches à chaque chargement
+// pour garantir que pull-to-refresh charge toujours la dernière version
+window.addEventListener('load', () => {
+  if ('caches' in window) {
+    caches.keys().then(keys => {
+      keys.forEach(key => caches.delete(key));
+      console.log('🔄 Cache vidé pour garantir la dernière version');
+    });
+  }
+});
 </script>
 </body>
 </html>

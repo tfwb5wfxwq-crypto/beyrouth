@@ -585,12 +585,14 @@ button{cursor:pointer;font-family:inherit;border:none}
   <div style="background:#fff;border-radius:12px;padding:16px;width:240px;box-shadow:0 4px 20px rgba(0,0,0,.15);border:1px solid #e0e0e0">
     <p style="color:#666;margin-bottom:12px;font-size:.85rem;font-weight:600">⏸️ Décaler créneaux :</p>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
       <button onclick="pauseSlots(15); closeSlotPauseModal()" class="pause-btn" style="padding:9px;font-size:.85rem">15 min</button>
       <button onclick="pauseSlots(30); closeSlotPauseModal()" class="pause-btn" style="padding:9px;font-size:.85rem">30 min</button>
       <button onclick="pauseSlots(60); closeSlotPauseModal()" class="pause-btn" style="padding:9px;font-size:.85rem">1h</button>
       <button onclick="pauseSlots(120); closeSlotPauseModal()" class="pause-btn" style="padding:9px;font-size:.85rem">2h</button>
     </div>
+
+    <button onclick="pauseSlots('tomorrow'); closeSlotPauseModal()" class="pause-btn" style="width:100%;padding:9px;font-size:.85rem;margin-bottom:8px">🌙 Jusqu'à demain</button>
 
     <button onclick="closeSlotPauseModal()" style="width:100%;padding:7px;background:#f0f0f0;color:#666;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:.8rem">Annuler</button>
   </div>
@@ -934,7 +936,18 @@ function closeSlotPauseModal() {
 
 async function pauseSlots(minutes) {
   const now = new Date();
-  const pauseUntil = new Date(now.getTime() + minutes * 60000);
+  let pauseUntil;
+
+  if (minutes === 'tomorrow') {
+    // Calculer le lendemain à 11h30 (premier créneau)
+    pauseUntil = new Date(now);
+    pauseUntil.setDate(pauseUntil.getDate() + 1);
+    pauseUntil.setHours(11, 30, 0, 0);
+  } else {
+    // Pause normale avec minutes
+    pauseUntil = new Date(now.getTime() + minutes * 60000);
+  }
+
   nextSlotAvailableAt = pauseUntil.toISOString();
 
   try {
@@ -948,7 +961,10 @@ async function pauseSlots(minutes) {
 
     const hours = String(pauseUntil.getHours()).padStart(2, '0');
     const mins = String(pauseUntil.getMinutes()).padStart(2, '0');
-    showToast(`⏸️ Créneaux en pause jusqu'à ${hours}h${mins}`, 'info');
+    const message = minutes === 'tomorrow'
+      ? `⏸️ Créneaux en pause jusqu'à demain ${hours}h${mins}`
+      : `⏸️ Créneaux en pause jusqu'à ${hours}h${mins}`;
+    showToast(message, 'info');
   } catch (err) {
     console.error('Erreur pause:', err);
     showToast('❌ Erreur lors de la pause', 'warning');
@@ -1222,7 +1238,7 @@ function renderOrders() {
   // 1. NOUVELLES (à accepter)
   if (nouvelles.length && showNouvelles) {
     html += `<div class="status-section status-nouvelles">
-      <div class="status-section-header" style="background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);">
+      <div class="status-section-header" style="background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); color: #D4A853;">
         🆕 NOUVELLES COMMANDES <span class="status-section-count">${nouvelles.length}</span>
       </div>
       <div class="status-section-cards">`;

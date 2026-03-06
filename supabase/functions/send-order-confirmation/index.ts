@@ -92,6 +92,11 @@ serve(async (req) => {
     // Formater l'heure de retrait
     const pickupText = order.heure_retrait || 'Dès que possible'
 
+    // Calculer TVA (10% restauration)
+    const totalTTC = order.total
+    const totalHT = totalTTC / 1.10
+    const tva = totalTTC - totalHT
+
     // Template email (design original noir et or)
     const emailHtml = `
 <!DOCTYPE html>
@@ -153,8 +158,16 @@ serve(async (req) => {
       <table style="width: 100%; border-collapse: collapse;">
         ${itemsHtml}
         <tr>
-          <td style="padding: 15px 0 0 0; font-weight: 700; font-size: 16px; color: #1a1a1a;">Total</td>
-          <td style="padding: 15px 0 0 0; font-weight: 700; font-size: 16px; text-align: right; color: #1a1a1a;">${order.total.toFixed(2).replace('.', ',')} €</td>
+          <td style="padding: 15px 0 8px 0; font-size: 14px; color: #666;">Total HT</td>
+          <td style="padding: 15px 0 8px 0; font-size: 14px; text-align: right; color: #666;">${totalHT.toFixed(2).replace('.', ',')} €</td>
+        </tr>
+        <tr>
+          <td style="padding: 0 0 12px 0; font-size: 14px; color: #666;">TVA 10%</td>
+          <td style="padding: 0 0 12px 0; font-size: 14px; text-align: right; color: #666;">${tva.toFixed(2).replace('.', ',')} €</td>
+        </tr>
+        <tr style="border-top: 2px solid #1a1a1a;">
+          <td style="padding: 12px 0 0 0; font-weight: 700; font-size: 16px; color: #1a1a1a;">Total TTC</td>
+          <td style="padding: 12px 0 0 0; font-weight: 700; font-size: 16px; text-align: right; color: #1a1a1a;">${totalTTC.toFixed(2).replace('.', ',')} €</td>
         </tr>
       </table>
     </div>

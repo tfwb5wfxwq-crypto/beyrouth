@@ -214,23 +214,22 @@ button{cursor:pointer;font-family:inherit;border:none}
   gap:10px;
 }
 .orders-grid{
-  display:grid;
-  grid-template-columns:repeat(3, 1fr);
-  gap:12px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
 }
 @media (max-width:1200px){
   .status-section-cards{grid-template-columns:repeat(2, 1fr)}
-  .orders-grid{grid-template-columns:repeat(2, 1fr)}
 }
 @media (max-width:768px){
   .status-section-cards{grid-template-columns:1fr}
-  .orders-grid{grid-template-columns:1fr}
 }
 .order-card{
-  background:#fff;border-radius:var(--radius);padding:14px;
+  background:#fff;border-radius:var(--radius);padding:12px 16px;
   box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid #ddd;
   transition:all .3s;
-  display:flex;flex-direction:column;
+  display:flex;flex-direction:row;align-items:center;gap:16px;
+  min-height:70px;
 }
 .order-card.new{border-left-color:var(--gold);animation:slideIn .4s ease}
 .order-card.preparing{border-left-color:#FF9800}
@@ -268,10 +267,10 @@ button{cursor:pointer;font-family:inherit;border:none}
   font-size:.8rem;border-bottom:1px solid #f5f5f5;
 }
 .order-total-line{font-weight:700;font-size:1rem;color:var(--bordeaux);padding-top:8px}
-.order-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
+.order-actions{display:flex;gap:6px;flex-wrap:nowrap}
 .order-action{
-  padding:10px 14px;border-radius:var(--radius);font-weight:600;
-  font-size:.85rem;transition:all .3s;min-height:40px;
+  padding:8px 12px;border-radius:var(--radius);font-weight:600;
+  font-size:.8rem;transition:all .3s;min-height:36px;white-space:nowrap;
   display:inline-flex;align-items:center;justify-content:center;
   flex:1;min-width:80px;
 }
@@ -1580,36 +1579,36 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
   const badge = !isHistory && statusBadges[statusClass] ? statusBadges[statusClass] : null;
   const cardBg = !isHistory && cardBgColors[statusClass] ? cardBgColors[statusClass] : '#fff';
 
+  // Format items summary (compact)
+  const itemsSummary = items.map(i => `${i.qty}x ${i.nom}`).join(', ');
+  const itemsShort = itemsSummary.length > 40 ? itemsSummary.substring(0, 37) + '...' : itemsSummary;
+
   return `
     <div class="order-card ${statusClass} ${urgencyClass}" id="order-${order.id}" style="background:${cardBg};">
-      <div class="order-top">
-        <span class="order-num">${order.numero}</span>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          ${badge ? `<span class="status-badge" style="background:${badge.bg};color:${badge.color};">${badge.text}</span>` : ''}
-          ${isHistory
-            ? `<span class="order-time-badge" style="cursor:default;">${statusEmoji} ${statusLabel} — ${dateStr} ${timeStr}</span>`
-            : `<span class="order-time-badge" onclick="rescheduleOrder(${order.id},'${order.heure_retrait}')">${order.heure_retrait === 'asap' ? '⚡ Dès que possible' : '🕐 ' + order.heure_retrait}</span>`
-          }
-        </div>
+      ${badge ? `<span class="status-badge" style="background:${badge.bg};color:${badge.color};flex-shrink:0;">${badge.text}</span>` : ''}
+
+      <span class="order-num" style="min-width:80px;flex-shrink:0;">${order.numero}</span>
+
+      <div style="min-width:120px;flex-shrink:0;">
+        <div style="font-size:0.85rem;font-weight:600;color:#1a1a1a;">${order.client_prenom || 'Client'}</div>
+        <div style="font-size:0.7rem;color:#888;">${order.client_telephone || ''}</div>
       </div>
-      <div class="order-client">
-        ${order.client_prenom || ''} — ${order.client_email || ''}
-        ${order.client_telephone ? ' — ' + order.client_telephone : ''}
+
+      <div style="flex:1;min-width:200px;font-size:0.8rem;color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+        ${itemsShort}
       </div>
-      <div class="order-items">
-        ${items.map(i => {
-          const imgHtml = i.image_url
-            ? `<img src="${i.image_url}" alt="${i.nom}" style="width:32px;height:32px;object-fit:cover;border-radius:4px;margin-right:6px;">`
-            : '';
-          const componentsHtml = i.isFormule && i.components
-            ? `<div style="font-size:.65rem;color:#666;padding-left:38px;margin-top:-2px;">→ ${i.components.join(', ')}</div>`
-            : '';
-          return `<div class="order-item-line" style="align-items:center;"><span style="display:flex;align-items:center;">${imgHtml}${i.qty}x ${i.nom}</span><span>${(i.prix * i.qty).toFixed(2).replace('.',',')} €</span></div>${componentsHtml}`;
-        }).join('')}
-        <div class="order-item-line order-total-line"><span>Total</span><span>${(order.total || 0).toFixed(2).replace('.',',')} €</span></div>
-      </div>
+
       ${!isHistory
-        ? `<div class="order-actions">${getActionButtons(order)}</div>`
+        ? `<span class="order-time-badge" onclick="rescheduleOrder(${order.id},'${order.heure_retrait}')" style="flex-shrink:0;">${order.heure_retrait === 'asap' ? '⚡ Dès que possible' : '🕐 ' + order.heure_retrait}</span>`
+        : `<span class="order-time-badge" style="cursor:default;flex-shrink:0;">${statusEmoji} ${statusLabel} — ${dateStr} ${timeStr}</span>`
+      }
+
+      <div style="min-width:70px;text-align:right;font-weight:700;font-size:0.95rem;color:#1a1a1a;flex-shrink:0;">
+        ${((order.total || 0) / 100).toFixed(2).replace('.',',')} €
+      </div>
+
+      ${!isHistory
+        ? `<div class="order-actions" style="display:flex;gap:8px;flex-shrink:0;margin-left:auto;">${getActionButtons(order)}</div>`
         : ''
       }
     </div>`;

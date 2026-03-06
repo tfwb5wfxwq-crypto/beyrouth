@@ -331,7 +331,6 @@ button{cursor:pointer;font-family:inherit;border:none}
 .modal-btn-secondary:hover{background:#ddd}
 
 /* ========= INGREDIENTS TAB ========= */
-.ingredients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
 .ingredient-card{
   background:#fff;border-radius:var(--radius);padding:16px 20px;
   display:flex;align-items:center;justify-content:space-between;
@@ -918,7 +917,7 @@ document.addEventListener('touchend', async (e) => {
     // Refresh déclenché !
     pullRefreshEl.style.top = '20px';
     try {
-      await Promise.all([loadOrders(), loadIngredients(), loadMenuItems()]);
+      await Promise.all([loadOrders(), loadMenuItems()]);
       await new Promise(r => setTimeout(r, 300));
     } catch (err) {
       console.error('Erreur refresh:', err);
@@ -1000,7 +999,6 @@ function showNativeNotification(title, body) {
 }
 
 let orders = [];
-let ingredients = [];
 let menuCategories = [];
 let menuItemsList = [];
 let clients = [];
@@ -1305,7 +1303,7 @@ async function showDashboard() {
   const filterBar = document.getElementById('filterBar');
   if (filterBar) filterBar.style.display = 'flex';
 
-  await Promise.all([loadOrders(), loadIngredients(), loadMenuItems()]);
+  await Promise.all([loadOrders(), loadMenuItems()]);
   await loadSettings();
   await loadSlotPause();
   subscribeRealtime();
@@ -1703,51 +1701,6 @@ async function remindOrder(orderId) {
   }
 }
 
-// ===== INGREDIENTS =====
-async function loadIngredients() {
-  const {data} = await sb.from('ingredients').select('*').order('nom');
-  ingredients = data || [];
-  renderIngredients();
-}
-
-function renderIngredients() {
-  const list = document.getElementById('ingredientsList');
-  if (!list) {
-    console.warn('Element ingredientsList not found - skipping render');
-    return;
-  }
-  list.innerHTML = ingredients.map(ing => `
-    <div class="ingredient-card ${ing.disponible ? '' : 'off'}" id="ing-${ing.id}">
-      <span class="ingredient-name">${ing.nom}</span>
-      <div class="toggle ${ing.disponible ? 'on' : ''}" onclick="toggleIngredient(${ing.id},${ing.disponible ? 'false' : 'true'})"></div>
-    </div>
-  `).join('');
-}
-
-async function toggleIngredient(id, newValue) {
-  const adminCode = localStorage.getItem('adminCode');
-  if (!adminCode) {
-    alert('Erreur: Code admin manquant');
-    return;
-  }
-
-  const { data, error } = await sb.functions.invoke('toggle-ingredient', {
-    body: { code_admin: adminCode, ingredient_id: id, disponible: newValue }
-  });
-
-  if (error || !data?.success) {
-    console.error('❌ Erreur toggle ingredient:', error || data?.error);
-    alert('Erreur: ' + (data?.error || error?.message || 'Erreur inconnue'));
-    haptic.trigger('error'); // Vibration erreur
-    return;
-  }
-
-  haptic.trigger('success'); // Vibration confirmation
-  const ing = ingredients.find(i => i.id === id);
-  if (ing) ing.disponible = newValue;
-  renderIngredients();
-}
-
 // ===== MENU ITEMS =====
 async function loadMenuItems() {
   const [catRes, itemRes] = await Promise.all([
@@ -1931,9 +1884,6 @@ function subscribeRealtime() {
         debouncedRenderOrders();
         updateTopbarStats();
       }
-    })
-    .on('postgres_changes', {event:'*', schema:'public', table:'ingredients'}, () => {
-      loadIngredients();
     })
     .on('postgres_changes', {event:'*', schema:'public', table:'menu_items'}, () => {
       loadMenuItems();

@@ -3,7 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://beyrouth.express',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
@@ -99,12 +99,12 @@ serve(async (req) => {
                       📍 Adresse
                     </h3>
                     <p style="margin:0; font-size:16px; color:#666; line-height:1.6;">
-                      <strong>Beyrouth Express</strong><br>
-                      4 rue du Faubourg Poissonnière<br>
-                      75010 Paris
+                      <strong>A Beyrouth</strong><br>
+                      4 Esplanade du Général de Gaulle<br>
+                      92400 Courbevoie
                     </p>
                     <p style="margin:15px 0 0; font-size:14px; color:#888;">
-                      Métro : Bonne Nouvelle (lignes 8, 9)
+                      Métro : La Défense - Sortie 4
                     </p>
                   </td>
                 </tr>
@@ -128,7 +128,7 @@ serve(async (req) => {
           <tr>
             <td style="text-align:center; padding:20px; font-size:12px; color:#999;">
               <p style="margin:0;">
-                Beyrouth Express - 4 rue du Faubourg Poissonnière, 75010 Paris
+                A Beyrouth - 4 Esplanade du Général de Gaulle, 92400 Courbevoie (La Défense)
               </p>
             </td>
           </tr>

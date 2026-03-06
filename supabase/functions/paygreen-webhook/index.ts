@@ -3,7 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://beyrouth.express',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
@@ -79,7 +79,7 @@ serve(async (req) => {
     // Récupérer la commande pour vérifier si email déjà envoyé
     const { data: existingOrder } = await supabase
       .from('orders')
-      .select('statut, payment_confirmed_at')
+      .select('id, statut, payment_confirmed_at')
       .eq('numero', orderId)
       .single()
 
@@ -103,7 +103,24 @@ serve(async (req) => {
     }
 
     console.log(`✅ Commande ${orderId} mise à jour: ${newStatus}`)
-    // Email sera envoyé quand la commande sera prête (statut = prete)
+
+    // Envoyer email immédiat après paiement si pas déjà payé
+    if (newStatus === 'payee' && !wasAlreadyPaid && data && data[0]) {
+      try {
+        const emailResponse = await supabase.functions.invoke('send-payment-confirmation', {
+          body: { orderId: data[0].id }
+        })
+
+        if (emailResponse.error) {
+          console.error('Erreur envoi email paiement:', emailResponse.error)
+        } else {
+          console.log(`📧 Email de confirmation paiement envoyé pour ${orderId}`)
+        }
+      } catch (emailError) {
+        console.error('Erreur appel send-payment-confirmation:', emailError)
+        // Ne pas bloquer le webhook si l'email échoue
+      }
+    }
 
     return new Response(
       JSON.stringify({ success: true, order: orderId, status: newStatus }),

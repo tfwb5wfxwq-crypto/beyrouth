@@ -572,7 +572,6 @@ const haptic = (() => {
 // ===== STATE =====
 let categories = [];
 let menuItems = [];
-let ingredients = [];
 let cart = JSON.parse(localStorage.getItem('be_cart') || '[]');
 
 // ===== FORMULE CONFIGS =====
@@ -756,16 +755,13 @@ async function init() {
 // ===== SUPABASE =====
 async function loadFromSupabase() {
   try {
-    const [catRes, itemRes, ingRes] = await Promise.all([
+    const [catRes, itemRes] = await Promise.all([
       sb.from('menu_categories').select('*').order('ordre'),
       sb.from('menu_items').select('*').eq('actif', true).order('id'),
-      sb.from('ingredients').select('*'),
     ]);
     if (catRes.data && catRes.data.length && itemRes.data && itemRes.data.length) {
       categories = catRes.data;
       menuItems = itemRes.data;
-      if (ingRes.data) ingredients = ingRes.data;
-      applyIngredientAvailability();
     } else {
       throw new Error('Données incomplètes');
     }
@@ -776,21 +772,8 @@ async function loadFromSupabase() {
   }
 }
 
-function applyIngredientAvailability() {
-  const unavailable = new Set(ingredients.filter(i => !i.disponible).map(i => i.nom.toLowerCase()));
-  menuItems.forEach(item => {
-    if (item.ingredients && Array.isArray(item.ingredients)) {
-      if (item.ingredients.some(ing => unavailable.has(ing.toLowerCase()))) item.disponible = false;
-    }
-  });
-}
-
 function subscribeRealtime() {
   sb.channel('menu-changes')
-    .on('postgres_changes', {event:'*', schema:'public', table:'ingredients'}, () => {
-      console.log('🔔 Realtime: Ingrédient changé');
-      loadFromSupabase().then(renderMenu);
-    })
     .on('postgres_changes', {event:'*', schema:'public', table:'menu_items'}, () => {
       console.log('🔔 Realtime: Menu item changé');
       loadFromSupabase().then(() => {

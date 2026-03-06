@@ -457,7 +457,7 @@ button{cursor:pointer;font-family:inherit;border:none}
         </label>
 
         <button class="toggle-label" id="slotPauseBtn" onclick="openSlotPauseModal()" style="cursor:pointer;border:none">
-          <span id="slotPauseText">⏸️ Pause créneaux</span>
+          <span id="slotPauseText">⏸️ Pause</span>
         </button>
       </div>
     </div>
@@ -582,17 +582,17 @@ button{cursor:pointer;font-family:inherit;border:none}
 
 <!-- Modal Pause Créneaux -->
 <div id="slotPauseModal" style="display:none;position:absolute;z-index:10000;top:0;left:0">
-  <div style="background:#fff;border-radius:12px;padding:20px;width:280px;box-shadow:0 4px 20px rgba(0,0,0,.15);border:1px solid #e0e0e0">
-    <p style="color:#666;margin-bottom:16px;font-size:.9rem;font-weight:600">⏸️ Décaler créneaux :</p>
+  <div style="background:#fff;border-radius:12px;padding:16px;width:240px;box-shadow:0 4px 20px rgba(0,0,0,.15);border:1px solid #e0e0e0">
+    <p style="color:#666;margin-bottom:12px;font-size:.85rem;font-weight:600">⏸️ Décaler créneaux :</p>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-      <button onclick="pauseSlots(15); closeSlotPauseModal()" class="pause-btn" style="padding:10px;font-size:.9rem">15 min</button>
-      <button onclick="pauseSlots(30); closeSlotPauseModal()" class="pause-btn" style="padding:10px;font-size:.9rem">30 min</button>
-      <button onclick="pauseSlots(60); closeSlotPauseModal()" class="pause-btn" style="padding:10px;font-size:.9rem">1h</button>
-      <button onclick="pauseSlots(120); closeSlotPauseModal()" class="pause-btn" style="padding:10px;font-size:.9rem">2h</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <button onclick="pauseSlots(15); closeSlotPauseModal()" class="pause-btn" style="padding:9px;font-size:.85rem">15 min</button>
+      <button onclick="pauseSlots(30); closeSlotPauseModal()" class="pause-btn" style="padding:9px;font-size:.85rem">30 min</button>
+      <button onclick="pauseSlots(60); closeSlotPauseModal()" class="pause-btn" style="padding:9px;font-size:.85rem">1h</button>
+      <button onclick="pauseSlots(120); closeSlotPauseModal()" class="pause-btn" style="padding:9px;font-size:.85rem">2h</button>
     </div>
 
-    <button onclick="closeSlotPauseModal()" style="width:100%;padding:8px;background:#f0f0f0;color:#666;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:.85rem">Annuler</button>
+    <button onclick="closeSlotPauseModal()" style="width:100%;padding:7px;background:#f0f0f0;color:#666;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:.8rem">Annuler</button>
   </div>
 </div>
 
@@ -892,7 +892,7 @@ function updateSlotPauseButton() {
       });
     }
   } else {
-    text.textContent = '⏸️ Pause créneaux';
+    text.textContent = '⏸️ Pause';
     btn.style.background = 'rgba(255,255,255,.1)';
     btn.onclick = () => openSlotPauseModal();
   }
@@ -905,10 +905,22 @@ function openSlotPauseModal() {
 
   // Position du bouton
   const rect = btn.getBoundingClientRect();
+  const modalWidth = 240; // Largeur du dropdown
 
   // Positionner le dropdown juste sous le bouton
   modal.style.top = (rect.bottom + 8) + 'px';
-  modal.style.left = rect.left + 'px';
+
+  // Vérifier si le dropdown sortirait de l'écran à droite
+  if (rect.left + modalWidth > window.innerWidth) {
+    // Aligner à droite du bouton
+    modal.style.left = 'auto';
+    modal.style.right = (window.innerWidth - rect.right) + 'px';
+  } else {
+    // Aligner à gauche du bouton
+    modal.style.left = rect.left + 'px';
+    modal.style.right = 'auto';
+  }
+
   modal.style.display = 'block';
   overlay.style.display = 'block';
 }

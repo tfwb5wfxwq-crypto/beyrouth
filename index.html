@@ -511,17 +511,23 @@ const haptic = (() => {
 
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
 
-  // iOS : créer/supprimer checkbox à chaque appel (iOS 17.4+)
+  // iOS : créer checkbox + label et cliquer (iOS 17.4+)
   function triggerIOSHaptic(count = 1, delay = 80) {
     for (let i = 0; i < count; i++) {
       setTimeout(() => {
+        const id = 'haptic-' + Date.now() + '-' + Math.random();
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
+        checkbox.id = id;
         checkbox.setAttribute('switch', ''); // iOS 17.4+ haptic
         checkbox.style.cssText = 'position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;left:-9999px';
+        const label = document.createElement('label');
+        label.htmlFor = id;
+        label.style.cssText = 'position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;left:-9999px';
         document.body.appendChild(checkbox);
-        checkbox.checked = true; // Toggle pour vibration
-        setTimeout(() => checkbox.remove(), 10); // Supprimer après 10ms
+        document.body.appendChild(label);
+        label.click(); // Clic sur le label déclenche haptic iOS
+        setTimeout(() => { checkbox.remove(); label.remove(); }, 10);
       }, i * delay);
     }
   }

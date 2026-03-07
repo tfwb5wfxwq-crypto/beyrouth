@@ -75,18 +75,21 @@ a{color:inherit;text-decoration:none}
 .nav-cat.active{background:var(--dark);color:var(--white);font-weight:600}
 
 /* ===== TRAITEUR HERO VIDEO ===== */
-.hero-video-section{position:relative;height:50vh;min-height:400px;max-height:550px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.hero-video-section{position:relative;height:35vh;min-height:280px;max-height:400px;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .hero-video-bg{position:absolute;top:50%;left:50%;min-width:100%;min-height:100%;width:auto;height:auto;transform:translate(-50%,-50%);object-fit:cover;z-index:1}
 .hero-video-overlay{position:absolute;inset:0;background:linear-gradient(135deg, rgba(26,26,26,0.75) 0%, rgba(26,26,26,0.4) 100%);z-index:2}
-.hero-video-content{position:relative;z-index:3;text-align:center;color:#fff;padding:40px 24px;max-width:900px}
-.hero-video-title{font-family:'DM Serif Display',Georgia,serif;font-size:3.5rem;margin-bottom:24px;line-height:1.15;text-shadow:0 4px 20px rgba(0,0,0,0.4);animation:fadeInUp 0.8s ease-out}
-.hero-video-subtitle{font-size:1.35rem;margin-bottom:32px;line-height:1.5;opacity:0.95;text-shadow:0 2px 10px rgba(0,0,0,0.3);animation:fadeInUp 0.8s ease-out 0.2s backwards}
-.hero-video-cta{display:inline-flex;align-items:center;gap:12px;background:linear-gradient(135deg, var(--gold) 0%, #B8956A 100%);color:#1a1a1a;padding:18px 36px;border-radius:50px;font-size:1.1rem;font-weight:700;letter-spacing:0.5px;text-decoration:none;box-shadow:0 8px 30px rgba(212,175,55,0.4), inset 0 1px 0 rgba(255,255,255,0.3);transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);animation:fadeInUp 0.8s ease-out 0.4s backwards}
-.hero-video-cta:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(212,175,55,0.5)}
+.hero-video-content{position:relative;z-index:3;text-align:center;color:#fff;padding:30px 24px;max-width:800px}
+.hero-video-title{font-family:'DM Serif Display',Georgia,serif;font-size:2.8rem;margin-bottom:16px;line-height:1.15;text-shadow:0 4px 20px rgba(0,0,0,0.4);animation:fadeInUp 0.8s ease-out}
+.hero-video-subtitle{font-size:1.1rem;margin-bottom:24px;line-height:1.5;opacity:0.95;text-shadow:0 2px 10px rgba(0,0,0,0.3);animation:fadeInUp 0.8s ease-out 0.2s backwards}
+.hero-video-cta{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg, var(--gold) 0%, #B8956A 100%);color:#1a1a1a;padding:14px 28px;border-radius:50px;font-size:0.95rem;font-weight:700;letter-spacing:0.5px;text-decoration:none;box-shadow:0 6px 24px rgba(212,175,55,0.4), inset 0 1px 0 rgba(255,255,255,0.3);transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);animation:fadeInUp 0.8s ease-out 0.4s backwards}
+.hero-video-cta:hover{transform:translateY(-2px);box-shadow:0 10px 35px rgba(212,175,55,0.5)}
 @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 
 /* ===== TRAITEUR CONTENT ===== */
-.container{max-width:1100px;margin:0 auto;padding:48px 24px}
+.container{max-width:1200px;margin:0 auto;padding:40px 24px}
+
+/* Layout 2 colonnes (prestations + formulaire) */
+.content-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:32px;align-items:start}
 
 .section{background:var(--white);border-radius:var(--r);padding:32px;margin-bottom:24px;box-shadow:var(--shadow)}
 .section-title{font-size:1.3rem;font-weight:700;margin-bottom:16px;color:var(--dark)}
@@ -96,27 +99,36 @@ a{color:inherit;text-decoration:none}
 .section-list li:before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700}
 
 /* ===== PRESTATIONS WITH IMAGE ===== */
-.section-prestations{display:grid;grid-template-columns:0.85fr 1.35fr;gap:0;padding:0;overflow:hidden;align-items:center;background:var(--white)}
-.prestations-image-wrapper{position:relative;height:100%;min-height:230px;overflow:hidden}
-.prestations-image{width:100%;height:100%;object-fit:cover;object-position:center 30%;clip-path:polygon(0 0, 100% 0, 84% 100%, 0% 100%);transition:transform .6s ease}
+.section-prestations{display:block;padding:0;overflow:hidden;background:var(--white);height:fit-content;position:sticky;top:24px}
+.prestations-image-wrapper{position:relative;height:200px;overflow:hidden;border-radius:var(--r) var(--r) 0 0}
+.prestations-image{width:100%;height:100%;object-fit:cover;object-position:center;transition:transform .6s ease}
 .prestations-image:hover{transform:scale(1.05)}
-.prestations-image-overlay{position:absolute;inset:0;background:linear-gradient(135deg, transparent 40%, rgba(26,26,26,0.08) 100%);pointer-events:none}
-.prestations-content{padding:32px 40px 32px 28px}
-.prestations-content .section-title{font-family:'DM Serif Display',Georgia,serif;font-size:1.45rem;margin-bottom:14px;font-weight:400;letter-spacing:-0.3px;line-height:1.25}
-.prestations-content .section-list{margin:12px 0}
-.prestations-content .section-list li{font-size:0.93rem;padding:7px 0 7px 28px;color:var(--text);line-height:1.5}
-.prestations-content .section-list li:before{font-size:0.98rem}
+.prestations-image-overlay{position:absolute;inset:0;background:linear-gradient(180deg, transparent 60%, rgba(26,26,26,0.05) 100%);pointer-events:none}
+.prestations-content{padding:28px 32px}
+.prestations-content .section-title{font-family:'DM Serif Display',Georgia,serif;font-size:1.35rem;margin-bottom:16px;font-weight:400;letter-spacing:-0.3px;line-height:1.25;color:var(--dark)}
+.prestations-content .section-list{margin:0}
+.prestations-content .section-list li{font-size:0.9rem;padding:9px 0 9px 28px;color:var(--text);line-height:1.6}
+.prestations-content .section-list li:before{font-size:0.95rem;top:10px}
 
-.form{background:var(--white);border-radius:var(--r);padding:32px;box-shadow:var(--shadow)}
+.form{background:var(--white);border-radius:var(--r);padding:36px;box-shadow:0 2px 12px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.04)}
+.form-header{margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border-light)}
+.form-header .section-title{font-family:'DM Serif Display',Georgia,serif;font-size:1.5rem;margin-bottom:6px;font-weight:400;letter-spacing:-0.3px;color:var(--dark)}
+.form-header-subtitle{font-size:0.88rem;color:var(--text-soft);line-height:1.6}
 .form-group{margin-bottom:20px}
-.form-label{display:block;font-weight:600;margin-bottom:8px;font-size:.9rem;color:var(--dark)}
-.form-input,.form-textarea,.form-select{width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:.95rem;font-family:inherit;background:var(--white);transition:border-color .2s}
-.form-input:focus,.form-textarea:focus,.form-select:focus{border-color:var(--dark);outline:none}
-.form-textarea{resize:vertical;min-height:120px}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.form-submit{width:100%;padding:16px;background:var(--dark);color:#fff;border-radius:var(--r-sm);font-size:1rem;font-weight:600;transition:all .2s;letter-spacing:.3px;margin-top:8px}
-.form-submit:hover{background:#000;transform:translateY(-1px)}
-.form-submit:disabled{opacity:.3;cursor:not-allowed}
+.form-label{display:flex;align-items:center;gap:8px;font-weight:600;margin-bottom:10px;font-size:0.88rem;color:var(--dark);letter-spacing:0.2px}
+.form-label svg{width:15px;height:15px;opacity:0.4;flex-shrink:0}
+.form-input,.form-textarea,.form-select{width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:0.93rem;font-family:inherit;background:var(--white);transition:all .25s cubic-bezier(0.4, 0, 0.2, 1);color:var(--dark)}
+.form-input:hover,.form-textarea:hover,.form-select:hover{border-color:#c0c0c0}
+.form-input:focus,.form-textarea:focus,.form-select:focus{border-color:var(--dark);outline:none;box-shadow:0 0 0 3px rgba(26,26,26,0.05);transform:translateY(-1px)}
+.form-textarea{resize:vertical;min-height:110px;line-height:1.6}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.form-submit{width:100%;padding:16px 24px;background:linear-gradient(135deg, var(--dark) 0%, #000 100%);color:#fff;border-radius:var(--r-sm);font-size:1rem;font-weight:700;transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);letter-spacing:0.5px;margin-top:12px;box-shadow:0 4px 14px rgba(0,0,0,0.15);position:relative;overflow:hidden}
+.form-submit:before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);transition:left 0.5s}
+.form-submit:hover{background:linear-gradient(135deg, #000 0%, var(--dark) 100%);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.2)}
+.form-submit:hover:before{left:100%}
+.form-submit:active{transform:translateY(0)}
+.form-submit:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.form-footer-note{font-size:0.82rem;color:var(--text-muted);margin-top:14px;text-align:center;line-height:1.5}
 
 /* ===== FOOTER ===== */
 .footer{background:var(--dark);color:#fff;padding:40px 24px;text-align:center;margin-top:48px}
@@ -127,6 +139,11 @@ a{color:inherit;text-decoration:none}
 .footer-link{font-size:.72rem;opacity:.3}
 
 /* ===== RESPONSIVE ===== */
+@media(max-width:900px){
+  .content-grid{grid-template-columns:1fr;gap:24px}
+  .section-prestations{position:static;margin-bottom:0}
+  .prestations-image-wrapper{height:180px}
+}
 @media(max-width:640px){
   .header{padding:14px 16px 16px;height:auto}
   .header-inner{flex-wrap:wrap;gap:10px;align-items:flex-start;row-gap:8px}
@@ -137,25 +154,20 @@ a{color:inherit;text-decoration:none}
   .header-sub{font-size:.68rem}
   .info-inner{padding:8px 16px;gap:10px}
   .info-address{font-size:.78rem}
-  .hero-video-section{height:55vh;min-height:450px}
+  .hero-video-section{height:40vh;min-height:320px}
   .hero-video-content{padding:20px 16px}
-  .hero-video-title{font-size:2.2rem}
-  .hero-video-subtitle{font-size:1.05rem;margin-bottom:24px}
-  .hero-video-cta{padding:14px 28px;font-size:0.95rem}
-  .section,.form{padding:24px}
-  .form-row{grid-template-columns:1fr;gap:12px}
-  .section-prestations{grid-template-columns:1fr;gap:0}
-  .prestations-image-wrapper{min-height:200px}
-  .prestations-image{clip-path:polygon(0 0, 100% 0, 100% 90%, 0% 100%)}
-  .prestations-content{padding:28px 22px}
-  .prestations-content .section-title{font-size:1.3rem;margin-bottom:12px}
-  .prestations-content .section-list li{font-size:0.88rem;padding:6px 0 6px 26px}
-}
-@media(min-width:641px) and (max-width:900px){
-  .section-prestations{grid-template-columns:0.9fr 1.3fr}
-  .prestations-image-wrapper{min-height:220px}
-  .prestations-content{padding:30px 32px}
-  .prestations-content .section-title{font-size:1.4rem}
+  .hero-video-title{font-size:2rem}
+  .hero-video-subtitle{font-size:0.95rem;margin-bottom:20px}
+  .hero-video-cta{padding:12px 24px;font-size:0.88rem}
+  .container{padding:28px 16px}
+  .section,.form{padding:24px 20px}
+  .form-header{margin-bottom:24px;padding-bottom:16px}
+  .form-header .section-title{font-size:1.3rem}
+  .form-row{grid-template-columns:1fr;gap:14px}
+  .prestations-image-wrapper{height:160px;border-radius:var(--r-sm) var(--r-sm) 0 0}
+  .prestations-content{padding:24px 20px}
+  .prestations-content .section-title{font-size:1.2rem;margin-bottom:14px}
+  .prestations-content .section-list li{font-size:0.86rem;padding:8px 0 8px 26px}
 }
 
 /* ===== TOAST NOTIFICATIONS ===== */
@@ -275,98 +287,134 @@ a{color:inherit;text-decoration:none}
 </section>
 
 <div class="container">
+  <div class="content-grid">
 
-  <div class="section section-prestations">
-    <div class="prestations-image-wrapper">
-      <img src="../img/traiteur-buffet-crop.jpg" alt="Buffet libanais Beyrouth Express" class="prestations-image">
-      <div class="prestations-image-overlay"></div>
+    <!-- Colonne 1: Prestations -->
+    <div class="section section-prestations">
+      <div class="prestations-image-wrapper">
+        <img src="../img/traiteur-buffet-crop.jpg" alt="Buffet libanais Beyrouth Express" class="prestations-image">
+        <div class="prestations-image-overlay"></div>
+      </div>
+      <div class="prestations-content">
+        <h2 class="section-title">Nos prestations</h2>
+        <ul class="section-list">
+          <li>Buffets personnalisés pour événements pro et privés</li>
+          <li>Livraison et installation possible (La Défense & environs)</li>
+          <li>Options végétariennes et vegan</li>
+          <li>À partir de 18€/pers — Minimum 10 personnes</li>
+          <li>Devis gratuit sous 48h</li>
+        </ul>
+      </div>
     </div>
-    <div class="prestations-content">
-      <h2 class="section-title">Nos prestations</h2>
-      <ul class="section-list">
-        <li>Buffets personnalisés pour événements pro et privés</li>
-        <li>Livraison et installation possible (La Défense & environs)</li>
-        <li>Options végétariennes et vegan</li>
-        <li>À partir de 18€/pers — Minimum 10 personnes</li>
-        <li>Devis gratuit sous 48h</li>
-      </ul>
-    </div>
+
+    <!-- Colonne 2: Formulaire -->
+    <form class="form" id="traiteurForm" name="devis">
+      <div class="form-header">
+        <h2 class="section-title">Demande de devis</h2>
+        <p class="form-header-subtitle">Remplissez ce formulaire et nous vous répondrons sous 48h avec un devis personnalisé</p>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="nom">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Nom *
+          </label>
+          <input type="text" id="nom" name="nom" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="prenom">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Prénom *
+          </label>
+          <input type="text" id="prenom" name="prenom" class="form-input" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="email">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Email *
+          </label>
+          <input type="email" id="email" name="email" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="telephone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            Téléphone *
+          </label>
+          <input type="tel" id="telephone" name="telephone" class="form-input" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="entreprise">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          Entreprise / Organisation
+        </label>
+        <input type="text" id="entreprise" name="entreprise" class="form-input">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="date">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Date de l'événement *
+          </label>
+          <input type="date" id="date" name="date" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="personnes">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Nombre de personnes *
+          </label>
+          <input type="number" id="personnes" name="personnes" class="form-input" min="10" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="type">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Type d'événement *
+        </label>
+        <select id="type" name="type" class="form-select" required>
+          <option value="">-- Choisir --</option>
+          <option value="professionnel">Événement professionnel</option>
+          <option value="prive">Célébration privée</option>
+          <option value="seminaire">Séminaire / Formation</option>
+          <option value="cocktail">Cocktail / Réception</option>
+          <option value="autre">Autre</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="budget">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Budget indicatif (€/personne)
+        </label>
+        <select id="budget" name="budget" class="form-select">
+          <option value="">-- Choisir --</option>
+          <option value="15-20">15-20€</option>
+          <option value="20-30">20-30€</option>
+          <option value="30-40">30-40€</option>
+          <option value="40+">40€ et plus</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="message">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Détails de votre demande *
+        </label>
+        <textarea id="message" name="message" class="form-textarea" placeholder="Décrivez votre événement, vos préférences culinaires, contraintes alimentaires, lieu, horaires..." required></textarea>
+      </div>
+
+      <button type="submit" class="form-submit">Envoyer ma demande</button>
+      <p class="form-footer-note">Nous vous répondrons sous 48h avec un devis personnalisé</p>
+    </form>
+
   </div>
-
-  <form class="form" id="traiteurForm" name="devis">
-    <h2 class="section-title" style="margin-bottom:24px">Demande de devis</h2>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label" for="nom">Nom *</label>
-        <input type="text" id="nom" name="nom" class="form-input" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="prenom">Prénom *</label>
-        <input type="text" id="prenom" name="prenom" class="form-input" required>
-      </div>
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label" for="email">Email *</label>
-        <input type="email" id="email" name="email" class="form-input" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="telephone">Téléphone *</label>
-        <input type="tel" id="telephone" name="telephone" class="form-input" required>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label" for="entreprise">Entreprise / Organisation</label>
-      <input type="text" id="entreprise" name="entreprise" class="form-input">
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label" for="date">Date de l'événement *</label>
-        <input type="date" id="date" name="date" class="form-input" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="personnes">Nombre de personnes *</label>
-        <input type="number" id="personnes" name="personnes" class="form-input" min="10" required>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label" for="type">Type d'événement *</label>
-      <select id="type" name="type" class="form-select" required>
-        <option value="">-- Choisir --</option>
-        <option value="professionnel">Événement professionnel</option>
-        <option value="prive">Célébration privée</option>
-        <option value="seminaire">Séminaire / Formation</option>
-        <option value="cocktail">Cocktail / Réception</option>
-        <option value="autre">Autre</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label" for="budget">Budget indicatif (€/personne)</label>
-      <select id="budget" name="budget" class="form-select">
-        <option value="">-- Choisir --</option>
-        <option value="15-20">15-20€</option>
-        <option value="20-30">20-30€</option>
-        <option value="30-40">30-40€</option>
-        <option value="40+">40€ et plus</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label" for="message">Détails de votre demande *</label>
-      <textarea id="message" name="message" class="form-textarea" placeholder="Décrivez votre événement, vos préférences culinaires, contraintes alimentaires, lieu, horaires..." required></textarea>
-    </div>
-
-    <button type="submit" class="form-submit">Envoyer ma demande</button>
-    <p style="font-size:.8rem;color:var(--text-muted);margin-top:12px;text-align:center">
-      Nous vous répondrons sous 48h avec un devis personnalisé
-    </p>
-  </form>
 </div>
 
 <footer class="footer">

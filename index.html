@@ -1946,7 +1946,18 @@ async function initEdenred() {
     });
 
     if (error || !data?.paymentUrl) {
-      console.error('Erreur Edge Function Edenred:', error || data);
+      console.error('❌ ERREUR EDENRED COMPLÈTE:');
+      console.error('Error object:', error);
+      console.error('Data object:', data);
+      if (data) {
+        console.error('📋 Détails Edenred:', {
+          error: data.error,
+          details: data.details,
+          url: data.url,
+          hasClientId: data.hasClientId,
+          hasClientSecret: data.hasClientSecret
+        });
+      }
       throw new Error(data?.error || error?.message || 'Erreur de paiement Edenred');
     }
 

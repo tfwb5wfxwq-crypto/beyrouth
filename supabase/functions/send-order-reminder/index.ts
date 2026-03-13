@@ -64,9 +64,9 @@ serve(async (req) => {
   <div style="max-width: 600px; margin: 0 auto; background: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
 
     <!-- Header sobre -->
-    <div style="padding: 32px 24px; border-bottom: 1px solid #e0e0e0;">
-      <div style="font-size: 24px; font-weight: 600; color: #1a1a1a; letter-spacing: -0.5px;">Beyrouth Express</div>
-      <div style="font-size: 13px; color: #666; margin-top: 4px;">Click & Collect · A Beyrouth</div>
+    <div style="padding: 32px 24px; border-bottom: 1px solid #e0e0e0; text-align: center;">
+      <div style="display: inline-flex; align-items: center; gap: 12px;"><img src="https://beyrouth.express/img/logo-olives.svg" alt="Falafels" style="height: 50px; width: auto; vertical-align: middle;"><img src="https://beyrouth.express/img/logo-text.svg" alt="Beyrouth Express" style="height: 45px; width: auto; vertical-align: middle;"></div>
+      <div style="font-size: 13px; color: #666; margin-top: 12px;">Click <div style="font-size: 13px; color: #666; margin-top: 4px;">Click & Collect · A Beyrouth</div> Collect · Restaurant Libanais La Défense</div>
     </div>
 
     <!-- Titre principal -->

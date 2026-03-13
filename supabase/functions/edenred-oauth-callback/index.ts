@@ -171,16 +171,53 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    await supabase
+    const { data: updatedOrder, error: updateError } = await supabase
       .from('orders')
       .update({
         edenred_payment_id: captureId,
         edenred_status: 'captured',
-        statut: 'payee' // Paiement confirmé
+        statut: 'payee', // Paiement confirmé
+        payment_confirmed_at: new Date().toISOString()
       })
       .eq('numero', orderNum)
+      .select()
+
+    if (updateError) {
+      console.error('Erreur mise à jour commande:', updateError)
+      throw updateError
+    }
 
     console.log(`✅ Paiement Edenred capturé (${capturedAmount} centimes), commande ${orderNum} payée`)
+
+    // Vérifier si auto-accept est activé (même logique que PayGreen webhook)
+    const { data: autoAcceptSetting } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'auto_accept_orders')
+      .maybeSingle()
+
+    const autoAcceptEnabled = autoAcceptSetting?.value === 'true'
+
+    // Envoyer email immédiat après paiement UNIQUEMENT si auto-accept DÉSACTIVÉ
+    // (sinon email d'acceptation va suivre immédiatement)
+    if (!autoAcceptEnabled && updatedOrder && updatedOrder[0]) {
+      try {
+        const emailResponse = await supabase.functions.invoke('send-payment-confirmation', {
+          body: { orderId: updatedOrder[0].id }
+        })
+
+        if (emailResponse.error) {
+          console.error('Erreur envoi email paiement:', emailResponse.error)
+        } else {
+          console.log(`📧 Email de confirmation paiement envoyé pour ${orderNum}`)
+        }
+      } catch (emailError) {
+        console.error('Erreur appel send-payment-confirmation:', emailError)
+        // Ne pas bloquer le callback si l'email échoue
+      }
+    } else if (autoAcceptEnabled) {
+      console.log(`⏭️  Email paiement skippé (auto-accept activé, email d'acceptation va suivre)`)
+    }
 
     return new Response(
       JSON.stringify({

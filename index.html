@@ -1995,6 +1995,7 @@ async function handleEdenredOAuthCallback() {
 
   // Détecter callback OAuth Edenred : présence de 'edenred_oauth=1' + code
   const isEdenredCallback = urlParams.get('edenred_oauth') === '1';
+  const paymentDataStr = sessionStorage.getItem('edenred_payment_data');
 
   if (!isEdenredCallback || !code || !paymentDataStr) {
     return; // Pas un callback OAuth Edenred

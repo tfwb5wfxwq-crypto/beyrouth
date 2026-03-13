@@ -2153,21 +2153,34 @@ function updateTimingBar() {
   const open = isOpenNow();
   const dot = document.getElementById('timingDot');
   const text = document.getElementById('timingText');
+
   if (open) {
     if (dot) dot.classList.remove('closed');
     const now = new Date();
     const slot = BUSINESS_HOURS.find(s => s[0] === now.getDay());
     if (text) text.innerHTML = `Ouvert <small>· Ferme à ${slot[3]}h${slot[4] ? String(slot[4]).padStart(2,'0') : '00'}</small>`;
+
+    // Affiche automatiquement le créneau ASAP dans le bouton
+    const asapTime = getAsapTime();
+    selectedPickup = 'asap';
+    document.getElementById('timingPickLabel').textContent = `Aujourd'hui ${asapTime}`;
+    document.getElementById('pickupTime').value = 'asap';
   } else {
     if (dot) dot.classList.add('closed');
     const next = getNextOpenSlot();
     if (text) text.innerHTML = next ? `Fermé <small>· Ouvre ${next.jour} ${next.h}h${next.m ? String(next.m).padStart(2,'0') : '00'}</small>` : 'Fermé';
-    if (selectedPickup === 'asap') {
+
+    // Si fermé, affiche le prochain créneau disponible
+    if (next) {
+      const nextSlot = `${next.jour} ${next.h}h${next.m ? String(next.m).padStart(2,'0') : '00'}`;
+      selectedPickup = nextSlot;
+      document.getElementById('timingPickLabel').textContent = nextSlot;
+      document.getElementById('pickupTime').value = nextSlot;
+    } else {
       selectedPickup = '';
       document.getElementById('timingPickLabel').textContent = 'Choisir un créneau';
     }
   }
-  document.getElementById('pickupTime').value = selectedPickup;
 }
 
 // ===== TIME PICKER =====

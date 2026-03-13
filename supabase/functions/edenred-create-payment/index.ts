@@ -3,7 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 // URLs Edenred UAT (Test)
-const EDENRED_AUTH_URL = 'https://sso.sbx.edenred.io/oauth2/token'
+const EDENRED_AUTH_URL = 'https://sso.sbx.edenred.io/connect/token'
 const EDENRED_PAYMENT_URL = 'https://directpayment.stg.eu.edenred.io/v2/payment'
 const EDENRED_MID = '1418943' // Merchant ID UAT
 
@@ -41,7 +41,16 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Debug: vérifier que les credentials sont présents
+    console.log('🔍 Debug credentials:', {
+      authClientId: EDENRED_AUTH_CLIENT_ID ? `${EDENRED_AUTH_CLIENT_ID.substring(0, 8)}...` : 'MANQUANT',
+      authSecret: EDENRED_AUTH_CLIENT_SECRET ? 'PRESENT' : 'MANQUANT',
+      paymentClientId: EDENRED_PAYMENT_CLIENT_ID ? `${EDENRED_PAYMENT_CLIENT_ID.substring(0, 8)}...` : 'MANQUANT',
+      paymentSecret: EDENRED_PAYMENT_CLIENT_SECRET ? 'PRESENT' : 'MANQUANT'
+    })
+
     // ===== ÉTAPE 1 : Obtenir le token OAuth Edenred =====
+    console.log('🔐 Tentative auth OAuth Edenred sur:', EDENRED_AUTH_URL)
     const authResponse = await fetch(EDENRED_AUTH_URL, {
       method: 'POST',
       headers: {
@@ -58,9 +67,23 @@ serve(async (req) => {
 
     if (!authResponse.ok) {
       const errorText = await authResponse.text()
-      console.error('Erreur Auth Edenred:', authResponse.status, errorText)
+      console.error('❌ Erreur Auth Edenred:', authResponse.status, errorText)
+
+      // Parser l'erreur JSON si possible
+      let errorDetails = errorText
+      try {
+        const errorJson = JSON.parse(errorText)
+        errorDetails = JSON.stringify(errorJson, null, 2)
+      } catch (e) {}
+
       return new Response(
-        JSON.stringify({ error: `Authentification Edenred échouée (${authResponse.status})` }),
+        JSON.stringify({
+          error: `Authentification Edenred échouée (${authResponse.status})`,
+          details: errorDetails,
+          url: EDENRED_AUTH_URL,
+          hasClientId: !!EDENRED_AUTH_CLIENT_ID,
+          hasClientSecret: !!EDENRED_AUTH_CLIENT_SECRET
+        }),
         { status: authResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

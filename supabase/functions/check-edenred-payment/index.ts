@@ -33,7 +33,7 @@ serve(async (req) => {
     }
 
     // 1. Obtenir un access token OAuth (UAT)
-    const tokenResponse = await fetch('https://sso.sbx.edenred.io/oauth2/token', {
+    const tokenResponse = await fetch('https://sso.sbx.edenred.io/connect/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',

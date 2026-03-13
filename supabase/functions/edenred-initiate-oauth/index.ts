@@ -3,7 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 // URLs Edenred UAT (Test)
 const EDENRED_AUTHORIZE_URL = 'https://sso.sbx.edenred.io/connect/authorize'
-const REDIRECT_URI = 'https://beyrouth.express/'
+const REDIRECT_URI = 'https://beyrouth.express/?edenred_oauth=1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

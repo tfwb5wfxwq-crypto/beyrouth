@@ -4,7 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 // URLs Edenred UAT (Test)
 const EDENRED_AUTH_URL = 'https://sso.sbx.edenred.io/connect/token'
-const EDENRED_PAYMENT_URL = 'https://directpayment.stg.eu.edenred.io/v2/payment'
+const EDENRED_PAYMENT_URL = 'https://directpayment.stg.eu.edenred.io/v2/transactions'
 const EDENRED_MID = '1418943' // Merchant ID UAT
 
 const corsHeaders = {
@@ -94,14 +94,12 @@ serve(async (req) => {
     console.log('💳 Création paiement Edenred...')
 
     const paymentPayload = {
-      merchantId: EDENRED_MID,
-      amount: {
-        value: total, // En centimes
-        currency: 'EUR'
-      },
-      merchantReference: orderNum,
-      returnUrl: `https://beyrouth.express/?edenred_return=1&order=${orderNum}`,
-      cancelUrl: `https://beyrouth.express/?edenred_cancelled=1`
+      order_ref: orderNum,
+      mid: EDENRED_MID,
+      amount: total, // En centimes (nombre entier)
+      capture_mode: 'auto',
+      extra_field: `beyrouth-${orderNum}`,
+      tstamp: new Date().toISOString()
     }
 
     const paymentResponse = await fetch(EDENRED_PAYMENT_URL, {
@@ -140,21 +138,34 @@ serve(async (req) => {
     const paymentData = await paymentResponse.json()
     console.log('✅ Paiement Edenred créé:', JSON.stringify(paymentData))
 
-    const paymentUrl = paymentData.redirectUrl || paymentData.paymentUrl
-    const paymentId = paymentData.paymentId || paymentData.id
-
-    if (!paymentUrl || !paymentId) {
-      console.error('❌ Réponse Edenred invalide:', paymentData)
+    // Vérifier le statut de la réponse Edenred
+    if (paymentData.meta?.status !== 'succeeded') {
+      console.error('❌ Paiement Edenred échoué:', paymentData)
       return new Response(
         JSON.stringify({
-          error: 'Réponse Edenred invalide',
+          error: 'Paiement Edenred échoué',
+          details: paymentData.meta?.messages || paymentData
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const captureId = paymentData.data?.capture_id || paymentData.data?.authorization_id
+    const capturedAmount = paymentData.data?.captured_amount
+    const transactionStatus = paymentData.data?.status
+
+    if (!captureId || transactionStatus !== 'captured') {
+      console.error('❌ Transaction non capturée:', paymentData)
+      return new Response(
+        JSON.stringify({
+          error: 'Transaction non capturée',
           debug: paymentData
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Mettre à jour la commande avec payment ID
+    // Mettre à jour la commande : paiement capturé = statut "payee"
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -163,17 +174,20 @@ serve(async (req) => {
     await supabase
       .from('orders')
       .update({
-        edenred_payment_id: paymentId,
-        edenred_status: 'pending'
+        edenred_payment_id: captureId,
+        edenred_status: 'captured',
+        statut: 'payee' // Paiement confirmé
       })
       .eq('numero', orderNum)
 
-    console.log('✅ Flow OAuth Edenred complet, paymentUrl prête')
+    console.log(`✅ Paiement Edenred capturé (${capturedAmount} centimes), commande ${orderNum} payée`)
 
     return new Response(
       JSON.stringify({
-        paymentId: paymentId,
-        paymentUrl: paymentUrl
+        success: true,
+        captureId: captureId,
+        amount: capturedAmount,
+        status: 'captured'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )

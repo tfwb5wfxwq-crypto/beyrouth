@@ -2025,18 +2025,31 @@ async function handleEdenredOAuthCallback() {
     const paymentData = JSON.parse(paymentDataStr);
 
     // ÉTAPE 2 : Échanger le code contre un access_token et créer le paiement
-    const { data, error } = await sb.functions.invoke('edenred-oauth-callback', {
-      body: {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/edenred-oauth-callback`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      },
+      body: JSON.stringify({
         code: code,
         orderNum: paymentData.orderNum,
         total: paymentData.total,
         redirectUri: paymentData.redirectUri
-      }
+      })
     });
 
-    if (error || !data?.paymentUrl) {
-      console.error('❌ Erreur callback OAuth:', error, data);
-      throw new Error(data?.error || error?.message || 'Erreur d\'authentification Edenred');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Erreur réseau' }));
+      console.error('❌ Erreur callback OAuth:', response.status, errorData);
+      throw new Error(errorData.error || `Erreur HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data?.paymentUrl) {
+      console.error('❌ Réponse callback invalide:', data);
+      throw new Error(data?.error || 'URL de paiement manquante');
     }
 
     console.log('✅ Paiement créé, redirection vers page de paiement Edenred');

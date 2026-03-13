@@ -2,7 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 // URLs Edenred UAT (Test)
-const EDENRED_AUTHORIZE_URL = 'https://sso.sbx.edenred.io/authorize'
+const EDENRED_AUTHORIZE_URL = 'https://sso.sbx.edenred.io/connect/authorize'
 const REDIRECT_URI = 'https://beyrouth.express/?edenred_oauth=1'
 
 const corsHeaders = {
@@ -38,7 +38,8 @@ serve(async (req) => {
       client_id: clientId,
       redirect_uri: REDIRECT_URI,
       response_type: 'code',
-      scope: 'directpayment',
+      scope: 'openid offline_access edg-xp-mealdelivery-api',
+      acr_values: 'tenant:fr-ctrtku',
       state: orderNum // Pour retrouver la commande au retour
     })
 

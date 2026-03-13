@@ -2047,19 +2047,18 @@ async function handleEdenredOAuthCallback() {
 
     const data = await response.json();
 
-    if (!data?.paymentUrl) {
-      console.error('❌ Réponse callback invalide:', data);
-      throw new Error(data?.error || 'URL de paiement manquante');
+    if (!data?.success || data?.status !== 'captured') {
+      console.error('❌ Paiement non capturé:', data);
+      throw new Error(data?.error || 'Paiement Edenred échoué');
     }
 
-    console.log('✅ Paiement créé, redirection vers page de paiement Edenred');
+    console.log('✅ Paiement Edenred capturé avec succès !', data);
 
-    // Sauvegarder order num pour le retour après paiement
-    sessionStorage.setItem('edenred_order', paymentData.orderNum);
+    // Nettoyer le sessionStorage
     sessionStorage.removeItem('edenred_payment_data');
 
-    // Rediriger vers la page de paiement Edenred
-    window.location.href = data.paymentUrl;
+    // Le paiement est déjà confirmé, rediriger vers la page de suivi
+    window.location.href = `/commande.html?numero=${paymentData.orderNum}`;
 
   } catch (e) {
     console.error('Erreur callback OAuth:', e);

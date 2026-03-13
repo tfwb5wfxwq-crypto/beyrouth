@@ -762,17 +762,19 @@ function updateOpenStatus() {
   const textEl = document.getElementById('statusText');
   const hoursEl = document.getElementById('headerHours');
   const open = isOpenNow();
+
+  // Vérifier que les éléments existent avant de les modifier
   if (open) {
-    statusEl.classList.remove('closed');
-    textEl.textContent = 'Ouvert';
+    if (statusEl) statusEl.classList.remove('closed');
+    if (textEl) textEl.textContent = 'Ouvert';
     const now = new Date();
     const slot = BUSINESS_HOURS.find(s => s[0] === now.getDay());
-    hoursEl.textContent = `· jusqu'à ${slot[3]}h${slot[4] ? String(slot[4]).padStart(2,'0') : '00'}`;
+    if (hoursEl) hoursEl.textContent = `· jusqu'à ${slot[3]}h${slot[4] ? String(slot[4]).padStart(2,'0') : '00'}`;
   } else {
-    statusEl.classList.add('closed');
-    textEl.textContent = 'Fermé';
+    if (statusEl) statusEl.classList.add('closed');
+    if (textEl) textEl.textContent = 'Fermé';
     const next = getNextOpenSlot();
-    hoursEl.textContent = next ? `· ${next.jour} ${next.h}h${next.m ? String(next.m).padStart(2,'0') : '00'}` : '';
+    if (hoursEl) hoursEl.textContent = next ? `· ${next.jour} ${next.h}h${next.m ? String(next.m).padStart(2,'0') : '00'}` : '';
   }
   return open;
 }

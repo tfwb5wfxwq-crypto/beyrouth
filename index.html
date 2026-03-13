@@ -826,6 +826,15 @@ function updateOpenStatus() {
 document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
+  // IMPORTANT: Si on est dans un callback OAuth Edenred, ne pas initialiser le DOM normal
+  const urlParams = new URLSearchParams(window.location.search);
+  const isEdenredCallback = urlParams.get('edenred_oauth') === '1' && urlParams.get('code');
+
+  if (isEdenredCallback) {
+    console.log('🔄 OAuth callback détecté, skip init normal');
+    return; // Le callback handler va gérer l'affichage
+  }
+
   generateTimeSlots();
   const open = updateOpenStatus();
   setInterval(updateOpenStatus, 60000);

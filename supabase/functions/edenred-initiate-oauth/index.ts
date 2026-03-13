@@ -6,12 +6,20 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const EDENRED_AUTHORIZE_URL = 'https://sso.sbx.edenred.io/connect/authorize'
 const REDIRECT_URI = 'https://beyrouth.express/?edenred_oauth=1'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://beyrouth.express',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// CORS dynamique pour supporter beyrouth.express ET www.beyrouth.express
+const allowedOrigins = ['https://beyrouth.express', 'https://www.beyrouth.express']
+
+const getCorsHeaders = (req: Request) => {
+  const origin = req.headers.get('origin') || ''
+  return {
+    'Access-Control-Allow-Origin': allowedOrigins.includes(origin) ? origin : allowedOrigins[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  }
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req)
+
   // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })

@@ -5,12 +5,20 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 // URLs Edenred UAT (Test)
 const EDENRED_REFUND_URL = 'https://directpayment.stg.eu.edenred.io/v2/transactions'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://beyrouth.express',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// CORS dynamique pour supporter beyrouth.express ET www.beyrouth.express
+const allowedOrigins = ['https://beyrouth.express', 'https://www.beyrouth.express']
+
+const getCorsHeaders = (req: Request) => {
+  const origin = req.headers.get('origin') || ''
+  return {
+    'Access-Control-Allow-Origin': allowedOrigins.includes(origin) ? origin : allowedOrigins[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  }
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req)
+
   // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })

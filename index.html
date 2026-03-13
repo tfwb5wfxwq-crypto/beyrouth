@@ -1597,7 +1597,7 @@ async function submitOrder() {
 
     // Ouvrir le paiement dans un modal (mode inline PayGreenJS)
     if (data.paymentOrderId && data.objectSecret) {
-      openPaymentModal(data.paymentOrderId, data.objectSecret, orderNum, total);
+      openPaymentModal(data.paymentOrderId, data.objectSecret, orderNum, total, email, name, phone, pickup);
     } else {
       throw new Error('Données de paiement non reçues');
     }
@@ -1613,8 +1613,8 @@ async function submitOrder() {
 // ===== PAYMENT INLINE =====
 let currentPaymentData = null;
 
-function openPaymentModal(paymentOrderId, objectSecret, orderNum, total) {
-  currentPaymentData = { paymentOrderId, objectSecret, orderNum, total };
+function openPaymentModal(paymentOrderId, objectSecret, orderNum, total, email, name, phone, pickup) {
+  currentPaymentData = { paymentOrderId, objectSecret, orderNum, total, email, name, phone, pickup };
 
   // Fermer le panier et afficher la section paiement
   toggleCart();
@@ -1919,10 +1919,10 @@ async function initEdenred() {
       body: {
         orderNum: currentPaymentData.orderNum,
         total: Math.round(currentPaymentData.total * 100), // Convertir en centimes
-        email: document.getElementById('cartEmail').value,
-        name: document.getElementById('cartName').value,
-        phone: document.getElementById('cartPhone').value || '',
-        pickup: document.getElementById('pickupTime').value || 'asap'
+        email: currentPaymentData.email,
+        name: currentPaymentData.name,
+        phone: currentPaymentData.phone || '',
+        pickup: currentPaymentData.pickup || 'asap'
       }
     });
 

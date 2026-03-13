@@ -1933,15 +1933,28 @@ async function initEdenred() {
 
   try {
     // ÉTAPE 1 : Initier le flow OAuth - Obtenir l'URL d'autorisation
-    const { data, error } = await sb.functions.invoke('edenred-initiate-oauth', {
-      body: {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/edenred-initiate-oauth`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      },
+      body: JSON.stringify({
         orderNum: currentPaymentData.orderNum
-      }
+      })
     });
 
-    if (error || !data?.authorizationUrl) {
-      console.error('❌ Erreur génération URL OAuth:', error, data);
-      throw new Error(data?.error || error?.message || 'Erreur d\'initialisation OAuth Edenred');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Erreur réseau' }));
+      console.error('❌ Erreur génération URL OAuth:', response.status, errorData);
+      throw new Error(errorData.error || `Erreur HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data?.authorizationUrl) {
+      console.error('❌ Réponse OAuth invalide:', data);
+      throw new Error(data?.error || 'URL d\'autorisation manquante');
     }
 
     console.log('🔐 URL OAuth générée, redirection vers SSO Edenred');

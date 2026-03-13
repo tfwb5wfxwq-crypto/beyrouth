@@ -43,6 +43,27 @@ a{color:inherit;text-decoration:none}
 .header{background:var(--dark);color:#fff;padding:28px 24px;margin-bottom:0;height:auto;min-height:92px}
 .header-inner{max-width:1000px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:32px}
 .brand{font-family:'DM Serif Display',Georgia,serif;font-size:1.5rem;font-weight:400;letter-spacing:.3px;line-height:1.2;display:flex;align-items:center;gap:8px}
+
+/* Animation falafels */
+.logo-olives{
+  animation:floatFalafel 3s ease-in-out infinite;
+  transform-origin:center;
+  transition:transform .3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.brand:hover .logo-olives{
+  animation:rotateFalafel .6s ease-in-out;
+  transform:scale(1.1) rotate(10deg);
+}
+@keyframes floatFalafel{
+  0%,100%{transform:translateY(0) rotate(0deg)}
+  50%{transform:translateY(-4px) rotate(2deg)}
+}
+@keyframes rotateFalafel{
+  0%{transform:rotate(0deg) scale(1)}
+  25%{transform:rotate(10deg) scale(1.15)}
+  75%{transform:rotate(-10deg) scale(1.15)}
+  100%{transform:rotate(0deg) scale(1.1)}
+}
 .brand-express{font-weight:600;font-style:italic;letter-spacing:0.5px;position:relative;color:var(--gold);text-transform:none;font-size:1em}
 .brand-logo-svg{display:none!important}
 .brand-logo-text{display:block!important;line-height:1.05}
@@ -220,10 +241,9 @@ a{color:inherit;text-decoration:none}
 <header class="header">
   <div class="header-inner">
     <h1 class="brand">
-      <img src="../img/logo-full-hq.png" alt="Beyrouth Express" class="brand-logo-img" style="height:56px;width:auto;filter:drop-shadow(0 0 8px rgba(212,175,55,0.25));">
-      <div class="brand-logo-text" style="display:none;">
-        Beyrouth<br>
-        <span class="brand-express"><span class="brand-dot">.</span>Express</span>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <img src="../img/logo-olives.svg" alt="Falafels" class="logo-olives" style="height:42px;width:auto;">
+        <img src="../img/logo-text.svg" alt="Beyrouth Express" class="logo-text" style="height:38px;width:auto;">
       </div>
     </h1>
     <div class="header-right">

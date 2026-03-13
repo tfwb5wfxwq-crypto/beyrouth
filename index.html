@@ -2056,8 +2056,8 @@ async function handleEdenredOAuthCallback() {
     // Nettoyer le sessionStorage
     sessionStorage.removeItem('edenred_payment_data');
 
-    // Le paiement est déjà confirmé, rediriger vers la page de suivi
-    window.location.href = `/commande.html?numero=${paymentData.orderNum}`;
+    // Afficher la modal de confirmation (comme PayGreen)
+    showConfirmation(paymentData.orderNum);
 
   } catch (e) {
     console.error('Erreur callback OAuth:', e);
@@ -2145,10 +2145,10 @@ async function handleEdenredReturn() {
 
         showToast('✅ Paiement confirmé !', 'success');
 
-        // Rediriger vers la page de suivi
+        // Afficher la modal de confirmation (comme PayGreen)
         setTimeout(() => {
-          window.location.href = `/commande.html?num=${orderNum}`;
-        }, 1500);
+          showConfirmation(orderNum);
+        }, 800);
       }
       // Si paiement échoué
       else if (data.order_status === 'cancelled' || data.status === 'FAILED' || data.status === 'CANCELLED') {

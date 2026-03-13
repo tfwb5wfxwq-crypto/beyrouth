@@ -1975,6 +1975,114 @@ async function initEdenred() {
   }
 }
 
+// ===== EDENRED RETURN & POLLING =====
+async function handleEdenredReturn() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const isEdenredReturn = urlParams.get('edenred_return') === '1';
+  const orderNumFromUrl = urlParams.get('order');
+  const orderNum = orderNumFromUrl || sessionStorage.getItem('edenred_order');
+
+  if (!isEdenredReturn || !orderNum) {
+    return; // Pas un retour Edenred
+  }
+
+  console.log('🔄 Retour Edenred détecté pour commande:', orderNum);
+
+  // Récupérer le transaction ID depuis la DB
+  const { data: orderData } = await sb
+    .from('orders')
+    .select('edenred_payment_id')
+    .eq('numero', orderNum)
+    .single();
+
+  const transactionId = orderData?.edenred_payment_id;
+
+  if (!transactionId) {
+    showToast('Erreur: ID de transaction introuvable', 'error');
+    return;
+  }
+
+  console.log('🔄 Transaction ID:', transactionId);
+
+  // Afficher modal de vérification
+  showToast('Vérification du paiement...', 'info');
+
+  // Polling: vérifier le statut toutes les 2s pendant 30s max
+  const maxAttempts = 15;
+  let attempts = 0;
+
+  const pollInterval = setInterval(async () => {
+    attempts++;
+
+    try {
+      const { data, error } = await sb.functions.invoke('check-edenred-payment', {
+        body: {
+          transaction_id: transactionId,
+          order_num: orderNum
+        }
+      });
+
+      if (error || data?.error) {
+        console.error('Erreur polling Edenred:', error || data?.error);
+
+        if (attempts >= maxAttempts) {
+          clearInterval(pollInterval);
+          showToast('Délai de vérification dépassé. Vérifiez vos emails.', 'warning');
+          sessionStorage.removeItem('edenred_order');
+          window.location.href = '/';
+        }
+        return;
+      }
+
+      console.log('📊 Polling Edenred:', data);
+
+      // Si paiement réussi
+      if (data.success || data.order_status === 'payee') {
+        clearInterval(pollInterval);
+        sessionStorage.removeItem('edenred_order');
+
+        showToast('✅ Paiement confirmé !', 'success');
+
+        // Rediriger vers la page de suivi
+        setTimeout(() => {
+          window.location.href = `/commande.html?num=${orderNum}`;
+        }, 1500);
+      }
+      // Si paiement échoué
+      else if (data.order_status === 'cancelled' || data.status === 'FAILED' || data.status === 'CANCELLED') {
+        clearInterval(pollInterval);
+        sessionStorage.removeItem('edenred_order');
+
+        showToast('❌ Paiement annulé ou refusé', 'error');
+
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 2000);
+      }
+      // Statut PENDING : continuer à poller
+      else if (attempts >= maxAttempts) {
+        clearInterval(pollInterval);
+        showToast('Vérification en cours... Vous recevrez un email de confirmation.', 'info');
+        sessionStorage.removeItem('edenred_order');
+        window.location.href = '/';
+      }
+
+    } catch (e) {
+      console.error('Erreur polling:', e);
+
+      if (attempts >= maxAttempts) {
+        clearInterval(pollInterval);
+        showToast('Erreur de vérification. Contactez-nous si vous avez payé.', 'error');
+        sessionStorage.removeItem('edenred_order');
+        window.location.href = '/';
+      }
+    }
+  }, 2000); // Toutes les 2 secondes
+}
+
+// Détecter retour Edenred au chargement de la page
+handleEdenredReturn();
+
 function cancelPayment() {
   const section = document.getElementById('paymentSection');
   if (section) section.remove();

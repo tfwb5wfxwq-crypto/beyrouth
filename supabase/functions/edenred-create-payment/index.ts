@@ -87,8 +87,8 @@ serve(async (req) => {
         currency: 'EUR'
       },
       merchantReference: orderNum,
-      returnUrl: `https://beyrouth.express/confirmation.html?num=${orderNum}&payment=edenred`,
-      cancelUrl: `https://beyrouth.express/?cancelled=1&payment=edenred`
+      returnUrl: `https://beyrouth.express/?edenred_return=1&order=${orderNum}`,
+      cancelUrl: `https://beyrouth.express/?edenred_cancelled=1`
     }
 
     const paymentResponse = await fetch(EDENRED_PAYMENT_URL, {

@@ -113,11 +113,49 @@ serve(async (req) => {
 
     const autoAcceptEnabled = autoAcceptSetting?.value === 'true'
 
-    // Envoyer email immédiat après paiement UNIQUEMENT si:
-    // - Statut = payee
-    // - Pas déjà payé
-    // - Auto-accept DÉSACTIVÉ (sinon email d'acceptation va suivre immédiatement)
-    if (newStatus === 'payee' && !wasAlreadyPaid && !autoAcceptEnabled && data && data[0]) {
+    // Vérifier si le restaurant est ouvert (Lun-Ven 11h30-21h00)
+    const now = new Date()
+    const parisTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }))
+    const day = parisTime.getDay() // 0 = Dimanche, 1 = Lundi, ..., 5 = Vendredi
+    const hour = parisTime.getHours()
+    const minute = parisTime.getMinutes()
+    const currentMinutes = hour * 60 + minute
+
+    const isWeekday = day >= 1 && day <= 5 // Lundi à Vendredi
+    const isOpenHours = currentMinutes >= 11 * 60 + 30 && currentMinutes <= 21 * 60 // 11h30 - 21h00
+    const isRestaurantOpen = isWeekday && isOpenHours
+
+    console.log(`🕐 Restaurant ${isRestaurantOpen ? 'OUVERT' : 'FERMÉ'} (${day}, ${hour}h${minute})`)
+
+    // Si AUTO-ACCEPT activé ET restaurant OUVERT ET statut = payee : passer directement en "acceptee"
+    if (newStatus === 'payee' && !wasAlreadyPaid && autoAcceptEnabled && isRestaurantOpen && data && data[0]) {
+      console.log(`🤖 Auto-accept activé, passage automatique en "acceptee" pour ${orderId}`)
+
+      // Update statut à "acceptee"
+      const { error: acceptError } = await supabase
+        .from('orders')
+        .update({ statut: 'acceptee' })
+        .eq('id', data[0].id)
+
+      if (acceptError) {
+        console.error('Erreur auto-accept:', acceptError)
+      } else {
+        // Envoyer email d'acceptation
+        try {
+          await supabase.functions.invoke('send-order-confirmation', {
+            body: { orderId: data[0].id }
+          })
+          console.log(`📧 Email d'acceptation envoyé pour ${orderId}`)
+        } catch (emailError) {
+          console.error('Erreur envoi email acceptation:', emailError)
+        }
+      }
+    }
+    // Si AUTO-ACCEPT désactivé OU restaurant fermé : envoyer email de paiement (en attente validation)
+    else if (newStatus === 'payee' && !wasAlreadyPaid && (!autoAcceptEnabled || !isRestaurantOpen) && data && data[0]) {
+      if (autoAcceptEnabled && !isRestaurantOpen) {
+        console.log(`⏰ Auto-accept activé mais restaurant fermé → en attente validation manuelle`)
+      }
       try {
         const emailResponse = await supabase.functions.invoke('send-payment-confirmation', {
           body: { orderId: data[0].id }
@@ -130,10 +168,7 @@ serve(async (req) => {
         }
       } catch (emailError) {
         console.error('Erreur appel send-payment-confirmation:', emailError)
-        // Ne pas bloquer le webhook si l'email échoue
       }
-    } else if (autoAcceptEnabled && newStatus === 'payee') {
-      console.log(`⏭️  Email paiement skippé (auto-accept activé, email d'acceptation va suivre)`)
     }
 
     return new Response(

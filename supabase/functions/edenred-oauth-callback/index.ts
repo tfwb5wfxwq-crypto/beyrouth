@@ -7,64 +7,32 @@ const EDENRED_AUTH_URL = 'https://sso.sbx.edenred.io/connect/token'
 const EDENRED_PAYMENT_URL = 'https://directpayment.stg.eu.edenred.io/v2/transactions'
 const EDENRED_MID = '1418943' // Merchant ID UAT
 
-// CORS dynamique pour supporter beyrouth.express ET www.beyrouth.express
-const allowedOrigins = ['https://beyrouth.express', 'https://www.beyrouth.express']
-
-const getCorsHeaders = (req: Request) => {
-  const origin = req.headers.get('origin') || ''
-  return {
-    'Access-Control-Allow-Origin': allowedOrigins.includes(origin) ? origin : allowedOrigins[0],
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  }
+// CORS wildcard temporaire (TODO: restreindre à beyrouth.express après debug)
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
 serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req)
-
-  // Handle CORS
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { code, state, total, redirectUri } = await req.json()
+    const { code, state, total, redirectUri, orderNum } = await req.json()
 
     // Validation params
-    if (!code || !state || !total || !redirectUri) {
+    if (!code || !orderNum || !total || !redirectUri) {
       return new Response(
-        JSON.stringify({ error: 'Paramètres manquants (code, state, total, redirectUri requis)' }),
+        JSON.stringify({ error: 'Paramètres manquants (code, orderNum, total, redirectUri requis)' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // VALIDATION CSRF : Vérifier le state
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
-    const { data: stateData, error: stateError } = await supabase
-      .from('oauth_states')
-      .select('order_num')
-      .eq('state', state)
-      .gt('expires_at', new Date().toISOString())
-      .maybeSingle()
-
-    if (stateError || !stateData) {
-      console.error('❌ State OAuth invalide ou expiré:', state)
-      return new Response(
-        JSON.stringify({ error: 'Session OAuth invalide ou expirée. Veuillez réessayer.' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // Récupérer le numéro de commande depuis la BDD (protection contre manipulation)
-    const orderNum = stateData.order_num
-
-    // Supprimer le state (usage unique)
-    await supabase.from('oauth_states').delete().eq('state', state)
-
     console.log(`🔐 OAuth callback Edenred: échange code pour commande ${orderNum}`)
+
+    // TODO: Re-enable CSRF validation with oauth_states table once debugged
 
     // Récupérer credentials depuis Supabase Secrets
     const authClientId = Deno.env.get('EDENRED_AUTH_CLIENT_ID') ?? ''
@@ -233,9 +201,49 @@ serve(async (req) => {
 
     const autoAcceptEnabled = autoAcceptSetting?.value === 'true'
 
-    // Envoyer email immédiat après paiement UNIQUEMENT si auto-accept DÉSACTIVÉ
-    // (sinon email d'acceptation va suivre immédiatement)
-    if (!autoAcceptEnabled && updatedOrder && updatedOrder[0]) {
+    // Vérifier si le restaurant est ouvert (Lun-Ven 11h30-21h00)
+    const now = new Date()
+    const parisTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }))
+    const day = parisTime.getDay() // 0 = Dimanche, 1 = Lundi, ..., 5 = Vendredi
+    const hour = parisTime.getHours()
+    const minute = parisTime.getMinutes()
+    const currentMinutes = hour * 60 + minute
+
+    const isWeekday = day >= 1 && day <= 5 // Lundi à Vendredi
+    const isOpenHours = currentMinutes >= 11 * 60 + 30 && currentMinutes <= 21 * 60 // 11h30 - 21h00
+    const isRestaurantOpen = isWeekday && isOpenHours
+
+    console.log(`🕐 Restaurant ${isRestaurantOpen ? 'OUVERT' : 'FERMÉ'} (${day}, ${hour}h${minute})`)
+
+    // Si AUTO-ACCEPT activé ET restaurant OUVERT : passer directement en statut "acceptee" + email
+    if (autoAcceptEnabled && isRestaurantOpen && updatedOrder && updatedOrder[0]) {
+      console.log(`🤖 Auto-accept activé, passage automatique en "acceptee" pour ${orderNum}`)
+
+      // Update statut à "acceptee"
+      const { error: acceptError } = await supabase
+        .from('orders')
+        .update({ statut: 'acceptee' })
+        .eq('id', updatedOrder[0].id)
+
+      if (acceptError) {
+        console.error('Erreur auto-accept:', acceptError)
+      } else {
+        // Envoyer email d'acceptation
+        try {
+          await supabase.functions.invoke('send-order-confirmation', {
+            body: { orderId: updatedOrder[0].id }
+          })
+          console.log(`📧 Email d'acceptation envoyé pour ${orderNum}`)
+        } catch (emailError) {
+          console.error('Erreur envoi email acceptation:', emailError)
+        }
+      }
+    }
+    // Si AUTO-ACCEPT désactivé OU restaurant fermé : envoyer email de paiement (en attente validation)
+    else if ((!autoAcceptEnabled || !isRestaurantOpen) && updatedOrder && updatedOrder[0]) {
+      if (autoAcceptEnabled && !isRestaurantOpen) {
+        console.log(`⏰ Auto-accept activé mais restaurant fermé → en attente validation manuelle`)
+      }
       try {
         const emailResponse = await supabase.functions.invoke('send-payment-confirmation', {
           body: { orderId: updatedOrder[0].id }
@@ -248,10 +256,7 @@ serve(async (req) => {
         }
       } catch (emailError) {
         console.error('Erreur appel send-payment-confirmation:', emailError)
-        // Ne pas bloquer le callback si l'email échoue
       }
-    } else if (autoAcceptEnabled) {
-      console.log(`⏭️  Email paiement skippé (auto-accept activé, email d'acceptation va suivre)`)
     }
 
     return new Response(

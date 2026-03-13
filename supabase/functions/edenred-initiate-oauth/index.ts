@@ -6,21 +6,14 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const EDENRED_AUTHORIZE_URL = 'https://sso.sbx.edenred.io/connect/authorize'
 const REDIRECT_URI = 'https://beyrouth.express/?edenred_oauth=1'
 
-// CORS dynamique pour supporter beyrouth.express ET www.beyrouth.express
-const allowedOrigins = ['https://beyrouth.express', 'https://www.beyrouth.express']
-
-const getCorsHeaders = (req: Request) => {
-  const origin = req.headers.get('origin') || ''
-  return {
-    'Access-Control-Allow-Origin': allowedOrigins.includes(origin) ? origin : allowedOrigins[0],
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  }
+// CORS wildcard temporaire (TODO: restreindre à beyrouth.express après debug)
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
 serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req)
-
-  // Handle CORS
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -42,27 +35,8 @@ serve(async (req) => {
       throw new Error('EDENRED_AUTH_CLIENT_ID manquant')
     }
 
-    // Générer un state aléatoire pour protection CSRF
+    // Générer un state aléatoire pour protection CSRF (TODO: store in DB for validation)
     const state = crypto.randomUUID()
-
-    // Stocker le state en BDD (expire dans 10 min)
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
-    const { error: stateError } = await supabase
-      .from('oauth_states')
-      .insert({
-        state: state,
-        order_num: orderNum,
-        expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString() // 10 minutes
-      })
-
-    if (stateError) {
-      console.error('Erreur stockage state OAuth:', stateError)
-      throw new Error('Erreur initialisation OAuth')
-    }
 
     // Générer l'URL d'autorisation OAuth
     const authParams = new URLSearchParams({
@@ -71,7 +45,7 @@ serve(async (req) => {
       response_type: 'code',
       scope: 'openid offline_access edg-xp-mealdelivery-api',
       acr_values: 'tenant:fr-ctrtku',
-      state: state // Token CSRF aléatoire
+      state: orderNum // Temporary: use orderNum as state (TODO: use random token + DB storage)
     })
 
     const authorizationUrl = `${EDENRED_AUTHORIZE_URL}?${authParams.toString()}`

@@ -2367,7 +2367,8 @@ function updateConfirmModalStatus(order) {
   }
 
   let status = order.statut;
-  if (status === 'acceptee' && isPickupTimePassed(order.heure_retrait)) status = 'prete';
+  // Ne plus changer automatiquement le statut, géré manuellement par le resto
+  // if (status === 'acceptee' && isPickupTimePassed(order.heure_retrait)) status = 'prete';
 
   // Progression %
   const progressMap = { payee: 25, acceptee: 50, prete: 75, recuperee: 100 };

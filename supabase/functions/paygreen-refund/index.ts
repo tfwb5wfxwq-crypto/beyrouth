@@ -1,21 +1,20 @@
 // Supabase Edge Function: Remboursement PayGreen (sécurisé)
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
-// CORS dynamique pour supporter beyrouth.express ET www.beyrouth.express
+// CORS permissif pour beyrouth.express (avec et sans www)
 const allowedOrigins = ['https://beyrouth.express', 'https://www.beyrouth.express']
 
-const getCorsHeaders = (req: Request) => {
+serve(async (req) => {
+  // Détecter l'origin et renvoyer le header CORS approprié
   const origin = req.headers.get('origin') || ''
-  return {
-    'Access-Control-Allow-Origin': allowedOrigins.includes(origin) ? origin : allowedOrigins[0],
+  const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0]
+
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': corsOrigin,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   }
-}
 
-serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req)
-
-  // Handle CORS
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }

@@ -1528,6 +1528,12 @@ function parsePickupTime(order) {
 
 // Helper: check if order is for today
 function isToday(order) {
+  // Si heure_retrait contient "Demain" ou jours futurs → pas aujourd'hui
+  const heureRetrait = (order.heure_retrait || '').toLowerCase();
+  if (heureRetrait.includes('demain') || heureRetrait.includes('lundi') || heureRetrait.includes('mardi') || heureRetrait.includes('mercredi') || heureRetrait.includes('jeudi') || heureRetrait.includes('vendredi') || heureRetrait.includes('samedi') || heureRetrait.includes('dimanche')) {
+    return false;
+  }
+
   const orderDate = new Date(order.created_at);
   const today = new Date();
   return orderDate.toDateString() === today.toDateString();
@@ -1752,7 +1758,7 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
       }
 
       <div style="min-width:70px;text-align:right;font-weight:700;font-size:0.95rem;color:#1a1a1a;flex-shrink:0;">
-        ${((order.total || 0) / 100).toFixed(2).replace('.',',')} €
+        ${(order.total || 0).toFixed(2).replace('.',',')} €
       </div>
 
       ${!isHistory

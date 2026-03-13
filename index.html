@@ -64,7 +64,7 @@
       "@type": "OpeningHoursSpecification",
       "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"],
       "opens": "18:00",
-      "closes": "22:00"
+      "closes": "21:00"
     }
   ],
   "acceptsReservations": "False",
@@ -574,7 +574,7 @@ a{color:inherit;text-decoration:none}
     <p class="footer-brand">Beyrouth Express</p>
     <p class="footer-sub">Service en ligne de A Beyrouth</p>
     <p class="footer-address">4 Esplanade du Général de Gaulle, 92400 Courbevoie</p>
-    <p class="footer-hours">Lun–Ven 11h30–21h</p>
+    <p class="footer-hours">Lun–Ven 11h30–20h30</p>
     <div style="margin:16px 0">
       <a href="traiteur/" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(26,26,26,0.6) 100%);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;padding:9px 18px;border-radius:24px;border:1px solid rgba(212,175,55,0.3);font-size:.8rem;font-weight:600;letter-spacing:0.3px;text-decoration:none;transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);box-shadow:0 2px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.1)" onmouseover="this.style.borderColor='var(--gold)';this.style.boxShadow='0 6px 20px rgba(212,175,55,0.25), inset 0 1px 0 rgba(255,255,255,0.15)'" onmouseout="this.style.borderColor='rgba(212,175,55,0.3)';this.style.boxShadow='0 2px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.1)'">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--gold)">
@@ -762,11 +762,11 @@ const DEMO_ITEMS = [
 
 // ===== HORAIRES =====
 const BUSINESS_HOURS = [
-  [1, 11, 30, 21, 0],  // Lundi: 11h30 - 21h00
-  [2, 11, 30, 21, 0],  // Mardi: 11h30 - 21h00
-  [3, 11, 30, 21, 0],  // Mercredi: 11h30 - 21h00
-  [4, 11, 30, 21, 0],  // Jeudi: 11h30 - 21h00
-  [5, 11, 30, 21, 0],  // Vendredi: 11h30 - 21h00
+  [1, 11, 30, 20, 30],  // Lundi: 11h30 - 20h30 (dernière commande)
+  [2, 11, 30, 20, 30],  // Mardi: 11h30 - 20h30 (dernière commande)
+  [3, 11, 30, 20, 30],  // Mercredi: 11h30 - 20h30 (dernière commande)
+  [4, 11, 30, 20, 30],  // Jeudi: 11h30 - 20h30 (dernière commande)
+  [5, 11, 30, 20, 30],  // Vendredi: 11h30 - 20h30 (dernière commande)
 ];
 const JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 

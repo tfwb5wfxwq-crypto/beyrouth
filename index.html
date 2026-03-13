@@ -1951,6 +1951,24 @@ async function initEdenred() {
       console.error('Error context:', error?.context);
       console.error('Error details:', JSON.stringify(error, null, 2));
       console.error('Data object:', data);
+
+      // Si error.context est une Response, lire le body
+      if (error?.context && typeof error.context.text === 'function') {
+        try {
+          const responseText = await error.context.text();
+          console.error('📋 Response body:', responseText);
+          try {
+            const responseJson = JSON.parse(responseText);
+            console.error('📋 Response JSON:', responseJson);
+            throw new Error(responseJson.error || responseJson.message || 'Erreur de paiement Edenred');
+          } catch (parseError) {
+            throw new Error(responseText || 'Erreur de paiement Edenred');
+          }
+        } catch (readError) {
+          console.error('Impossible de lire le body de la réponse:', readError);
+        }
+      }
+
       if (data) {
         console.error('📋 Détails Edenred:', {
           error: data.error,

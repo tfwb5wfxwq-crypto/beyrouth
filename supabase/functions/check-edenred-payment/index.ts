@@ -32,8 +32,8 @@ serve(async (req) => {
       throw new Error('Credentials Edenred manquants')
     }
 
-    // 1. Obtenir un access token OAuth
-    const tokenResponse = await fetch('https://sso.eu.edenred.io/oauth2/token', {
+    // 1. Obtenir un access token OAuth (UAT)
+    const tokenResponse = await fetch('https://sso.sbx.edenred.io/oauth2/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -53,9 +53,9 @@ serve(async (req) => {
 
     const { access_token } = await tokenResponse.json()
 
-    // 2. Appeler "Get Transaction By ID"
+    // 2. Appeler "Get Transaction By ID" (UAT)
     const paymentResponse = await fetch(
-      `https://directpayment.eu.edenred.io/v2/transactions/${transaction_id}`,
+      `https://directpayment.stg.eu.edenred.io/v2/transactions/${transaction_id}`,
       {
         headers: {
           'Authorization': `Bearer ${access_token}`,

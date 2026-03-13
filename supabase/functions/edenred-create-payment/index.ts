@@ -14,7 +14,7 @@ const EDENRED_PAYMENT_CLIENT_ID = Deno.env.get('EDENRED_PAYMENT_CLIENT_ID') ?? '
 const EDENRED_PAYMENT_CLIENT_SECRET = Deno.env.get('EDENRED_PAYMENT_CLIENT_SECRET') ?? ''
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://beyrouth.express',
+  'Access-Control-Allow-Origin': '*', // Permet tous les domaines (GitHub Pages, www, localhost)
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 

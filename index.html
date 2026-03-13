@@ -1693,6 +1693,13 @@ function openPaymentModal(paymentOrderId, objectSecret, orderNum, total) {
                 <img src="img/restoflash-logo.png" alt="Restoflash" style="height:24px;width:auto;">
                 <span style="font-weight:600;font-size:0.95rem;">Restoflash</span>
               </div>
+
+              <!-- Edenred Ticket Restaurant -->
+              <div onclick="selectPaymentMethod('edenred')" id="method_edenred" style="border:2px solid #e5e7eb;border-radius:10px;padding:14px 18px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;background:#fff;">
+                <input type="radio" name="payment" style="width:18px;height:18px;margin:0;cursor:pointer;">
+                <img src="img/edenred-logo.jpg" alt="Edenred" style="height:24px;width:auto;">
+                <span style="font-weight:600;font-size:0.95rem;">Edenred Ticket Restaurant</span>
+              </div>
             </div>
           </div>
         </div>
@@ -1728,7 +1735,7 @@ function openPaymentModal(paymentOrderId, objectSecret, orderNum, total) {
 function selectPaymentMethod(method) {
   haptic.trigger('nudge'); // Vibration légère sélection moyen de paiement
   // Reset tous les styles (apple_pay et google_pay retirés - désactivés)
-  ['bank_card', 'swile', 'conecs', 'restoflash'].forEach(m => {
+  ['bank_card', 'swile', 'conecs', 'restoflash', 'edenred'].forEach(m => {
     const el = document.getElementById(`method_${m}`);
     const radio = el?.querySelector('input[type="radio"]');
     if (el) {
@@ -1746,6 +1753,12 @@ function selectPaymentMethod(method) {
     selected.style.background = '#f0fdf4';
   }
   if (radio) radio.checked = true;
+
+  // Edenred : redirection immédiate (pas de formulaire inline)
+  if (method === 'edenred') {
+    initEdenred();
+    return;
+  }
 
   // Réafficher le bouton "Payer" (peut être caché pour Apple/Google Pay)
   const payBtn = document.getElementById('payBtn');
@@ -1882,6 +1895,64 @@ function initPayGreen(method) {
   } catch (e) {
     console.error('Erreur init PayGreen:', e);
     showToast('Erreur d\'initialisation', 'error');
+  }
+}
+
+// ===== EDENRED PAYMENT =====
+async function initEdenred() {
+  if (!currentPaymentData) return;
+
+  // Afficher un message de chargement
+  const paymentForm = document.getElementById('paymentForm');
+  paymentForm.style.display = 'block';
+  paymentForm.innerHTML = `
+    <div style="text-align:center;padding:40px 20px;">
+      <div style="display:inline-block;width:48px;height:48px;border:4px solid #e5e7eb;border-top-color:#1B8C3E;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:20px;"></div>
+      <p style="font-size:1.1rem;font-weight:600;color:var(--dark);margin:0 0 8px;">Connexion à Edenred...</p>
+      <p style="font-size:0.9rem;color:var(--text-soft);margin:0;">Vous allez être redirigé vers la plateforme de paiement sécurisée</p>
+    </div>
+  `;
+
+  try {
+    // Appeler l'Edge Function pour créer le paiement Edenred
+    const { data, error } = await sb.functions.invoke('edenred-create-payment', {
+      body: {
+        orderNum: currentPaymentData.orderNum,
+        total: Math.round(currentPaymentData.total * 100), // Convertir en centimes
+        email: document.getElementById('cartEmail').value,
+        name: document.getElementById('cartName').value,
+        phone: document.getElementById('cartPhone').value || '',
+        pickup: document.getElementById('pickupTime').value || 'asap'
+      }
+    });
+
+    if (error || !data?.paymentUrl) {
+      console.error('Erreur Edge Function Edenred:', error || data);
+      throw new Error(data?.error || error?.message || 'Erreur de paiement Edenred');
+    }
+
+    console.log('✅ Redirection vers Edenred:', data.paymentUrl);
+
+    // Sauvegarder les données de commande dans sessionStorage pour le retour
+    sessionStorage.setItem('edenred_order', currentPaymentData.orderNum);
+
+    // Rediriger vers la page de paiement Edenred
+    window.location.href = data.paymentUrl;
+
+  } catch (e) {
+    console.error('Erreur init Edenred:', e);
+    showToast('Erreur : ' + e.message, 'error');
+
+    // Restaurer l'affichage des moyens de paiement
+    paymentForm.style.display = 'none';
+    document.getElementById('paymentMethods').style.display = 'block';
+
+    // Réactiver bouton commande
+    const cartSubmit = document.getElementById('cartSubmit');
+    if (cartSubmit) {
+      cartSubmit.disabled = false;
+      cartSubmit.textContent = 'Passer la commande';
+    }
   }
 }
 

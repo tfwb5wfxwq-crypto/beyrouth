@@ -1,0 +1,101 @@
+/**
+ * Switch de langue FR/EN stylé pour Beyrouth Express
+ * Design minimal et élégant
+ */
+
+.lang-switch {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.lang-switch:hover {
+  box-shadow: var(--shadow);
+  border-color: var(--green);
+}
+
+.lang-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.3px;
+}
+
+.lang-btn:hover {
+  background: var(--border-light);
+  color: var(--text);
+}
+
+.lang-btn.active {
+  background: var(--green);
+  color: var(--white);
+  box-shadow: 0 2px 8px rgba(27, 140, 62, 0.2);
+}
+
+.lang-flag {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.lang-code {
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Version compacte mobile */
+@media (max-width: 768px) {
+  .lang-switch {
+    gap: 2px;
+    padding: 3px;
+  }
+
+  .lang-btn {
+    padding: 5px 10px;
+    gap: 4px;
+  }
+
+  .lang-flag {
+    font-size: 14px;
+  }
+
+  .lang-code {
+    font-size: 11px;
+  }
+}
+
+/* Animation de switch */
+@keyframes langSwitch {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.lang-btn.switching {
+  animation: langSwitch 0.3s ease;
+}

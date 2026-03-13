@@ -60,13 +60,9 @@ serve(async (req) => {
     // Construire le récapitulatif des items
     const itemsHtml = order.items.map((item: any) => {
       let html = `
-      <tr>
-        <td style="padding: 8px 0; border-bottom: 1px solid #eee;">
-          ${item.quantite}x ${item.nom}
-        </td>
-        <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">
-          ${(item.prix * item.quantite).toFixed(2).replace('.', ',')} €
-        </td>
+      <tr style="border-bottom: 1px solid #f0f0f0;">
+        <td style="padding: 12px 0; font-size: 14px; color: #1a1a1a;">${item.quantite}× ${item.nom}</td>
+        <td style="padding: 12px 0; text-align: right; font-size: 14px; color: #1a1a1a; font-weight: 500;">${(item.prix * item.quantite).toFixed(2)}€</td>
       </tr>
       `
 
@@ -74,13 +70,9 @@ serve(async (req) => {
       if (item.supplements && item.supplements.length > 0) {
         item.supplements.forEach((supp: any) => {
           html += `
-      <tr>
-        <td style="padding: 4px 0 4px 20px; border-bottom: 1px solid #eee; font-size: 13px; color: #666;">
-          + ${supp.nom}
-        </td>
-        <td style="padding: 4px 0; border-bottom: 1px solid #eee; text-align: right; font-size: 13px; color: #666;">
-          ${supp.prix.toFixed(2).replace('.', ',')} €
-        </td>
+      <tr style="border-bottom: 1px solid #f0f0f0;">
+        <td style="padding: 8px 0 8px 20px; font-size: 13px; color: #666;">+ ${supp.nom}</td>
+        <td style="padding: 8px 0; text-align: right; font-size: 13px; color: #666;">${supp.prix.toFixed(2)}€</td>
       </tr>
           `
         })
@@ -97,7 +89,7 @@ serve(async (req) => {
     const totalHT = totalTTC / 1.10
     const tva = totalTTC - totalHT
 
-    // Template email (design original noir et or)
+    // Template email (design sobre)
     const emailHtml = `
 <!DOCTYPE html>
 <html>
@@ -107,92 +99,71 @@ serve(async (req) => {
   <title>Commande confirmée - A Beyrouth</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5;">
-  <div style="max-width: 600px; margin: 0 auto; background: #fff;">
-    <!-- Header -->
-    <div style="background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); padding: 40px 20px; text-align: center;">
-      <h1 style="color: #D4A853; margin: 0 0 8px 0; font-size: 32px; font-weight: 700; letter-spacing: 1px;">Beyrouth Express</h1>
-      <p style="color: rgba(255,255,255,0.8); margin: 0; font-size: 15px; line-height: 1.5;">Service Click and Collect<br>restaurant A Beyrouth</p>
+  <div style="max-width: 600px; margin: 0 auto; background: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
+
+    <!-- Header sobre -->
+    <div style="padding: 32px 24px; border-bottom: 1px solid #e0e0e0;">
+      <div style="font-size: 24px; font-weight: 600; color: #1a1a1a; letter-spacing: -0.5px;">Beyrouth Express</div>
+      <div style="font-size: 13px; color: #666; margin-top: 4px;">Click & Collect · A Beyrouth</div>
     </div>
 
-    <!-- Success Badge -->
-    <div style="text-align: center; padding: 30px 20px;">
-      <div style="width: 80px; height: 80px; background: #E8F5E9; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-        <span style="font-size: 40px; color: #4CAF50;">✓</span>
+    <!-- Titre principal -->
+    <div style="padding: 32px 24px 24px 24px;">
+      <div style="font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px;">Commande confirmée</div>
+      <div style="font-size: 14px; color: #666; line-height: 1.5;">Votre commande a été acceptée et sera prête pour le retrait.</div>
+    </div>
+
+    <!-- Info principale -->
+    <div style="padding: 0 24px 24px 24px;">
+      <div style="background: #fafafa; border-left: 3px solid #D4A853; padding: 16px 20px; border-radius: 2px;">
+        <div style="font-size: 13px; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Numéro de commande</div>
+        <div style="font-size: 28px; font-weight: 700; font-family: 'Courier New', monospace; color: #1a1a1a; letter-spacing: 2px;">${order.numero}</div>
+        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e0e0e0;">
+          <div style="font-size: 13px; color: #888; margin-bottom: 4px;">Heure de retrait</div>
+          <div style="font-size: 16px; font-weight: 600; color: #1a1a1a;">${pickupText}</div>
+        </div>
       </div>
-      <h2 style="margin: 0 0 10px 0; font-size: 24px; color: #1a1a1a;">Commande confirmée</h2>
-      <p style="margin: 0; color: #666; font-size: 14px;">Nous préparons votre commande avec soin</p>
     </div>
 
-    <!-- Order Number -->
-    <div style="background: #FFF8F0; padding: 30px 20px; text-align: center; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
-      <div>
-        <p style="margin: 0 0 5px 0; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Numéro de commande</p>
-        <p style="margin: 0; font-size: 48px; font-weight: 700; color: #4CAF50; font-family: 'Courier New', monospace; letter-spacing: 8px;">${order.numero}</p>
-        <p style="margin: 10px 0 0 0; font-size: 13px; color: #666;">Présentez ce numéro lors du retrait</p>
-      </div>
-    </div>
-
-    <!-- Customer Info -->
-    <div style="padding: 30px 20px; background: #fafafa;">
-      <h3 style="margin: 0 0 15px 0; font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Vos informations</h3>
-      <table style="width: 100%; border-collapse: collapse;">
-        <tr>
-          <td style="padding: 8px 0; color: #666; font-size: 14px;"><strong>Nom :</strong></td>
-          <td style="padding: 8px 0; text-align: right; color: #1a1a1a; font-size: 14px;">${order.client_prenom}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 0; color: #666; font-size: 14px;"><strong>Heure de retrait :</strong></td>
-          <td style="padding: 8px 0; text-align: right; color: #1a1a1a; font-size: 14px;">${pickupText}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 0; color: #666; font-size: 14px; vertical-align: top;"><strong>Lieu :</strong></td>
-          <td style="padding: 8px 0; text-align: right; color: #1a1a1a; font-size: 14px; line-height: 1.5;">
-            4 Esplanade du Général de Gaulle<br>
-            92400 Courbevoie (La Défense)<br>
-            <a href="https://maps.google.com/?q=4+Esplanade+du+Général+de+Gaulle+92400+Courbevoie" style="color: #4CAF50; text-decoration: none; font-weight: 600;">📍 Voir sur Google Maps</a>
-          </td>
-        </tr>
-      </table>
-    </div>
-
-    <!-- Order Items -->
-    <div style="padding: 30px 20px;">
-      <h3 style="margin: 0 0 15px 0; font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Détail de la commande</h3>
+    <!-- Récapitulatif commande -->
+    <div style="padding: 0 24px 24px 24px;">
+      <div style="font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Détail de votre commande</div>
       <table style="width: 100%; border-collapse: collapse;">
         ${itemsHtml}
-        <tr>
-          <td style="padding: 15px 0 8px 0; font-size: 14px; color: #666;">Total HT</td>
-          <td style="padding: 15px 0 8px 0; font-size: 14px; text-align: right; color: #666;">${totalHT.toFixed(2).replace('.', ',')} €</td>
+        <tr style="border-top: 1px solid #f0f0f0;">
+          <td style="padding: 12px 0; font-size: 13px; color: #888;">Total HT</td>
+          <td style="padding: 12px 0; text-align: right; font-size: 14px; color: #1a1a1a;">${totalHT.toFixed(2)}€</td>
         </tr>
-        <tr>
-          <td style="padding: 0 0 12px 0; font-size: 14px; color: #666;">TVA 10%</td>
-          <td style="padding: 0 0 12px 0; font-size: 14px; text-align: right; color: #666;">${tva.toFixed(2).replace('.', ',')} €</td>
+        <tr style="border-bottom: 1px solid #f0f0f0;">
+          <td style="padding: 8px 0; font-size: 13px; color: #888;">TVA 10%</td>
+          <td style="padding: 8px 0; text-align: right; font-size: 14px; color: #1a1a1a;">${tva.toFixed(2)}€</td>
         </tr>
         <tr style="border-top: 2px solid #1a1a1a;">
-          <td style="padding: 12px 0 0 0; font-weight: 700; font-size: 16px; color: #1a1a1a;">Total TTC</td>
-          <td style="padding: 12px 0 0 0; font-weight: 700; font-size: 16px; text-align: right; color: #1a1a1a;">${totalTTC.toFixed(2).replace('.', ',')} €</td>
+          <td style="padding: 16px 0 0 0; font-size: 16px; color: #1a1a1a; font-weight: 600;">Total TTC</td>
+          <td style="padding: 16px 0 0 0; text-align: right; font-size: 18px; color: #1a1a1a; font-weight: 700;">${totalTTC.toFixed(2)}€</td>
         </tr>
       </table>
     </div>
 
-    ${order.note ? `
-    <!-- Note -->
-    <div style="padding: 0 20px 30px 20px;">
-      <div style="background: #FFF8F0; padding: 15px; border-left: 4px solid #D4A853; border-radius: 4px;">
-        <p style="margin: 0 0 5px 0; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Votre note</p>
-        <p style="margin: 0; color: #1a1a1a; font-size: 14px;">${order.note}</p>
+    <!-- Adresse retrait -->
+    <div style="padding: 0 24px 32px 24px;">
+      <div style="font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Lieu de retrait</div>
+      <div style="font-size: 14px; color: #1a1a1a; line-height: 1.6; margin-bottom: 8px;">
+        <strong>A Beyrouth</strong><br>
+        4 Esplanade du Général de Gaulle<br>
+        92400 Courbevoie (La Défense)
       </div>
+      <a href="https://maps.google.com/?q=4+Esplanade+du+Général+de+Gaulle+92400+Courbevoie" style="font-size: 14px; color: #D4A853; text-decoration: none; font-weight: 500;">→ Voir sur Google Maps</a>
     </div>
-    ` : ''}
 
     <!-- Footer -->
-    <div style="background: #1a1a1a; padding: 30px 20px; text-align: center;">
-      <p style="margin: 0 0 10px 0; color: rgba(255,255,255,0.6); font-size: 13px;">À bientôt chez A Beyrouth !</p>
-      <p style="margin: 0; color: rgba(255,255,255,0.4); font-size: 12px;">4 Esplanade du Général de Gaulle, 92400 Courbevoie</p>
-      <div style="margin-top: 20px;">
-        <a href="https://beyrouth.express" style="color: #D4A853; text-decoration: none; font-size: 13px;">beyrouth.express</a>
+    <div style="background: #fafafa; padding: 24px; border-top: 1px solid #e0e0e0; text-align: center;">
+      <div style="font-size: 12px; color: #888; line-height: 1.6;">
+        À bientôt chez A Beyrouth<br>
+        <a href="https://beyrouth.express" style="color: #D4A853; text-decoration: none; margin-top: 8px; display: inline-block;">beyrouth.express</a>
       </div>
     </div>
+
   </div>
 </body>
 </html>

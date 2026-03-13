@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Emails Compact - Style Uber</title>
+  <style>
+    body { margin: 0; padding: 0; background: #f5f5f5; }
+    .page {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      page-break-after: always;
+    }
+    .page:last-child { page-break-after: avoid; }
+    .page-title {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-family: -apple-system, sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #667eea;
+      background: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    @media print {
+      .page-title { display: none; }
+      body { background: white; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- PAGE 1: EMAIL CONFIRMATION -->
+<div class="page" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+  <div class="page-title">📧 Email 1 : Confirmation commande</div>
+  <div style="max-width: 480px; width: 100%; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+
+    <!-- Header compact -->
+    <div style="background: #000; padding: 20px; text-align: center;">
+      <div style="font-size: 20px; font-weight: 700; color: #D4A853; letter-spacing: 0.5px;">Beyrouth Express</div>
+      <div style="font-size: 11px; color: #888; margin-top: 4px;">Click & Collect · A Beyrouth</div>
+    </div>
+
+    <!-- Badge compact -->
+    <div style="text-align: center; padding: 24px 20px 20px 20px; background: #fafafa;">
+      <div style="width: 48px; height: 48px; background: #E8F5E9; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+        <span style="font-size: 24px;">✓</span>
+      </div>
+      <div style="font-size: 18px; font-weight: 700; color: #000; margin-bottom: 4px;">Commande confirmée</div>
+      <div style="font-size: 13px; color: #666;">On prépare votre commande</div>
+    </div>
+
+    <!-- Numéro compact -->
+    <div style="background: #fff; padding: 20px; text-align: center; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+      <div style="font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">Numéro</div>
+      <div style="font-size: 32px; font-weight: 700; color: #4CAF50; font-family: 'Courier New', monospace; letter-spacing: 6px;">4728 KP</div>
+    </div>
+
+    <!-- Infos compactes -->
+    <div style="padding: 20px;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 6px 0; font-size: 13px; color: #666;">Nom</td>
+          <td style="padding: 6px 0; font-size: 13px; color: #000; text-align: right; font-weight: 600;">Mohamed</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; font-size: 13px; color: #666;">Retrait</td>
+          <td style="padding: 6px 0; font-size: 13px; color: #000; text-align: right; font-weight: 600;">12h30</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; font-size: 13px; color: #666; vertical-align: top;">Lieu</td>
+          <td style="padding: 6px 0; font-size: 12px; color: #000; text-align: right; line-height: 1.4;">
+            4 Espl. Général de Gaulle<br>
+            92400 Courbevoie<br>
+            <a href="#" style="color: #4CAF50; text-decoration: none; font-weight: 600;">📍 Maps</a>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Items compacts -->
+    <div style="padding: 0 20px 20px 20px;">
+      <div style="font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">Commande</div>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 6px 0; font-size: 13px; color: #000; border-bottom: 1px solid #f0f0f0;">2x Chawarma poulet</td>
+          <td style="padding: 6px 0; font-size: 13px; color: #000; text-align: right; border-bottom: 1px solid #f0f0f0; font-weight: 600;">18,00 €</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; font-size: 13px; color: #000; border-bottom: 1px solid #f0f0f0;">1x Houmous</td>
+          <td style="padding: 6px 0; font-size: 13px; color: #000; text-align: right; border-bottom: 1px solid #f0f0f0; font-weight: 600;">6,50 €</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0 6px 16px; font-size: 12px; color: #666; border-bottom: 1px solid #f0f0f0;">+ Pita</td>
+          <td style="padding: 6px 0; font-size: 12px; color: #666; text-align: right; border-bottom: 1px solid #f0f0f0;">1,00 €</td>
+        </tr>
+        <tr style="border-top: 2px solid #000;">
+          <td style="padding: 10px 0 0 0; font-size: 14px; color: #000; font-weight: 700;">Total</td>
+          <td style="padding: 10px 0 0 0; font-size: 14px; color: #000; text-align: right; font-weight: 700;">25,50 €</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Footer compact -->
+    <div style="background: #fafafa; padding: 16px 20px; text-align: center; border-top: 1px solid #eee;">
+      <div style="font-size: 12px; color: #666; margin-bottom: 8px;">À bientôt !</div>
+      <a href="https://beyrouth.express" style="font-size: 12px; color: #D4A853; text-decoration: none; font-weight: 600;">beyrouth.express</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- PAGE 2: EMAIL PAIEMENT -->
+<div class="page" style="background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);">
+  <div class="page-title">📧 Email 2 : Paiement confirmé</div>
+  <div style="max-width: 480px; width: 100%; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+
+    <!-- Header compact -->
+    <div style="background: #000; padding: 20px; text-align: center;">
+      <div style="font-size: 20px; font-weight: 700; color: #D4A853; letter-spacing: 0.5px;">Beyrouth Express</div>
+      <div style="font-size: 11px; color: #888; margin-top: 4px;">Click & Collect · A Beyrouth</div>
+    </div>
+
+    <!-- Badge compact -->
+    <div style="text-align: center; padding: 24px 20px 20px 20px; background: #fafafa;">
+      <div style="width: 48px; height: 48px; background: #E8F5E9; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+        <span style="font-size: 24px;">✓</span>
+      </div>
+      <div style="font-size: 18px; font-weight: 700; color: #000; margin-bottom: 4px;">Paiement confirmé</div>
+      <div style="font-size: 13px; color: #666;">En cours de validation</div>
+    </div>
+
+    <!-- Info box compact -->
+    <div style="padding: 20px;">
+      <div style="background: #E8F5E9; padding: 16px; border-left: 3px solid #4CAF50; border-radius: 4px;">
+        <div style="font-size: 13px; color: #000; font-weight: 600; margin-bottom: 8px;">✅ Paiement reçu</div>
+        <div style="font-size: 12px; color: #666; line-height: 1.5;">Vous recevrez un second email avec le récapitulatif dès que le restaurant aura validé votre commande.</div>
+      </div>
+    </div>
+
+    <!-- Numéro compact -->
+    <div style="background: #fff; padding: 16px 20px; text-align: center; border-top: 1px solid #eee;">
+      <div style="font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">Numéro de commande</div>
+      <div style="font-size: 28px; font-weight: 700; color: #4CAF50; font-family: 'Courier New', monospace; letter-spacing: 4px;">4728 KP</div>
+    </div>
+
+    <!-- Footer compact -->
+    <div style="background: #fafafa; padding: 16px 20px; text-align: center; border-top: 1px solid #eee;">
+      <div style="font-size: 12px; color: #666; margin-bottom: 8px;">À bientôt !</div>
+      <a href="https://beyrouth.express" style="font-size: 12px; color: #D4A853; text-decoration: none; font-weight: 600;">beyrouth.express</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- PAGE 3: EMAIL RELANCE -->
+<div class="page" style="background: linear-gradient(135deg, #f97316 0%, #c2410c 100%);">
+  <div class="page-title">📧 Email 3 : Relance client</div>
+  <div style="max-width: 480px; width: 100%; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+
+    <!-- Header compact -->
+    <div style="background: #000; padding: 20px; text-align: center;">
+      <div style="font-size: 20px; font-weight: 700; color: #D4A853; letter-spacing: 0.5px;">Beyrouth Express</div>
+      <div style="font-size: 11px; color: #888; margin-top: 4px;">Click & Collect · A Beyrouth</div>
+    </div>
+
+    <!-- Badge compact -->
+    <div style="text-align: center; padding: 24px 20px 20px 20px; background: #fafafa;">
+      <div style="width: 48px; height: 48px; background: #FFF3E0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+        <span style="font-size: 24px;">⏰</span>
+      </div>
+      <div style="font-size: 18px; font-weight: 700; color: #000; margin-bottom: 4px;">Votre commande vous attend</div>
+      <div style="font-size: 13px; color: #666;">Bonjour Mohamed</div>
+    </div>
+
+    <!-- Numéro compact -->
+    <div style="background: #fff; padding: 20px; text-align: center; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+      <div style="font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">Numéro</div>
+      <div style="font-size: 32px; font-weight: 700; color: #f97316; font-family: 'Courier New', monospace; letter-spacing: 6px;">4728 KP</div>
+    </div>
+
+    <!-- Infos compactes -->
+    <div style="padding: 20px;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 6px 0; font-size: 13px; color: #666;">Heure prévue</td>
+          <td style="padding: 6px 0; font-size: 13px; color: #000; text-align: right; font-weight: 600;">12h30</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; font-size: 13px; color: #666; vertical-align: top;">Lieu</td>
+          <td style="padding: 6px 0; font-size: 12px; color: #000; text-align: right; line-height: 1.4;">
+            4 Espl. Général de Gaulle<br>
+            92400 Courbevoie<br>
+            <a href="#" style="color: #f97316; text-decoration: none; font-weight: 600;">📍 Maps</a>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Footer compact -->
+    <div style="background: #fafafa; padding: 16px 20px; text-align: center; border-top: 1px solid #eee;">
+      <div style="font-size: 12px; color: #666; margin-bottom: 8px;">À très bientôt !</div>
+      <a href="https://beyrouth.express" style="font-size: 12px; color: #D4A853; text-decoration: none; font-weight: 600;">beyrouth.express</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- PAGE 4: EMAIL DEVIS -->
+<div class="page" style="background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);">
+  <div class="page-title">📧 Email 4 : Confirmation devis</div>
+  <div style="max-width: 480px; width: 100%; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+
+    <!-- Header compact -->
+    <div style="background: #000; padding: 20px; text-align: center;">
+      <div style="font-size: 20px; font-weight: 700; color: #D4A853; letter-spacing: 0.5px;">Beyrouth Express</div>
+      <div style="font-size: 11px; color: #888; margin-top: 4px;">Click & Collect · A Beyrouth</div>
+    </div>
+
+    <!-- Badge compact -->
+    <div style="text-align: center; padding: 24px 20px 20px 20px; background: #fafafa;">
+      <div style="width: 48px; height: 48px; background: #E3F2FD; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+        <span style="font-size: 24px;">📋</span>
+      </div>
+      <div style="font-size: 18px; font-weight: 700; color: #000; margin-bottom: 4px;">Demande bien reçue</div>
+      <div style="font-size: 13px; color: #666;">Réponse sous 48h</div>
+    </div>
+
+    <!-- Info box compact -->
+    <div style="padding: 20px;">
+      <div style="background: #E3F2FD; padding: 16px; border-left: 3px solid #2196F3; border-radius: 4px;">
+        <div style="font-size: 13px; color: #000; font-weight: 600; margin-bottom: 8px;">✅ Demande enregistrée</div>
+        <div style="font-size: 12px; color: #666; line-height: 1.5;">Notre équipe va étudier votre demande et vous envoyer un devis personnalisé dans les <strong>48 heures</strong>.</div>
+      </div>
+    </div>
+
+    <!-- Recap compact -->
+    <div style="padding: 0 20px 20px 20px;">
+      <div style="font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">Récapitulatif</div>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 6px 0; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Type d'événement</td>
+          <td style="padding: 6px 0; font-size: 13px; color: #000; text-align: right; font-weight: 600; border-bottom: 1px solid #f0f0f0;">Entreprise</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Nombre de personnes</td>
+          <td style="padding: 6px 0; font-size: 13px; color: #000; text-align: right; font-weight: 600; border-bottom: 1px solid #f0f0f0;">50</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Date souhaitée</td>
+          <td style="padding: 6px 0; font-size: 13px; color: #000; text-align: right; font-weight: 600; border-bottom: 1px solid #f0f0f0;">15 avril 2026</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; font-size: 13px; color: #666;">Contact</td>
+          <td style="padding: 6px 0; font-size: 13px; color: #000; text-align: right; font-weight: 600;">contact@example.com</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Contact box compact -->
+    <div style="padding: 0 20px 20px 20px;">
+      <div style="background: #FFF8F0; padding: 12px; border-left: 3px solid #D4A853; border-radius: 4px;">
+        <div style="font-size: 12px; color: #666; line-height: 1.5;">
+          <strong style="color: #000;">Besoin d'infos ?</strong><br>
+          4 Espl. Général de Gaulle, 92400 Courbevoie
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer compact -->
+    <div style="background: #fafafa; padding: 16px 20px; text-align: center; border-top: 1px solid #eee;">
+      <div style="font-size: 12px; color: #666; margin-bottom: 8px;">À bientôt !</div>
+      <a href="https://beyrouth.express" style="font-size: 12px; color: #D4A853; text-decoration: none; font-weight: 600;">beyrouth.express</a>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

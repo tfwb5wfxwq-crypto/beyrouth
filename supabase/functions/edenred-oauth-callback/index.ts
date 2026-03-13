@@ -8,7 +8,7 @@ const EDENRED_PAYMENT_URL = 'https://directpayment.stg.eu.edenred.io/v2/transact
 const EDENRED_MID = '1418943' // Merchant ID UAT
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://beyrouth.express',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
@@ -19,15 +19,42 @@ serve(async (req) => {
   }
 
   try {
-    const { code, orderNum, total, redirectUri } = await req.json()
+    const { code, state, total, redirectUri } = await req.json()
 
     // Validation params
-    if (!code || !orderNum || !total || !redirectUri) {
+    if (!code || !state || !total || !redirectUri) {
       return new Response(
-        JSON.stringify({ error: 'Paramètres manquants (code, orderNum, total, redirectUri requis)' }),
+        JSON.stringify({ error: 'Paramètres manquants (code, state, total, redirectUri requis)' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    // VALIDATION CSRF : Vérifier le state
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    const { data: stateData, error: stateError } = await supabase
+      .from('oauth_states')
+      .select('order_num')
+      .eq('state', state)
+      .gt('expires_at', new Date().toISOString())
+      .maybeSingle()
+
+    if (stateError || !stateData) {
+      console.error('❌ State OAuth invalide ou expiré:', state)
+      return new Response(
+        JSON.stringify({ error: 'Session OAuth invalide ou expirée. Veuillez réessayer.' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Récupérer le numéro de commande depuis la BDD (protection contre manipulation)
+    const orderNum = stateData.order_num
+
+    // Supprimer le state (usage unique)
+    await supabase.from('oauth_states').delete().eq('state', state)
 
     console.log(`🔐 OAuth callback Edenred: échange code pour commande ${orderNum}`)
 
@@ -222,6 +249,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
+        orderNum: orderNum,
         captureId: captureId,
         amount: capturedAmount,
         status: 'captured'

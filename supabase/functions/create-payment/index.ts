@@ -130,6 +130,33 @@ serve(async (req) => {
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
+
+      // VALIDATION CRITIQUE : Recalculer le montant côté serveur pour éviter manipulation
+      let serverTotal = 0
+      items.forEach((item: any) => {
+        const menuItem = menuData.find(m => m.id === item.id)
+        if (!menuItem) {
+          throw new Error(`Item invalide: ${item.id}`)
+        }
+        serverTotal += menuItem.prix * (item.qty || 1)
+      })
+
+      // Arrondir à 2 décimales
+      serverTotal = Math.round(serverTotal * 100) / 100
+
+      // Vérifier que le montant client correspond (tolérance 0.02€ pour arrondi)
+      const clientTotal = total / 100 // total est en centimes
+      if (Math.abs(serverTotal - clientTotal) > 0.02) {
+        console.error('MONTANT INVALIDE:', { serverTotal, clientTotal, diff: Math.abs(serverTotal - clientTotal) })
+        return new Response(
+          JSON.stringify({
+            error: 'Le montant de la commande a changé. Veuillez actualiser la page et réessayer.'
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      console.log('✅ Validation montant OK:', { serverTotal, clientTotal })
     }
 
     // Étape 1 : Obtenir un JWT token depuis l'Auth API

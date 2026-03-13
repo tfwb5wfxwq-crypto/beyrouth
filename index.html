@@ -800,6 +800,12 @@ function updateOpenStatus() {
   const statusEl = document.getElementById('headerStatus');
   const textEl = document.getElementById('statusText');
   const hoursEl = document.getElementById('headerHours');
+
+  // Null check pour éviter crash après OAuth redirect
+  if (!statusEl || !textEl || !hoursEl) {
+    return isOpenNow();
+  }
+
   const open = isOpenNow();
   if (open) {
     statusEl.classList.remove('closed');
@@ -1561,8 +1567,8 @@ async function submitOrder() {
   const note = document.getElementById('clientNote').value.trim();
   const optin = document.getElementById('optinPromos').checked;
 
-  // Créer la commande en statut "pending" (ou "payee" en mode test)
-  const isTestMode = window.location.search.includes('test=1') || window.location.hostname === 'localhost';
+  // Créer la commande en statut "pending" (mode test DÉSACTIVÉ en production pour sécurité)
+  const isTestMode = window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1');
   const orderData = {
     numero: orderNum,
     items: cart.map(c => ({
@@ -1801,8 +1807,8 @@ function initPayGreen(method) {
     console.log('No previous PayGreen instance to unmount');
   }
 
-  // MODE TEST : Simuler le paiement (pour dev/démo)
-  const isTestMode = window.location.search.includes('test=1') || window.location.hostname === 'localhost';
+  // MODE TEST : Simuler le paiement (localhost uniquement - sécurité)
+  const isTestMode = window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1');
 
   if (isTestMode) {
     console.log('🧪 MODE TEST activé - Paiement simulé');
@@ -2032,7 +2038,7 @@ async function handleEdenredOAuthCallback() {
       },
       body: JSON.stringify({
         code: code,
-        orderNum: paymentData.orderNum,
+        state: state, // Validation CSRF côté serveur
         total: paymentData.total,
         redirectUri: paymentData.redirectUri
       })
@@ -2056,8 +2062,8 @@ async function handleEdenredOAuthCallback() {
     // Nettoyer le sessionStorage
     sessionStorage.removeItem('edenred_payment_data');
 
-    // Afficher la modal de confirmation (comme PayGreen)
-    showConfirmation(paymentData.orderNum);
+    // Afficher la modal de confirmation (comme PayGreen) avec orderNum retourné par le serveur
+    showConfirmation(data.orderNum);
 
   } catch (e) {
     console.error('Erreur callback OAuth:', e);
@@ -2215,12 +2221,20 @@ async function showConfirmation(orderNum) {
     }, 300);
   }
 
-  // Infos commande
-  const pickup = document.getElementById('pickupTime').value || 'asap';
-  const pickupText = pickup === 'asap' ? 'Dès que possible (~15-20 min)' : pickup;
-  const total = cart.reduce((sum, item) => sum + (item.prix * item.qty), 0).toFixed(2).replace('.', ',');
+  // Récupérer les infos depuis la base de données (au cas où on revient d'une redirection OAuth)
+  const { data: orderData } = await sb.from('orders').select('*').eq('numero', orderNum).single();
 
-  const itemsHtml = cart.map(item => {
+  if (!orderData) {
+    console.error('Commande introuvable:', orderNum);
+    return;
+  }
+
+  // Infos commande depuis la BDD
+  const pickup = orderData.heure_retrait || 'asap';
+  const pickupText = pickup === 'asap' ? 'Dès que possible (~15-20 min)' : pickup;
+  const total = orderData.total.toFixed(2).replace('.', ',');
+
+  const itemsHtml = (orderData.items || []).map(item => {
     const t = (item.prix * item.qty).toFixed(2).replace('.', ',');
     const imgHtml = item.image_url
       ? `<img src="${item.image_url}" style="width:50px;height:50px;border-radius:10px;object-fit:cover;margin-right:12px;">`

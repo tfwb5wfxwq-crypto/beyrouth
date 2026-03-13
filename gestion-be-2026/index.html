@@ -2201,8 +2201,13 @@ async function confirmCancel(orderId) {
       // Continuer même si email échoue
     }
 
-    // 3. Demander remboursement PayGreen (si payé par CB)
-    if (order.paygreen_transaction_id) {
+    // 3. Demander remboursement selon moyen de paiement (SEULEMENT si commande payée)
+    const isPaid = order.statut === 'payee' || order.statut === 'acceptee' || order.payment_confirmed_at;
+
+    if (!isPaid) {
+      console.log('⏭️  Commande non payée, pas de remboursement nécessaire');
+    } else if (order.paygreen_transaction_id) {
+      // Remboursement PayGreen (CB, Swile, Conecs, etc.)
       try {
         await refundPayGreenTransaction(order.paygreen_transaction_id, order.total);
         console.log('✅ Remboursement PayGreen demandé');
@@ -2210,6 +2215,18 @@ async function confirmCancel(orderId) {
         console.error('❌ Erreur remboursement PayGreen:', err);
         alert('⚠️ Commande annulée mais remboursement à faire manuellement via dashboard PayGreen');
       }
+    } else if (order.edenred_payment_id) {
+      // Remboursement Edenred (Ticket Restaurant)
+      try {
+        await refundEdenredTransaction(order.edenred_payment_id, order.total);
+        console.log('✅ Remboursement Edenred demandé');
+      } catch (err) {
+        console.error('❌ Erreur remboursement Edenred:', err);
+        alert('⚠️ Commande annulée mais remboursement à faire manuellement via portail Edenred');
+      }
+    } else if (isPaid) {
+      console.warn('⚠️  Commande payée mais aucun ID de transaction trouvé - remboursement manuel requis');
+      alert('⚠️ Commande annulée mais aucun ID de transaction trouvé.\nVeuillez effectuer le remboursement manuellement.');
     }
 
     // 4. Remove from local list (ne s'affiche plus dans "En cours")
@@ -2227,28 +2244,55 @@ async function confirmCancel(orderId) {
 }
 
 async function refundPayGreenTransaction(transactionId, amount) {
-  // Appeler l'API PayGreen pour demander le remboursement
+  // Appeler l'Edge Function sécurisée (clé secrète côté serveur uniquement)
   // Documentation: https://paygreen.io/documentation/api-refund
 
-  const paygreenSecretKey = 'sk_0564063e4ef04dbf93f588e7967e3e61'; // À mettre dans env plus tard
+  console.log(`🔄 Demande remboursement PayGreen (ID: ${transactionId}, montant: ${amount}€)`);
 
-  const response = await fetch(`https://paygreen.fr/api/refund/${transactionId}`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${paygreenSecretKey}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      amount: Math.round(amount * 100) // Montant en centimes
-    })
+  const { data, error } = await sb.functions.invoke('paygreen-refund', {
+    body: {
+      transactionId: transactionId,
+      amount: amount
+    }
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(`Erreur remboursement PayGreen: ${error.message || response.statusText}`);
+  if (error) {
+    console.error('❌ Erreur remboursement PayGreen:', error);
+    throw new Error(`Erreur remboursement PayGreen: ${error.message}`);
   }
 
-  return await response.json();
+  if (!data || !data.success) {
+    throw new Error(data?.error || 'Remboursement PayGreen échoué');
+  }
+
+  console.log('✅ Remboursement PayGreen effectué:', data);
+  return data;
+}
+
+async function refundEdenredTransaction(captureId, amount) {
+  // Appeler l'Edge Function pour rembourser via Edenred API
+  // Documentation: https://anypoint.mulesoft.com/exchange/portals/edenred-corporate/.../edenred-payment-services-api/
+
+  console.log(`🔄 Demande remboursement Edenred (ID: ${captureId}, montant: ${amount}€)`);
+
+  const { data, error } = await sb.functions.invoke('edenred-refund', {
+    body: {
+      captureId: captureId,
+      amount: Math.round(amount * 100), // Montant en centimes
+    }
+  });
+
+  if (error) {
+    console.error('❌ Erreur remboursement Edenred:', error);
+    throw new Error(`Erreur remboursement Edenred: ${error.message}`);
+  }
+
+  if (!data || !data.success) {
+    throw new Error(data?.error || 'Remboursement Edenred échoué');
+  }
+
+  console.log('✅ Remboursement Edenred effectué:', data);
+  return data;
 }
 
 // ===== COMPLETED ORDERS =====

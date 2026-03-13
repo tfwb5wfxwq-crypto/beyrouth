@@ -37,11 +37,12 @@ serve(async (req) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
       },
       body: new URLSearchParams({
         grant_type: 'client_credentials',
         client_id: clientId,
-        client_secret: clientSecret,
+        client_secret: clientSecret
       })
     })
 

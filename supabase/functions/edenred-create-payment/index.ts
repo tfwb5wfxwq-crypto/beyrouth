@@ -42,17 +42,16 @@ serve(async (req) => {
     )
 
     // ===== ÉTAPE 1 : Obtenir le token OAuth Edenred =====
-    const authBasic = btoa(`${EDENRED_AUTH_CLIENT_ID}:${EDENRED_AUTH_CLIENT_SECRET}`)
-
     const authResponse = await fetch(EDENRED_AUTH_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${authBasic}`,
         'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json'
       },
       body: new URLSearchParams({
         grant_type: 'client_credentials',
+        client_id: EDENRED_AUTH_CLIENT_ID,
+        client_secret: EDENRED_AUTH_CLIENT_SECRET,
         scope: 'directpayment'
       })
     })

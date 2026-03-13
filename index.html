@@ -1957,7 +1957,8 @@ async function initEdenred() {
       throw new Error(data?.error || 'URL d\'autorisation manquante');
     }
 
-    console.log('🔐 URL OAuth générée, redirection vers SSO Edenred');
+    console.log('🔐 URL OAuth générée pour commande', currentPaymentData.orderNum);
+    console.log('📋 URL OAuth complète:', data.authorizationUrl);
 
     // Sauvegarder les données de commande dans sessionStorage pour le callback OAuth
     sessionStorage.setItem('edenred_payment_data', JSON.stringify({
@@ -1989,11 +1990,13 @@ async function initEdenred() {
 // ===== EDENRED OAUTH CALLBACK =====
 async function handleEdenredOAuthCallback() {
   const urlParams = new URLSearchParams(window.location.search);
-  const isOAuthCallback = urlParams.get('edenred_oauth') === '1';
   const code = urlParams.get('code');
   const state = urlParams.get('state'); // orderNum
 
-  if (!isOAuthCallback || !code) {
+  // Détecter callback OAuth Edenred : présence de 'code' + données en sessionStorage
+  const paymentDataStr = sessionStorage.getItem('edenred_payment_data');
+
+  if (!code || !paymentDataStr) {
     return; // Pas un callback OAuth Edenred
   }
 
@@ -2016,12 +2019,7 @@ async function handleEdenredOAuthCallback() {
   `;
 
   try {
-    // Récupérer les données sauvegardées
-    const paymentDataStr = sessionStorage.getItem('edenred_payment_data');
-    if (!paymentDataStr) {
-      throw new Error('Données de paiement perdues. Veuillez recommencer.');
-    }
-
+    // Récupérer les données sauvegardées (déjà vérifiées dans la détection du callback)
     const paymentData = JSON.parse(paymentDataStr);
 
     // ÉTAPE 2 : Échanger le code contre un access_token et créer le paiement

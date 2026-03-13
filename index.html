@@ -1948,6 +1948,8 @@ async function initEdenred() {
     if (error || !data?.paymentUrl) {
       console.error('❌ ERREUR EDENRED COMPLÈTE:');
       console.error('Error object:', error);
+      console.error('Error context:', error?.context);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       console.error('Data object:', data);
       if (data) {
         console.error('📋 Détails Edenred:', {
@@ -1958,7 +1960,10 @@ async function initEdenred() {
           hasClientSecret: data.hasClientSecret
         });
       }
-      throw new Error(data?.error || error?.message || 'Erreur de paiement Edenred');
+
+      // Essayer de récupérer les détails de l'erreur
+      const errorMsg = data?.error || data?.details || error?.context?.error || error?.message || 'Erreur de paiement Edenred';
+      throw new Error(errorMsg);
     }
 
     console.log('✅ Redirection vers Edenred:', data.paymentUrl);

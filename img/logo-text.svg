@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Calque_1" data-name="Calque 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 599.09 236.25">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+        font-family: Impact, Impact;
+        font-size: 133.17px;
+        letter-spacing: .08em;
+      }
+
+      .cls-2 {
+        fill: #f8af2f;
+        font-family: Sublima-ExtraBold, Sublima;
+        font-size: 87.74px;
+        font-weight: 700;
+        letter-spacing: .3em;
+      }
+    </style>
+  </defs>
+  <text class="cls-1" transform="translate(0 119.25) scale(.97 1)"><tspan x="0" y="0">BEYROUTH</tspan></text>
+  <text class="cls-2" transform="translate(.07 205.19)"><tspan x="0" y="0">EXPRESS</tspan></text>
+</svg>

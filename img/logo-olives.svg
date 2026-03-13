@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Calque_1" data-name="Calque 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 368.51 300.88">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fcfac7;
+      }
+
+      .cls-2 {
+        fill: #de8320;
+      }
+
+      .cls-2, .cls-3, .cls-4 {
+        stroke: #000;
+        stroke-miterlimit: 10;
+        stroke-width: 12px;
+      }
+
+      .cls-3 {
+        fill: url(#Dégradé_sans_nom_74);
+      }
+
+      .cls-4 {
+        fill: url(#Dégradé_sans_nom_98);
+      }
+    </style>
+    <linearGradient id="Dégradé_sans_nom_74" data-name="Dégradé sans nom 74" x1="138.06" y1="158.26" x2="220.23" y2="15.95" gradientUnits="userSpaceOnUse">
+      <stop offset=".47" stop-color="#c0581a"/>
+      <stop offset="1" stop-color="#a44516"/>
+    </linearGradient>
+    <linearGradient id="Dégradé_sans_nom_98" data-name="Dégradé sans nom 98" x1="200.99" y1="269.91" x2="334.22" y2="136.68" gradientUnits="userSpaceOnUse">
+      <stop offset=".37" stop-color="#c0581a"/>
+      <stop offset="1" stop-color="#a44516"/>
+    </linearGradient>
+  </defs>
+  <g>
+    <path class="cls-3" d="M261.16,84.69c2.08,50.62-34.27,73.82-75.93,78.61-59.56,6.85-91.13-32.52-91.13-75.93S139.67,3.99,185.23,6.08c41.89,1.92,74.15,35.23,75.93,78.61Z"/>
+    <g>
+      <ellipse class="cls-1" cx="186.96" cy="52.77" rx="13.62" ry="6.86"/>
+      <ellipse class="cls-1" cx="222.94" cy="69.28" rx="6.86" ry="13.62" transform="translate(63.22 239.55) rotate(-64.09)"/>
+      <ellipse class="cls-1" cx="212.38" cy="105.32" rx="13.62" ry="6.86" transform="translate(-7.79 193.22) rotate(-48.14)"/>
+      <ellipse class="cls-1" cx="193.25" cy="88.98" rx="6.86" ry="13.62"/>
+      <ellipse class="cls-1" cx="158.22" cy="86.89" rx="13.62" ry="6.86" transform="translate(-22.25 90.75) rotate(-30)"/>
+      <ellipse class="cls-1" cx="171.97" cy="120.61" rx="6.86" ry="13.62" transform="translate(-38.06 117.52) rotate(-34.2)"/>
+      <ellipse class="cls-1" cx="116.78" cy="103.1" rx="13.62" ry="6.86" transform="translate(-30.9 152.69) rotate(-60)"/>
+    </g>
+  </g>
+  <g>
+    <path class="cls-4" d="M308.64,122.75s-133.04-35.66-133.89,79,125.16,85.66,125.16,85.66c0,0,67.06-15.06,62.37-86.07s-53.64-78.59-53.64-78.59Z"/>
+    <g>
+      <ellipse class="cls-1" cx="221.73" cy="175.55" rx="6.86" ry="13.62" transform="translate(-16.73 23.51) rotate(-5.85)"/>
+      <ellipse class="cls-1" cx="261.49" cy="162.19" rx="6.86" ry="13.62" transform="translate(59.05 393.92) rotate(-80.67)"/>
+      <ellipse class="cls-1" cx="310.76" cy="161.74" rx="6.86" ry="13.62" transform="translate(-2.97 317.64) rotate(-53.92)"/>
+      <ellipse class="cls-1" cx="303.63" cy="196.75" rx="13.62" ry="6.86" transform="translate(60.26 464.46) rotate(-80.67)"/>
+      <ellipse class="cls-1" cx="265.02" cy="190.9" rx="13.62" ry="6.86" transform="translate(-59.94 158.08) rotate(-30)"/>
+      <ellipse class="cls-1" cx="287.79" cy="224.61" rx="6.86" ry="13.62" transform="translate(-32.03 400.64) rotate(-66.8)"/>
+      <ellipse class="cls-1" cx="235.21" cy="216.33" rx="6.86" ry="13.62" transform="translate(-84.3 210.37) rotate(-41.54)"/>
+    </g>
+  </g>
+  <g>
+    <path class="cls-2" d="M181.39,214.23c-5.79,44.01-22.75,74.81-84.41,80.37-46.43,4.19-90.98-39.52-90.98-83.9s23.76-101.59,89.97-98.56c46.57,2.13,93,44.48,85.42,102.1Z"/>
+    <g>
+      <ellipse class="cls-1" cx="67.63" cy="175.95" rx="13.62" ry="6.86" transform="translate(-78.91 57.39) rotate(-30)"/>
+      <ellipse class="cls-1" cx="100.43" cy="147.98" rx="13.62" ry="6.86"/>
+      <ellipse class="cls-1" cx="115.42" cy="178.04" rx="6.86" ry="13.62" transform="translate(-80.11 95.66) rotate(-34.2)"/>
+      <ellipse class="cls-1" cx="121.03" cy="208.18" rx="13.62" ry="6.86" transform="translate(-48.04 36.71) rotate(-14.42)"/>
+      <ellipse class="cls-1" cx="85.66" cy="196.12" rx="13.62" ry="6.86" transform="translate(-116.32 266.87) rotate(-85.71)"/>
+      <ellipse class="cls-1" cx="80.66" cy="232.89" rx="6.86" ry="13.62" transform="translate(-160.23 285.04) rotate(-83.11)"/>
+      <ellipse class="cls-1" cx="46.19" cy="206.5" rx="6.86" ry="13.62" transform="translate(-132.49 93.14) rotate(-45)"/>
+    </g>
+  </g>
+</svg>

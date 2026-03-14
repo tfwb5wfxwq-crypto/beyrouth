@@ -1642,9 +1642,10 @@ function renderOrders() {
     return;
   }
 
-  // Filter today's orders vs future orders (exclude "recuperee")
-  const todayOrders = orders.filter(o => isToday(o) && (o.statut === 'payee' || o.statut === 'acceptee'));
-  const futureOrders = orders.filter(o => isFuture(o) && (o.statut === 'payee' || o.statut === 'acceptee'));
+  // Filter today's orders vs future orders (ALL en cours statuts)
+  const enCoursStatuts = ['payee', 'acceptee', 'en_preparation', 'prete'];
+  const todayOrders = orders.filter(o => isToday(o) && enCoursStatuts.includes(o.statut));
+  const futureOrders = orders.filter(o => isFuture(o) && enCoursStatuts.includes(o.statut));
 
   // Group today's orders by priority
   const nouvelles = todayOrders.filter(o => o.statut === 'payee');

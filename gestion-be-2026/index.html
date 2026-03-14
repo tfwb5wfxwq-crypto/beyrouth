@@ -2180,10 +2180,20 @@ function subscribeRealtime() {
   const channel = sb.channel('admin-orders')
     .on('postgres_changes', {event:'INSERT', schema:'public', table:'orders'}, payload => {
       console.log('📥 INSERT reçu:', payload.new);
-      orders.unshift(payload.new);
-      debouncedRenderOrders();
-      updateTopbarStats();
-      playAlert();
+
+      // Vérifier que la commande est dans les statuts affichables (payee, acceptee, etc.)
+      const displayableStatuts = ['payee', 'acceptee', 'en_preparation', 'prete'];
+      const isDisplayable = displayableStatuts.includes(payload.new.statut);
+
+      // Ajouter seulement si affichable
+      if (isDisplayable) {
+        orders.unshift(payload.new);
+        debouncedRenderOrders();
+        updateTopbarStats();
+        playAlert(); // Son seulement pour commandes payées
+      } else {
+        console.log('⚠️ Commande reçue mais statut non affichable:', payload.new.statut, '→ Pas de son');
+      }
 
       // Auto-accept si activé
       if (autoAcceptOrders && payload.new.statut === 'payee') {

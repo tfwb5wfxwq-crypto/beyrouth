@@ -1806,21 +1806,21 @@ function getActionButtons(order) {
       buttons += `<button class="order-action btn-cancel" onclick="cancelOrder(${order.id})">✕ Annuler</button>`;
       break;
     case 'acceptee':
-      // Acceptées → En préparation ou Récupérée
-      buttons = `<button class="order-action btn-done" onclick="updateStatus(${order.id},'en_preparation')">👨‍🍳 Préparer</button>`;
-      buttons += `<button class="order-action btn-done" onclick="updateStatus(${order.id},'recuperee')">📦 Récupérée</button>`;
+      // Acceptées → Récupérée ou actions secondaires
+      buttons = `<button class="order-action btn-done" onclick="updateStatus(${order.id},'recuperee')">📦 Récupérée</button>`;
 
-      // Si en retard, ajouter bouton de relance
+      // Bouton Relancer si en retard
       if (isLate) {
         buttons += `<button class="order-action btn-remind" onclick="remindOrder(${order.id})" style="background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);">📧 Relancer</button>`;
       }
+
+      // Boutons secondaires (archiver, annuler)
+      buttons += `<button class="order-action btn-secondary" onclick="archiveOrder(${order.id})">🗑️ Archiver</button>`;
+      buttons += `<button class="order-action btn-cancel" onclick="cancelOrder(${order.id})">✕ Annuler</button>`;
       break;
+    // Support ancien format (rétro-compatibilité)
     case 'en_preparation':
-      // En préparation → Prête
-      buttons = `<button class="order-action btn-done" onclick="updateStatus(${order.id},'prete')">✅ Prête</button>`;
-      break;
     case 'prete':
-      // Prête → Récupérée
       buttons = `<button class="order-action btn-done" onclick="updateStatus(${order.id},'recuperee')">📦 Récupérée</button>`;
       if (isLate) {
         buttons += `<button class="order-action btn-remind" onclick="remindOrder(${order.id})" style="background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);">📧 Relancer</button>`;
@@ -1907,6 +1907,105 @@ async function remindOrder(orderId) {
   } catch (err) {
     console.error('❌ Erreur envoi email:', err);
     showToast('❌ Erreur lors de l\'envoi de l\'email', 'error');
+  }
+}
+
+async function archiveOrder(orderId) {
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+
+  showToast(`🗑️ Archivage de la commande ${order.numero}...`, 'info');
+
+  try {
+    const { error } = await sb.from('orders')
+      .update({ archived: true })
+      .eq('id', orderId);
+
+    if (error) throw error;
+
+    // Retirer de la liste locale
+    orders = orders.filter(o => o.id !== orderId);
+    debouncedRenderOrders();
+    updateTopbarStats();
+
+    showToast('✅ Commande archivée', 'success');
+  } catch (err) {
+    console.error('❌ Erreur archivage:', err);
+    showToast('❌ Erreur lors de l\'archivage', 'error');
+  }
+}
+
+async function cancelOrder(orderId) {
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+
+  // Modal personnalisé pour raison d'annulation
+  const modalHtml = `
+    <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);" id="cancelModal" onclick="if(event.target.id==='cancelModal') document.getElementById('cancelModal').remove()">
+      <div style="background:#fff;border-radius:16px;padding:32px;max-width:500px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideIn 0.2s ease-out;" onclick="event.stopPropagation()">
+        <h3 style="margin:0 0 8px 0;font-size:1.4rem;color:#1a1a1a;">⚠️ Annuler la commande ${escapeHtml(order.numero)} ?</h3>
+        <p style="color:#666;margin-bottom:24px;font-size:0.95rem;">Cette action est <strong>irréversible</strong>. Le client sera <strong>remboursé automatiquement</strong>.</p>
+
+        <label style="display:block;margin-bottom:8px;font-weight:600;color:#1a1a1a;font-size:0.9rem;">Raison de l'annulation (envoyée au client) :</label>
+        <textarea id="cancelReason" style="width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-family:inherit;font-size:0.95rem;resize:vertical;min-height:80px;margin-bottom:24px;" placeholder="Ex: Rupture de stock, fermeture exceptionnelle..."></textarea>
+
+        <div style="display:flex;gap:12px;">
+          <button onclick="document.getElementById('cancelModal').remove()" style="flex:1;padding:14px;background:#f5f5f5;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;color:#666;">Annuler</button>
+          <button onclick="confirmCancelOrder(${orderId})" style="flex:1;padding:14px;background:linear-gradient(135deg, #dc2626, #b91c1c);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(220,38,38,0.3);">Confirmer le remboursement</button>
+        </div>
+      </div>
+    </div>
+    <style>
+      @keyframes slideIn {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+    </style>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  setTimeout(() => document.getElementById('cancelReason').focus(), 100);
+}
+
+async function confirmCancelOrder(orderId) {
+  const reason = document.getElementById('cancelReason').value.trim();
+
+  if (!reason) {
+    showToast('⚠️ Veuillez indiquer une raison', 'warning');
+    return;
+  }
+
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+
+  // Fermer modal
+  document.getElementById('cancelModal').remove();
+
+  showToast(`⏳ Annulation et remboursement de ${order.numero}...`, 'info');
+
+  try {
+    // Appeler Edge Function pour gérer remboursement + email
+    const { data, error } = await sb.functions.invoke('cancel-and-refund-order', {
+      body: { orderId, reason }
+    });
+
+    if (error) throw error;
+
+    // Mettre à jour localement
+    const idx = orders.findIndex(o => o.id === orderId);
+    if (idx !== -1) {
+      orders[idx].statut = 'cancelled';
+      orders[idx].archived = true;
+      // Retirer de la liste
+      orders.splice(idx, 1);
+      debouncedRenderOrders();
+      updateTopbarStats();
+    }
+
+    showToast('✅ Commande annulée et client remboursé', 'success');
+  } catch (err) {
+    console.error('❌ Erreur annulation:', err);
+    showToast('❌ Erreur lors de l\'annulation: ' + err.message, 'error');
   }
 }
 

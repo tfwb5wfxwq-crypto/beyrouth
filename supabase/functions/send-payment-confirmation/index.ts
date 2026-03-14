@@ -74,8 +74,13 @@ serve(async (req) => {
 
     <!-- Header sobre -->
     <div style="padding: 32px 24px; border-bottom: 1px solid #e0e0e0; text-align: center;">
-      <div style="display: inline-flex; align-items: center; gap: 12px;"><img src="https://beyrouth.express/img/logo-olives.svg" alt="Falafels" style="height: 50px; width: auto; vertical-align: middle;"><img src="https://beyrouth.express/img/logo-text.svg" alt="Beyrouth Express" style="height: 45px; width: auto; vertical-align: middle;"></div>
-      <div style="font-size: 13px; color: #666; margin-top: 12px;">Click <div style="font-size: 13px; color: #666; margin-top: 4px;">Click & Collect · A Beyrouth</div> Collect · Restaurant Libanais La Défense</div>
+      <div style="background: #1a1a1a; border-radius: 12px; padding: 20px; display: inline-block; margin-bottom: 12px;">
+        <div style="display: inline-flex; align-items: center; gap: 12px;">
+          <img src="https://beyrouth.express/img/logo-olives.svg" alt="Falafels" style="height: 50px; width: auto; vertical-align: middle;">
+          <img src="https://beyrouth.express/img/logo-text.svg" alt="Beyrouth Express" style="height: 45px; width: auto; vertical-align: middle;">
+        </div>
+      </div>
+      <div style="font-size: 13px; color: #666; margin-top: 12px;">Retrait · Restaurant Libanais La Défense</div>
     </div>
 
     <!-- Titre principal -->
@@ -125,10 +130,11 @@ serve(async (req) => {
         'Authorization': `Bearer ${resendApiKey}`
       },
       body: JSON.stringify({
-        from: 'Beyrouth Express <noreply@beyrouth.express>',
+        from: 'A Beyrouth <commande@beyrouth.express>',
         to: order.client_email,
-        subject: `✅ Paiement confirmé - Commande ${order.numero}`,
-        html: emailHtml
+        subject: `✅ Paiement confirmé - Commande ${order.numero} - A Beyrouth`,
+        html: emailHtml,
+        reply_to: 'contact@beyrouth.express'
       })
     })
 

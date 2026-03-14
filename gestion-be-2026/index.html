@@ -1324,8 +1324,10 @@ async function checkSession() {
     // Token expiré ou absent, forcer reconnexion
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminTokenExpiry');
-    // Rediriger vers login.html
-    window.location.href = './login.html';
+    localStorage.removeItem('adminCode');
+    // Afficher page de login (pas de redirection)
+    document.getElementById('loginPage').style.display = 'flex';
+    document.getElementById('dashboard').style.display = 'none';
   }
 }
 checkSession();

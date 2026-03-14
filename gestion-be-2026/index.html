@@ -1383,9 +1383,10 @@ async function doLogin() {
 }
 
 async function doLogout() {
-  localStorage.removeItem('adminCode');
-  document.getElementById('dashboard').style.display = 'none';
-  document.getElementById('loginPage').style.display = 'flex';
+  localStorage.removeItem('adminToken');
+  localStorage.removeItem('adminTokenExpiry');
+  // Rediriger vers login.html
+  window.location.href = './login.html';
 }
 
 async function showDashboard() {

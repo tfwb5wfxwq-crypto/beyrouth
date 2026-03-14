@@ -127,9 +127,10 @@
         const data = await response.json();
 
         if (data.success && data.token) {
-          // Sauvegarder le token (PAS le code)
+          // Sauvegarder le token + code admin (nécessaire pour toggle-menu-item)
           localStorage.setItem('adminToken', data.token);
           localStorage.setItem('adminTokenExpiry', Date.now() + data.expiresIn * 1000);
+          localStorage.setItem('adminCode', code); // Stocké pour Edge Functions legacy
 
           // Rediriger vers l'admin
           window.location.href = './index.html';

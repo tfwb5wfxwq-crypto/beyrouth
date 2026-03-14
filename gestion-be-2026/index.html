@@ -1364,6 +1364,7 @@ async function doLogin() {
     if (data.success && data.token) {
       localStorage.setItem('adminToken', data.token);
       localStorage.setItem('adminTokenExpiry', Date.now() + data.expiresIn * 1000);
+      localStorage.setItem('adminCode', code); // Stocké pour Edge Functions legacy
       errEl.style.display = 'none';
       showDashboard();
     } else {
@@ -1388,6 +1389,7 @@ async function doLogin() {
 async function doLogout() {
   localStorage.removeItem('adminToken');
   localStorage.removeItem('adminTokenExpiry');
+  localStorage.removeItem('adminCode');
   // Rediriger vers login.html
   window.location.href = './login.html';
 }

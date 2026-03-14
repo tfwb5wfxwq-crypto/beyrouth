@@ -113,31 +113,57 @@ serve(async (req) => {
       cancelUrl: `https://beyrouth.express/?edenred_cancelled=1`
     }
 
-    const paymentResponse = await fetch(EDENRED_PAYMENT_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(paymentPayload)
-    })
+    // Retry logic pour 502 (serveurs Edenred instables en UAT)
+    let paymentResponse
+    let attempts = 0
+    const maxAttempts = 3
+
+    while (attempts < maxAttempts) {
+      attempts++
+      console.log(`🔄 Tentative ${attempts}/${maxAttempts} création paiement Edenred`)
+
+      paymentResponse = await fetch(EDENRED_PAYMENT_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(paymentPayload)
+      })
+
+      // Si succès, sortir de la boucle
+      if (paymentResponse.ok) break
+
+      // Si 502, retry après 1s
+      if (paymentResponse.status === 502 && attempts < maxAttempts) {
+        console.warn(`⚠️ Erreur 502, retry dans 1s (tentative ${attempts}/${maxAttempts})`)
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        continue
+      }
+
+      // Autre erreur, ne pas retry
+      break
+    }
 
     if (!paymentResponse.ok) {
       const errorText = await paymentResponse.text()
-      console.error('Erreur Payment Edenred:', paymentResponse.status, errorText)
+      console.error('❌ Erreur Payment Edenred après', attempts, 'tentatives:', paymentResponse.status, errorText)
 
       let edenredError = errorText
       try {
         const errorJson = JSON.parse(errorText)
-        edenredError = errorJson.message || errorJson.error || errorText
+        edenredError = JSON.stringify(errorJson)
       } catch (e) {
         // Si pas JSON, utiliser le texte brut
       }
 
       return new Response(
         JSON.stringify({
-          error: `Paiement Edenred échoué (${paymentResponse.status}): ${edenredError}`
+          error: `Échec création paiement Edenred (${paymentResponse.status})`,
+          details: edenredError,
+          attempts: attempts,
+          note: paymentResponse.status === 502 ? 'Serveurs Edenred UAT instables. Utilisez PayGreen ou réessayez dans quelques minutes.' : 'Erreur API Edenred'
         }),
         {
           status: paymentResponse.status,

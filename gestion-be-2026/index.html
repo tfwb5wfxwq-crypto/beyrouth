@@ -1313,15 +1313,16 @@ async function resumeSlots() {
 // ===== AUTH 🔒 SÉCURISÉ =====
 
 async function checkSession() {
-  // Vérifier si on a un token valide
+  // Vérifier si on a un token valide ET le code admin (requis pour toggle-menu-item)
   const token = localStorage.getItem('adminToken');
   const expiry = localStorage.getItem('adminTokenExpiry');
+  const adminCode = localStorage.getItem('adminCode');
 
-  if (token && expiry && Date.now() < parseInt(expiry)) {
-    // Token encore valide
+  if (token && expiry && adminCode && Date.now() < parseInt(expiry)) {
+    // Token encore valide + adminCode présent
     showDashboard();
   } else {
-    // Token expiré ou absent, forcer reconnexion
+    // Token expiré, absent, ou adminCode manquant → forcer reconnexion
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminTokenExpiry');
     localStorage.removeItem('adminCode');

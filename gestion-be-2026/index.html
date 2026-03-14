@@ -1561,9 +1561,13 @@ function isToday(order) {
 
 // Helper: check if order is future (J+1, J+2...)
 function isFuture(order) {
-  // Check if pickup time contains "Demain" or future date indicators
+  // Check if pickup time contains "Demain" or future date indicators (jours de la semaine)
   const heureRetrait = (order.heure_retrait || '').toLowerCase();
-  if (heureRetrait.includes('demain') || heureRetrait.includes('tomorrow')) {
+  if (heureRetrait.includes('demain') || heureRetrait.includes('tomorrow') ||
+      heureRetrait.includes('lundi') || heureRetrait.includes('mardi') ||
+      heureRetrait.includes('mercredi') || heureRetrait.includes('jeudi') ||
+      heureRetrait.includes('vendredi') || heureRetrait.includes('samedi') ||
+      heureRetrait.includes('dimanche')) {
     return true;
   }
 

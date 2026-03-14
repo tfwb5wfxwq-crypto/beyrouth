@@ -1814,7 +1814,13 @@ function selectPaymentMethod(method) {
   if (payBtn) payBtn.style.display = 'block';
 
   // Afficher le formulaire
-  document.getElementById('paymentForm').style.display = 'block';
+  const paymentForm = document.getElementById('paymentForm');
+  paymentForm.style.display = 'block';
+
+  // Scroll automatique vers le formulaire (éviter de devoir scroller)
+  setTimeout(() => {
+    paymentForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
 
   // Init PayGreenJS avec la méthode sélectionnée
   initPayGreen(method);
@@ -1961,6 +1967,11 @@ async function initEdenred() {
       <p style="font-size:0.9rem;color:var(--text-soft);margin:0;">Vous allez être redirigé vers la plateforme de connexion sécurisée</p>
     </div>
   `;
+
+  // Scroll automatique vers le message de chargement (éviter de devoir scroller)
+  setTimeout(() => {
+    paymentForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
 
   try {
     // ÉTAPE 1 : Initier le flow OAuth - Obtenir l'URL d'autorisation

@@ -1513,7 +1513,7 @@ function scrollToSection(sectionId) {
 async function loadOrders() {
   const {data} = await sb.from('orders')
     .select('*')
-    .in('statut', ['payee', 'acceptee'])
+    .in('statut', ['payee', 'acceptee', 'en_preparation', 'prete'])
     .order('created_at', {ascending: false});
   orders = data || [];
   debouncedRenderOrders();
@@ -1540,9 +1540,18 @@ function isToday(order) {
     return false;
   }
 
+  // Si created dans les dernières 18h → probablement pour aujourd'hui
+  // (Permet commandes créées tard hier soir pour aujourd'hui)
   const orderDate = new Date(order.created_at);
-  const today = new Date();
-  return orderDate.toDateString() === today.toDateString();
+  const now = new Date();
+  const hoursSinceCreated = (now - orderDate) / (1000 * 60 * 60);
+
+  if (hoursSinceCreated < 18) {
+    return true; // Commande récente, probablement pour aujourd'hui
+  }
+
+  // Sinon, vérifier si created_at est aujourd'hui
+  return orderDate.toDateString() === now.toDateString();
 }
 
 // Helper: check if order is future (J+1, J+2...)
@@ -1733,7 +1742,7 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
   const cardBg = !isHistory && cardBgColors[statusClass] ? cardBgColors[statusClass] : '#fff';
 
   // Format items summary (compact) - 🔒 SÉCURISÉ contre XSS
-  const itemsSummary = items.map(i => `${i.qty}x ${escapeHtml(i.nom)}`).join(', ');
+  const itemsSummary = items.map(i => `${i.qty || i.quantite || 1}x ${escapeHtml(i.nom)}`).join(', ');
   const itemsShort = itemsSummary.length > 40 ? itemsSummary.substring(0, 37) + '...' : itemsSummary;
 
   return `
@@ -1787,10 +1796,22 @@ function getActionButtons(order) {
       buttons += `<button class="order-action btn-cancel" onclick="cancelOrder(${order.id})">✕ Annuler</button>`;
       break;
     case 'acceptee':
-      // Acceptées → Récupérée (un seul bouton)
-      buttons = `<button class="order-action btn-done" onclick="updateStatus(${order.id},'recuperee')">📦 Récupérée</button>`;
+      // Acceptées → En préparation ou Récupérée
+      buttons = `<button class="order-action btn-done" onclick="updateStatus(${order.id},'en_preparation')">👨‍🍳 Préparer</button>`;
+      buttons += `<button class="order-action btn-done" onclick="updateStatus(${order.id},'recuperee')">📦 Récupérée</button>`;
 
       // Si en retard, ajouter bouton de relance
+      if (isLate) {
+        buttons += `<button class="order-action btn-remind" onclick="remindOrder(${order.id})" style="background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);">📧 Relancer</button>`;
+      }
+      break;
+    case 'en_preparation':
+      // En préparation → Prête
+      buttons = `<button class="order-action btn-done" onclick="updateStatus(${order.id},'prete')">✅ Prête</button>`;
+      break;
+    case 'prete':
+      // Prête → Récupérée
+      buttons = `<button class="order-action btn-done" onclick="updateStatus(${order.id},'recuperee')">📦 Récupérée</button>`;
       if (isLate) {
         buttons += `<button class="order-action btn-remind" onclick="remindOrder(${order.id})" style="background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);">📧 Relancer</button>`;
       }
@@ -1833,7 +1854,7 @@ async function updateStatus(orderId, newStatus) {
         console.log('✅ Email de confirmation envoyé:', data);
 
         // Notification toast
-        showToast('✅ Email de confirmation envoyé à ' + order.client_email, 'success');
+        showToast('✅ Email de confirmation envoyé à ' + (order.client_email || 'client'), 'success');
       } catch (err) {
         console.error('❌ Erreur envoi email:', err);
         showToast('⚠️ Commande acceptée mais email non envoyé', 'warning');
@@ -1852,7 +1873,7 @@ async function remindOrder(orderId) {
   const order = orders.find(o => o.id === orderId);
   if (!order) return;
 
-  showToast(`📧 Envoi de l'email de relance à ${order.client_prenom}...`, 'info');
+  showToast(`📧 Envoi de l'email de relance à ${escapeHtml(order.client_prenom || 'client')}...`, 'info');
 
   try {
     const { data, error } = await sb.functions.invoke('send-order-reminder', {
@@ -1904,7 +1925,7 @@ function renderMenuItems() {
         <div class="menu-item-card ${item.disponible ? '' : 'off'}" id="menu-${item.id}">
           <div class="menu-item-info">
             <div class="menu-item-name">${item.emoji || ''} ${item.nom}</div>
-            <div class="menu-item-price">${item.prix.toFixed(2).replace('.',',')} €</div>
+            <div class="menu-item-price">${(item.prix || 0).toFixed(2).replace('.',',')} €</div>
           </div>
           <div class="toggle ${item.disponible ? 'on' : ''}" onclick="toggleMenuItem(${item.id},${item.disponible ? 'false' : 'true'})"></div>
         </div>`;
@@ -2046,7 +2067,7 @@ function subscribeRealtime() {
       console.log('📝 UPDATE reçu:', payload.new);
       const idx = orders.findIndex(o => o.id === payload.new.id);
       // Si la commande est annulée ou récupérée, la retirer de la liste "En cours"
-      if (payload.new.statut === 'annulee' || payload.new.statut === 'recuperee') {
+      if (payload.new.statut === 'cancelled' || payload.new.statut === 'recuperee') {
         if (idx !== -1) orders.splice(idx, 1);
       } else {
         if (idx !== -1) orders[idx] = payload.new;
@@ -2264,7 +2285,7 @@ async function refundPayGreenTransaction(transactionId, amount) {
   const { data, error } = await sb.functions.invoke('paygreen-refund', {
     body: {
       transactionId: transactionId,
-      amount: amount
+      amount: Math.round(amount * 100) // Montant en centimes (standardisé avec Edenred)
     }
   });
 
@@ -2319,7 +2340,7 @@ async function loadCompleted(days) {
 
   let query = sb.from('orders')
     .select('*')
-    .in('statut', ['recuperee', 'annulee'])
+    .in('statut', ['recuperee', 'cancelled'])
     .eq('archived', false)
     .order('created_at', {ascending: false});
 
@@ -2482,7 +2503,7 @@ async function showClientDetail(clientEmail) {
   clientOrders.forEach(order => {
     if (order.items && Array.isArray(order.items)) {
       order.items.forEach(item => {
-        dishCount[item.nom] = (dishCount[item.nom] || 0) + item.quantite;
+        dishCount[item.nom] = (dishCount[item.nom] || 0) + (item.quantite || item.qty || 1);
       });
     }
   });
@@ -2495,7 +2516,7 @@ async function showClientDetail(clientEmail) {
   const ordersHtml = clientOrders.map(o => {
     const date = new Date(o.created_at);
     const dateStr = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
-    const statusEmoji = o.statut === 'recuperee' ? '✅' : o.statut === 'annulee' ? '❌' : '⏳';
+    const statusEmoji = o.statut === 'recuperee' ? '✅' : o.statut === 'cancelled' ? '❌' : '⏳';
     return `
       <div class="client-order-item">
         <div>

@@ -1948,21 +1948,27 @@ async function toggleMenuItem(id, newValue) {
   }
 
   // Appeler Edge Function sécurisée
-  const { data, error } = await sb.functions.invoke('toggle-menu-item', {
+  const response = await sb.functions.invoke('toggle-menu-item', {
     body: { code_admin: adminCode, item_id: numId, disponible: boolValue }
   });
 
-  if (error) {
-    console.error('❌ Erreur toggle menu item:', error);
-    alert('Erreur lors de la modification: ' + error.message);
-    haptic.trigger('error'); // Vibration erreur
+  // Debug complet de la réponse
+  console.log('📥 Response toggle:', response);
+
+  if (response.error) {
+    console.error('❌ Erreur toggle menu item:', response.error);
+    // Tenter de récupérer l'erreur détaillée
+    const errorMsg = response.data?.error || response.error.message || 'Erreur inconnue';
+    alert('Erreur lors de la modification:\n' + errorMsg + '\n\nVérifiez que vous êtes bien reconnecté.');
+    haptic.trigger('error');
     return;
   }
 
+  const data = response.data;
   if (!data || !data.success) {
     console.error('❌ Erreur:', data?.error || 'Erreur inconnue');
     alert('Erreur: ' + (data?.error || 'Item introuvable'));
-    haptic.trigger('error'); // Vibration erreur
+    haptic.trigger('error');
     return;
   }
 

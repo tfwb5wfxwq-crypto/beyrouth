@@ -2185,14 +2185,21 @@ function subscribeRealtime() {
       const displayableStatuts = ['payee', 'acceptee', 'en_preparation', 'prete'];
       const isDisplayable = displayableStatuts.includes(payload.new.statut);
 
-      // Ajouter seulement si affichable
-      if (isDisplayable) {
+      // Vérifier aussi que c'est today ou future (sinon elle n'apparaîtra pas dans la liste)
+      const isVisibleDate = isToday(payload.new) || isFuture(payload.new);
+
+      // Ajouter seulement si affichable ET visible
+      if (isDisplayable && isVisibleDate) {
         orders.unshift(payload.new);
         debouncedRenderOrders();
         updateTopbarStats();
-        playAlert(); // Son seulement pour commandes payées
+        playAlert(); // Son seulement pour commandes affichables ET visibles
       } else {
-        console.log('⚠️ Commande reçue mais statut non affichable:', payload.new.statut, '→ Pas de son');
+        if (!isDisplayable) {
+          console.log('⚠️ Commande reçue mais statut non affichable:', payload.new.statut, '→ Pas de son');
+        } else if (!isVisibleDate) {
+          console.log('⚠️ Commande reçue mais date invalide (ni today ni future):', payload.new.heure_retrait, '→ Pas de son');
+        }
       }
 
       // Auto-accept si activé

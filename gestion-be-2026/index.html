@@ -1439,15 +1439,12 @@ async function showDashboard() {
 
     // Ne re-render QUE si les données ont changé
     if (oldIds !== newIds) {
-      const oldCount = orders.length;
       orders = newOrders;
       debouncedRenderOrders();
       updateTopbarStats();
 
-      // Si nouvelles commandes, jouer le son
-      if (orders.length > oldCount) {
-        playAlert();
-      }
+      // NOTE: Pas de son ici, seulement via Realtime
+      // Le polling est juste un backup si Realtime fail
     }
   }, 5000);
 

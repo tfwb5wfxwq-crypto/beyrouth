@@ -1669,69 +1669,55 @@ function openPaymentModal(paymentOrderId, objectSecret, orderNum, total, email, 
         <p style="margin:8px 0 24px;font-size:1.5rem;font-weight:700;color:var(--dark);">${total.toFixed(2).replace('.', ',')} €</p>
 
         <div id="paymentMethods" style="margin-bottom:20px;">
-          <!-- Options de paiement standard -->
-          <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
-            <!-- Carte bancaire -->
-            <div onclick="selectPaymentMethod('bank_card')" id="method_bank_card" style="border:2px solid #e5e7eb;border-radius:12px;padding:18px 20px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:14px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-              <input type="radio" name="payment" style="width:20px;height:20px;margin:0;cursor:pointer;">
-              <div style="display:flex;gap:10px;align-items:center;">
-                <img src="img/cb-logo.svg" alt="CB" style="height:26px;width:auto;">
-                <img src="img/visa-logo.svg" alt="Visa" style="height:24px;width:auto;">
-                <img src="img/mastercard-logo.svg" alt="Mastercard" style="height:26px;width:auto;">
-              </div>
-              <span style="font-weight:600;font-size:1rem;">Carte bancaire</span>
+          <!-- Carte bancaire (prioritaire, toujours visible) -->
+          <div onclick="selectPaymentMethod('bank_card')" id="method_bank_card" style="border:2px solid #e5e7eb;border-radius:12px;padding:18px 20px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:14px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.05);margin-bottom:16px;">
+            <input type="radio" name="payment" style="width:20px;height:20px;margin:0;cursor:pointer;" checked>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <img src="img/cb-logo.svg" alt="CB" style="height:26px;width:auto;">
+              <img src="img/visa-logo.svg" alt="Visa" style="height:24px;width:auto;">
+              <img src="img/mastercard-logo.svg" alt="Mastercard" style="height:26px;width:auto;">
             </div>
-
-            <!-- Apple Pay / Google Pay DÉSACTIVÉS temporairement -->
-            <!-- Raison: Ne fonctionnent qu'en mode "hosted payment page" PayGreen, pas en inline -->
-            <!-- Pour activer: nécessite validation domaine Apple + intégration avancée API -->
-            <!--
-            ${(navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad') || navigator.userAgent.includes('Mac')) ? `
-            <div onclick="selectPaymentMethod('apple_pay')" id="method_apple_pay" style="border:2px solid #e5e7eb;border-radius:12px;padding:18px 20px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:14px;background:#000;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-              <input type="radio" name="payment" style="width:20px;height:20px;margin:0;cursor:pointer;">
-              <img src="img/apple-pay-logo.svg" alt="Apple Pay" style="height:36px;width:auto;">
-            </div>
-            ` : ''}
-
-            ${(navigator.userAgent.includes('Android') || navigator.userAgent.includes('Chrome')) && !navigator.userAgent.includes('iPhone') ? `
-            <div onclick="selectPaymentMethod('google_pay')" id="method_google_pay" style="border:2px solid #e5e7eb;border-radius:12px;padding:18px 20px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:14px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-              <input type="radio" name="payment" style="width:20px;height:20px;margin:0;cursor:pointer;">
-              <img src="img/google-pay-logo.svg" alt="Google Pay" style="height:48px;width:auto;">
-            </div>
-            ` : ''}
-            -->
+            <span style="font-weight:600;font-size:1rem;">Carte bancaire</span>
           </div>
 
-          <!-- Cartes restaurant -->
-          <div style="margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;">
-            <p style="font-size:0.85rem;font-weight:600;color:var(--text-soft);margin:0 0 12px 0;">💳 Cartes restaurant</p>
-            <div style="display:flex;flex-direction:column;gap:10px;">
-              <!-- Edenred Ticket Restaurant (le plus utilisé) -->
-              <div onclick="selectPaymentMethod('edenred')" id="method_edenred" style="border:2px solid #e5e7eb;border-radius:10px;padding:14px 18px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;background:#fff;">
-                <input type="radio" name="payment" style="width:18px;height:18px;margin:0;cursor:pointer;">
-                <img src="img/edenred-logo.jpg" alt="Edenred" style="height:24px;width:auto;">
-                <span style="font-weight:600;font-size:0.95rem;">Edenred Ticket Restaurant</span>
-              </div>
+          <!-- Toggle pour cartes restaurant (plié par défaut) -->
+          <div style="border-top:1px solid #e5e7eb;padding-top:16px;">
+            <button onclick="toggleRestoCards(event)" id="toggleRestoBtn" style="width:100%;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px 18px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:0.95rem;font-weight:600;color:var(--text-soft);transition:all 0.2s;">
+              <span>💳 Ou payer avec une carte restaurant</span>
+              <svg id="toggleRestoIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition:transform 0.2s;">
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+            </button>
 
-              <!-- Swile -->
-              <div onclick="selectPaymentMethod('swile')" id="method_swile" style="border:2px solid #e5e7eb;border-radius:10px;padding:14px 18px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;background:#fff;">
-                <input type="radio" name="payment" style="width:18px;height:18px;margin:0;cursor:pointer;">
-                <img src="img/swile-logo.png" alt="Swile" style="height:24px;width:auto;">
-                <span style="font-weight:600;font-size:0.95rem;">Swile</span>
-              </div>
+            <div id="restoCardsContainer" style="display:none;margin-top:12px;">
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <!-- Edenred Ticket Restaurant -->
+                <div onclick="selectPaymentMethod('edenred')" id="method_edenred" style="border:2px solid #e5e7eb;border-radius:10px;padding:14px 18px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;background:#fff;">
+                  <input type="radio" name="payment" style="width:18px;height:18px;margin:0;cursor:pointer;">
+                  <img src="img/edenred-logo.jpg" alt="Edenred" style="height:24px;width:auto;">
+                  <span style="font-weight:600;font-size:0.95rem;">Edenred Ticket Restaurant</span>
+                </div>
 
-              <!-- Conecs -->
-              <div onclick="selectPaymentMethod('conecs')" id="method_conecs" style="border:2px solid #e5e7eb;border-radius:10px;padding:14px 18px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;background:#fff;">
-                <input type="radio" name="payment" style="width:18px;height:18px;margin:0;cursor:pointer;">
-                <img src="img/conecs-logo.png" alt="Conecs" style="height:24px;width:auto;">
-                <span style="font-weight:600;font-size:0.95rem;">Conecs <span style="font-size:0.8rem;color:var(--text-soft);font-weight:400;">(Pluxee, Up, Bimpli)</span></span>
-              </div>
+                <!-- Swile -->
+                <div onclick="selectPaymentMethod('swile')" id="method_swile" style="border:2px solid #e5e7eb;border-radius:10px;padding:14px 18px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;background:#fff;">
+                  <input type="radio" name="payment" style="width:18px;height:18px;margin:0;cursor:pointer;">
+                  <img src="img/swile-logo.png" alt="Swile" style="height:24px;width:auto;">
+                  <span style="font-weight:600;font-size:0.95rem;">Swile</span>
+                </div>
 
-              <!-- Restoflash -->
-              <div onclick="selectPaymentMethod('restoflash')" id="method_restoflash" style="border:2px solid #e5e7eb;border-radius:10px;padding:14px 18px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;background:#fff;">
-                <input type="radio" name="payment" style="width:18px;height:18px;margin:0;cursor:pointer;">
-                <img src="img/restoflash-logo.png" alt="Restoflash" style="height:24px;width:auto;">
-                <span style="font-weight:600;font-size:0.95rem;">Restoflash</span>
+                <!-- Conecs -->
+                <div onclick="selectPaymentMethod('conecs')" id="method_conecs" style="border:2px solid #e5e7eb;border-radius:10px;padding:14px 18px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;background:#fff;">
+                  <input type="radio" name="payment" style="width:18px;height:18px;margin:0;cursor:pointer;">
+                  <img src="img/conecs-logo.png" alt="Conecs" style="height:24px;width:auto;">
+                  <span style="font-weight:600;font-size:0.95rem;">Conecs <span style="font-size:0.8rem;color:var(--text-soft);font-weight:400;">(Pluxee, Up, Bimpli)</span></span>
+                </div>
+
+                <!-- Restoflash -->
+                <div onclick="selectPaymentMethod('restoflash')" id="method_restoflash" style="border:2px solid #e5e7eb;border-radius:10px;padding:14px 18px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;background:#fff;">
+                  <input type="radio" name="payment" style="width:18px;height:18px;margin:0;cursor:pointer;">
+                  <img src="img/restoflash-logo.png" alt="Restoflash" style="height:24px;width:auto;">
+                  <span style="font-weight:600;font-size:0.95rem;">Restoflash</span>
+                </div>
               </div>
             </div>
           </div>
@@ -1765,8 +1751,38 @@ function openPaymentModal(paymentOrderId, objectSecret, orderNum, total, email, 
   setTimeout(() => selectPaymentMethod('bank_card'), 300);
 }
 
+function toggleRestoCards(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  const container = document.getElementById('restoCardsContainer');
+  const icon = document.getElementById('toggleRestoIcon');
+  const btn = document.getElementById('toggleRestoBtn');
+
+  if (container.style.display === 'none') {
+    container.style.display = 'block';
+    icon.style.transform = 'rotate(180deg)';
+    btn.style.background = '#f0fdf4';
+    btn.style.borderColor = '#1B8C3E';
+  } else {
+    container.style.display = 'none';
+    icon.style.transform = 'rotate(0deg)';
+    btn.style.background = '#f9fafb';
+    btn.style.borderColor = '#e5e7eb';
+  }
+}
+
 function selectPaymentMethod(method) {
   haptic.trigger('nudge'); // Vibration légère sélection moyen de paiement
+
+  // Si c'est une carte resto, ouvrir le toggle d'abord
+  if (['edenred', 'swile', 'conecs', 'restoflash'].includes(method)) {
+    const container = document.getElementById('restoCardsContainer');
+    if (container.style.display === 'none') {
+      const btn = document.getElementById('toggleRestoBtn');
+      toggleRestoCards({ preventDefault: () => {}, stopPropagation: () => {} });
+    }
+  }
+
   // Reset tous les styles (apple_pay et google_pay retirés - désactivés)
   ['bank_card', 'swile', 'conecs', 'restoflash', 'edenred'].forEach(m => {
     const el = document.getElementById(`method_${m}`);

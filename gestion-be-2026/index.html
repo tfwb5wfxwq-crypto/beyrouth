@@ -1110,22 +1110,20 @@ async function toggleAutoAccept() {
   const toggleEl = document.getElementById('toggleAutoAccept');
   const wantsToEnable = toggleEl.checked;
 
-  // Empêcher l'activation si fermé (week-end ou hors horaires)
+  // Warning si activation hors horaires (mais permettre quand même)
   if (wantsToEnable && !isRestaurantOpen()) {
     const now = new Date();
     const day = now.getDay();
     const isWeekend = day === 0 || day === 6;
 
-    haptic.trigger('error');
-    toggleEl.checked = false; // Forcer décochage
-    autoAcceptOrders = false;
+    haptic.trigger('nudge');
 
     if (isWeekend) {
-      showToast('⏰ Auto-Accept impossible le week-end (cartes resto non autorisées)', 'error');
+      showToast('⚠️ Restaurant fermé (week-end) - Seules les CB seront auto-acceptées', 'warning');
     } else {
-      showToast('⏰ Auto-Accept impossible en dehors des horaires d\'ouverture (Lun-Ven 11h30-21h00)', 'error');
+      showToast('⚠️ Hors horaires - Seules les CB seront auto-acceptées', 'warning');
     }
-    return;
+    // Continuer quand même (pas de return)
   }
 
   autoAcceptOrders = wantsToEnable;
@@ -1155,19 +1153,16 @@ async function toggleAutoAccept() {
   }
 }
 
-// Désactiver auto-accept automatiquement si fermé (appelé au chargement et toutes les minutes)
+// Indiquer visuellement si hors horaires (mais ne jamais bloquer)
 function checkAutoAcceptAvailability() {
   const toggleEl = document.getElementById('toggleAutoAccept');
   if (!toggleEl) return;
 
   if (!isRestaurantOpen() && autoAcceptOrders) {
-    // Désactiver le toggle visuellement
-    toggleEl.checked = false;
-    toggleEl.disabled = true;
-    toggleEl.parentElement.style.opacity = '0.5';
-    toggleEl.parentElement.title = 'Auto-Accept désactivé (fermé)';
+    // Indiquer visuellement que c'est hors horaires (mais laisser actif)
+    toggleEl.parentElement.style.opacity = '0.7';
+    toggleEl.parentElement.title = '⚠️ Hors horaires - seules les CB seront acceptées';
   } else {
-    toggleEl.disabled = false;
     toggleEl.parentElement.style.opacity = '1';
     toggleEl.parentElement.title = '';
   }

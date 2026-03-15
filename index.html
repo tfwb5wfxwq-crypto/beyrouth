@@ -819,6 +819,10 @@ function updateOpenStatus() {
     const next = getNextOpenSlot();
     hoursEl.textContent = next ? `· ${next.jour} ${next.h}h${next.m ? String(next.m).padStart(2,'0') : '00'}` : '';
   }
+
+  // Mettre à jour la disponibilité des cartes resto (appelé toutes les minutes)
+  updateRestoCardsAvailability();
+
   return open;
 }
 
@@ -1782,14 +1786,32 @@ function toggleRestoCards(event) {
 
 // Griser les cartes resto le week-end
 function updateRestoCardsAvailability() {
-  const today = new Date().getDay(); // 0 = Dimanche, 6 = Samedi
-  const isWeekend = today === 0 || today === 6;
+  const now = new Date();
+  const day = now.getDay(); // 0 = Dimanche, 6 = Samedi
+  const hour = now.getHours();
+  const minute = now.getMinutes();
+  const currentMinutes = hour * 60 + minute;
+
+  const isWeekend = day === 0 || day === 6;
+  const isWeekday = day >= 1 && day <= 5;
+  const isOpenHours = currentMinutes >= 11 * 60 + 30 && currentMinutes <= 21 * 60; // 11h30 - 21h00
+
+  // Cartes resto bloquées si week-end OU hors horaires
+  const isBlocked = isWeekend || !isOpenHours || !isWeekday;
+
   const warning = document.getElementById('restoWeekendWarning');
   const restoCards = ['edenred', 'swile', 'conecs', 'restoflash'];
 
-  if (isWeekend) {
-    // Afficher le message d'avertissement
-    if (warning) warning.style.display = 'block';
+  if (isBlocked) {
+    // Afficher le message d'avertissement adapté
+    if (warning) {
+      if (isWeekend) {
+        warning.innerHTML = '⏰ <strong>Les cartes restaurant sont uniquement acceptées du lundi au vendredi.</strong><br>Veuillez utiliser une carte bancaire.';
+      } else {
+        warning.innerHTML = '⏰ <strong>Les cartes restaurant sont uniquement acceptées de 11h30 à 21h00.</strong><br>Veuillez utiliser une carte bancaire.';
+      }
+      warning.style.display = 'block';
+    }
 
     // Griser tous les boutons de cartes resto
     restoCards.forEach(cardId => {
@@ -1816,15 +1838,31 @@ function updateRestoCardsAvailability() {
 }
 
 function selectPaymentMethod(method) {
-  // Vérifier si c'est une carte resto ET si on est le week-end
+  // Vérifier si c'est une carte resto ET si c'est bloqué (week-end ou hors horaires)
   const isRestoCard = ['edenred', 'swile', 'conecs', 'restoflash'].includes(method);
-  const today = new Date().getDay(); // 0 = Dimanche, 6 = Samedi
-  const isWeekend = today === 0 || today === 6;
 
-  if (isRestoCard && isWeekend) {
-    haptic.trigger('error');
-    showToast('⏰ Les cartes restaurant ne sont acceptées que du lundi au vendredi', 'error');
-    return;
+  if (isRestoCard) {
+    const now = new Date();
+    const day = now.getDay();
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+    const currentMinutes = hour * 60 + minute;
+
+    const isWeekend = day === 0 || day === 6;
+    const isWeekday = day >= 1 && day <= 5;
+    const isOpenHours = currentMinutes >= 11 * 60 + 30 && currentMinutes <= 21 * 60; // 11h30 - 21h00
+
+    const isBlocked = isWeekend || !isOpenHours || !isWeekday;
+
+    if (isBlocked) {
+      haptic.trigger('error');
+      if (isWeekend) {
+        showToast('⏰ Les cartes restaurant ne sont acceptées que du lundi au vendredi', 'error');
+      } else {
+        showToast('⏰ Les cartes restaurant ne sont acceptées que de 11h30 à 21h00', 'error');
+      }
+      return;
+    }
   }
 
   haptic.trigger('nudge'); // Vibration légère sélection moyen de paiement

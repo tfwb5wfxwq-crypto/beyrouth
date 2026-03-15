@@ -2105,13 +2105,28 @@ async function handleEdenredOAuthCallback() {
   } catch (e) {
     console.error('Erreur callback OAuth:', e);
 
+    // Messages d'erreur personnalisés selon le type
+    let errorTitle = '❌ Erreur de paiement';
+    let errorMessage = e.message || 'Une erreur est survenue lors du paiement.';
+
+    if (e.message && e.message.includes('TRANSACTION_TIME_NOT_ALLOWED')) {
+      errorTitle = '⏰ Paiement non autorisé';
+      errorMessage = 'Les cartes restaurant ne peuvent être utilisées que <strong>du lundi au vendredi</strong>.<br><br>Merci de réessayer en semaine ou d\'utiliser une carte bancaire.';
+    } else if (e.message && e.message.includes('LIMIT_EXCEEDED')) {
+      errorTitle = '💳 Limite dépassée';
+      errorMessage = 'Le montant dépasse la limite de votre carte restaurant.<br><br>Veuillez utiliser une carte bancaire.';
+    } else if (e.message && e.message.includes('BAD_GATEWAY')) {
+      errorTitle = '🔧 Service temporairement indisponible';
+      errorMessage = 'Le service de paiement Edenred est momentanément indisponible.<br><br>Veuillez réessayer dans quelques instants ou utiliser une carte bancaire.';
+    }
+
     document.body.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg-soft);font-family:system-ui,-apple-system,sans-serif;">
-        <div style="text-align:center;padding:40px;max-width:500px;">
-          <div style="font-size:3rem;margin-bottom:20px;">❌</div>
-          <p style="font-size:1.2rem;font-weight:600;color:var(--dark);margin:0 0 12px;">Erreur de paiement</p>
-          <p style="font-size:0.95rem;color:var(--text-soft);margin:0 0 24px;">${e.message}</p>
-          <a href="/" style="display:inline-block;background:#1B8C3E;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:500;">Retour à l'accueil</a>
+        <div style="text-align:center;padding:40px;max-width:600px;background:white;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.1);">
+          <div style="font-size:3rem;margin-bottom:20px;">${errorTitle.includes('⏰') ? '⏰' : errorTitle.includes('💳') ? '💳' : errorTitle.includes('🔧') ? '🔧' : '❌'}</div>
+          <p style="font-size:1.3rem;font-weight:600;color:var(--dark);margin:0 0 16px;">${errorTitle}</p>
+          <p style="font-size:1rem;color:var(--text-soft);margin:0 0 32px;line-height:1.6;">${errorMessage}</p>
+          <a href="/" style="display:inline-block;background:#1B8C3E;color:white;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:600;font-size:1rem;">Retour à l'accueil</a>
         </div>
       </div>
     `;

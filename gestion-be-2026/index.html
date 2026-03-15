@@ -1092,9 +1092,45 @@ async function toggleClickCollect() {
   }
 }
 
+// Vérifier si le restaurant est ouvert (Lun-Ven 11h30-21h00)
+function isRestaurantOpen() {
+  const now = new Date();
+  const day = now.getDay(); // 0 = Dimanche, 1 = Lundi, ..., 5 = Vendredi
+  const hour = now.getHours();
+  const minute = now.getMinutes();
+  const currentMinutes = hour * 60 + minute;
+
+  const isWeekday = day >= 1 && day <= 5; // Lundi à Vendredi
+  const isOpenHours = currentMinutes >= 11 * 60 + 30 && currentMinutes <= 21 * 60; // 11h30 - 21h00
+
+  return isWeekday && isOpenHours;
+}
+
 async function toggleAutoAccept() {
-  autoAcceptOrders = document.getElementById('toggleAutoAccept').checked;
+  const toggleEl = document.getElementById('toggleAutoAccept');
+  const wantsToEnable = toggleEl.checked;
+
+  // Empêcher l'activation si fermé (week-end ou hors horaires)
+  if (wantsToEnable && !isRestaurantOpen()) {
+    const now = new Date();
+    const day = now.getDay();
+    const isWeekend = day === 0 || day === 6;
+
+    haptic.trigger('error');
+    toggleEl.checked = false; // Forcer décochage
+    autoAcceptOrders = false;
+
+    if (isWeekend) {
+      showToast('⏰ Auto-Accept impossible le week-end (cartes resto non autorisées)', 'error');
+    } else {
+      showToast('⏰ Auto-Accept impossible en dehors des horaires d\'ouverture (Lun-Ven 11h30-21h00)', 'error');
+    }
+    return;
+  }
+
+  autoAcceptOrders = wantsToEnable;
   haptic.trigger('nudge'); // Vibration toggle
+
   try {
     await sb.from('settings').upsert({
       key: 'auto_accept_orders',
@@ -1108,15 +1144,37 @@ async function toggleAutoAccept() {
         await updateStatus(order.id, 'acceptee');
       }
       haptic.trigger('success'); // Vibration auto-accept
-      alert(`✅ Auto-Accept activé${payedOrders.length > 0 ? ` - ${payedOrders.length} commande(s) acceptée(s)` : ''}`);
+      showToast(`✅ Auto-Accept activé${payedOrders.length > 0 ? ` - ${payedOrders.length} commande(s) acceptée(s)` : ''}`, 'success');
     } else {
-      alert('⏸️ Auto-Accept désactivé - Validation manuelle requise');
+      showToast('⏸️ Auto-Accept désactivé - Validation manuelle requise', 'info');
     }
   } catch (err) {
     console.error('Erreur sauvegarde:', err);
     haptic.trigger('error'); // Vibration erreur
+    showToast('❌ Erreur lors de la sauvegarde', 'error');
   }
 }
+
+// Désactiver auto-accept automatiquement si fermé (appelé au chargement et toutes les minutes)
+function checkAutoAcceptAvailability() {
+  const toggleEl = document.getElementById('toggleAutoAccept');
+  if (!toggleEl) return;
+
+  if (!isRestaurantOpen() && autoAcceptOrders) {
+    // Désactiver le toggle visuellement
+    toggleEl.checked = false;
+    toggleEl.disabled = true;
+    toggleEl.parentElement.style.opacity = '0.5';
+    toggleEl.parentElement.title = 'Auto-Accept désactivé (fermé)';
+  } else {
+    toggleEl.disabled = false;
+    toggleEl.parentElement.style.opacity = '1';
+    toggleEl.parentElement.title = '';
+  }
+}
+
+// Check toutes les minutes
+setInterval(checkAutoAcceptAvailability, 60000);
 
 // ===== PAUSE CRÉNEAUX =====
 let nextSlotAvailableAt = '';
@@ -1421,6 +1479,9 @@ async function showDashboard() {
 
   // Vérifier périodiquement si la pause est expirée
   setInterval(updateSlotPauseButton, 1000); // toutes les 1s pour le compte à rebours
+
+  // Vérifier auto-accept availability (week-end, horaires)
+  checkAutoAcceptAvailability();
 
   // POLLING : Recharger les commandes toutes les 5 secondes
   // (backup si realtime ne fonctionne pas)

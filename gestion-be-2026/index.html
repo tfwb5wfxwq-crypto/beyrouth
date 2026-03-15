@@ -1111,22 +1111,6 @@ async function toggleAutoAccept() {
   const toggleEl = document.getElementById('toggleAutoAccept');
   const wantsToEnable = toggleEl.checked;
 
-  // Warning si activation hors horaires (mais permettre quand même)
-  if (wantsToEnable && !isRestaurantOpen()) {
-    const now = new Date();
-    const day = now.getDay();
-    const isWeekend = day === 0 || day === 6;
-
-    haptic.trigger('nudge');
-
-    if (isWeekend) {
-      showToast('⚠️ Restaurant fermé (week-end) - Seules les CB seront auto-acceptées', 'warning');
-    } else {
-      showToast('⚠️ Hors horaires - Seules les CB seront auto-acceptées', 'warning');
-    }
-    // Continuer quand même (pas de return)
-  }
-
   autoAcceptOrders = wantsToEnable;
   haptic.trigger('nudge'); // Vibration toggle
 
@@ -1188,14 +1172,8 @@ async function checkAutoAcceptAvailability() {
     lastCheckDay = currentDay;
   }
 
-  // Indication visuelle si hors horaires (mais reste cliquable)
-  if (!isRestaurantOpen() && autoAcceptOrders) {
-    toggleEl.parentElement.style.opacity = '0.7';
-    toggleEl.parentElement.title = '⚠️ Hors horaires - seules les CB seront acceptées';
-  } else {
-    toggleEl.parentElement.style.opacity = '1';
-    toggleEl.parentElement.title = '';
-  }
+  // Plus d'indication visuelle - toggle fonctionne normalement H24 7j/7
+  // (Cartes resto bloquées côté client automatiquement hors horaires)
 }
 
 // Check toutes les minutes
@@ -2254,7 +2232,7 @@ function updateStatsDisplay(statsOrders) {
 }
 
 async function updateTopbarStats() {
-  // Compter toutes les commandes du jour (pas seulement "en cours")
+  // Compter uniquement les commandes payées/validées du jour (exclut pending et cancelled)
   const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
 
   try {
@@ -2263,7 +2241,7 @@ async function updateTopbarStats() {
       .select('total')
       .gte('created_at', `${today}T00:00:00`)
       .lte('created_at', `${today}T23:59:59`)
-      .neq('statut', 'cancelled'); // Exclure les annulées
+      .in('statut', ['payee', 'acceptee', 'en_preparation', 'prete', 'recuperee']); // Uniquement commandes valides
 
     if (error) throw error;
 

@@ -34,6 +34,12 @@ serve(async (req) => {
 
     // TODO: Re-enable CSRF validation with oauth_states table once debugged
 
+    // Créer client Supabase (pour pouvoir mettre à jour la commande en cas d'erreur)
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
     // Récupérer credentials depuis Supabase Secrets
     const authClientId = Deno.env.get('EDENRED_AUTH_CLIENT_ID') ?? ''
     const authClientSecret = Deno.env.get('EDENRED_AUTH_CLIENT_SECRET') ?? ''
@@ -127,6 +133,12 @@ serve(async (req) => {
         edenredError = errorJson.message || errorJson.error || errorText
       } catch (e) {}
 
+      // Annuler la commande (paiement échoué)
+      await supabase
+        .from('orders')
+        .update({ statut: 'cancelled', edenred_status: 'failed' })
+        .eq('numero', orderNum)
+
       return new Response(
         JSON.stringify({
           error: `Échec création paiement Edenred (${paymentResponse.status}): ${edenredError}`
@@ -144,6 +156,13 @@ serve(async (req) => {
     // Vérifier le statut de la réponse Edenred
     if (paymentData.meta?.status !== 'succeeded') {
       console.error('❌ Paiement Edenred échoué:', paymentData)
+
+      // Annuler la commande (paiement échoué)
+      await supabase
+        .from('orders')
+        .update({ statut: 'cancelled', edenred_status: 'failed' })
+        .eq('numero', orderNum)
+
       return new Response(
         JSON.stringify({
           error: 'Paiement Edenred échoué',
@@ -159,6 +178,13 @@ serve(async (req) => {
 
     if (!captureId || transactionStatus !== 'captured') {
       console.error('❌ Transaction non capturée:', paymentData)
+
+      // Annuler la commande (transaction non capturée)
+      await supabase
+        .from('orders')
+        .update({ statut: 'cancelled', edenred_status: 'not_captured' })
+        .eq('numero', orderNum)
+
       return new Response(
         JSON.stringify({
           error: 'Transaction non capturée',
@@ -169,10 +195,6 @@ serve(async (req) => {
     }
 
     // Mettre à jour la commande : paiement capturé = statut "payee"
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
 
     const { data: updatedOrder, error: updateError } = await supabase
       .from('orders')

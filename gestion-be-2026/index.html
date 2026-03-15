@@ -1057,6 +1057,7 @@ let currentTab = 'orders';
 let clickCollectEnabled = true;
 let autoAcceptOrders = false;
 let lastCheckDay = new Date().getDay(); // Pour détecter passage week-end
+let fridayAlertShown = false; // Éviter spam alerte vendredi 20h30
 
 async function loadSettings() {
   try {
@@ -1138,42 +1139,76 @@ async function toggleAutoAccept() {
   }
 }
 
-// Désactivation automatique week-end + indication visuelle hors horaires
+// Auto-accept week-end : alerte vendredi + désactivation samedi + réactivation lundi
 async function checkAutoAcceptAvailability() {
   const toggleEl = document.getElementById('toggleAutoAccept');
   if (!toggleEl) return;
 
   const now = new Date();
   const currentDay = now.getDay();
-  const isWeekend = currentDay === 0 || currentDay === 6;
+  const hour = now.getHours();
+  const minute = now.getMinutes();
 
-  // Détecter passage en week-end (vendredi → samedi)
+  // 1. Alerte vendredi 20h30 (UNE SEULE FOIS)
+  if (currentDay === 5 && hour === 20 && minute === 30 && !fridayAlertShown && autoAcceptOrders) {
+    haptic.trigger('warning');
+    showToast('⏰ Auto-Accept sera désactivé à minuit (week-end). Vous pouvez le réactiver (CB acceptées).', 'warning');
+    fridayAlertShown = true;
+  }
+
+  // 2. Désactivation automatique samedi 00h00 (SILENCIEUSE)
   if (currentDay !== lastCheckDay) {
-    // Jour a changé
-    if ((lastCheckDay === 5 && currentDay === 6) || // Vendredi → Samedi
-        (lastCheckDay === 6 && currentDay === 0)) { // Samedi → Dimanche (au cas où)
-      // Début du week-end : désactiver auto-accept automatiquement
+    if (lastCheckDay === 5 && currentDay === 6) { // Vendredi → Samedi
       if (autoAcceptOrders) {
         autoAcceptOrders = false;
         toggleEl.checked = false;
 
         try {
-          await sb.from('settings').upsert({
-            key: 'auto_accept_orders',
-            value: 'false'
-          });
-          haptic.trigger('warning');
-          showToast('⏰ Auto-Accept désactivé pour le week-end (peut être réactivé manuellement)', 'warning');
+          // Sauvegarder qu'il était activé (pour réactivation lundi)
+          await sb.from('settings').upsert([
+            { key: 'auto_accept_orders', value: 'false' },
+            { key: 'auto_accept_before_weekend', value: 'true' }
+          ]);
+          console.log('✅ Auto-accept désactivé pour le week-end (silencieux)');
         } catch (err) {
           console.error('Erreur désactivation auto week-end:', err);
         }
       }
     }
+
+    // 3. Réactivation automatique lundi 11h30 (SILENCIEUSE)
+    if (lastCheckDay === 0 && currentDay === 1) { // Dimanche → Lundi
+      fridayAlertShown = false; // Reset flag pour vendredi prochain
+    }
+
     lastCheckDay = currentDay;
   }
 
-  // Plus d'indication visuelle - toggle fonctionne normalement H24 7j/7
-  // (Cartes resto bloquées côté client automatiquement hors horaires)
+  // 4. Réactivation lundi 11h30 si toggle était ON vendredi
+  if (currentDay === 1 && hour === 11 && minute === 30 && !autoAcceptOrders) {
+    try {
+      const { data } = await sb.from('settings').select('value').eq('key', 'auto_accept_before_weekend').maybeSingle();
+      if (data?.value === 'true') {
+        autoAcceptOrders = true;
+        toggleEl.checked = true;
+
+        await sb.from('settings').upsert([
+          { key: 'auto_accept_orders', value: 'true' },
+          { key: 'auto_accept_before_weekend', value: 'false' } // Supprimer flag
+        ]);
+
+        // Accepter les commandes "payee" en attente
+        const payedOrders = orders.filter(o => o.statut === 'payee');
+        for (const order of payedOrders) {
+          await updateStatus(order.id, 'acceptee');
+        }
+
+        console.log(`✅ Auto-accept réactivé lundi 11h30 (${payedOrders.length} commande(s) acceptée(s))`);
+      }
+    } catch (err) {
+      console.error('Erreur réactivation auto lundi:', err);
+    }
+  }
 }
 
 // Check toutes les minutes

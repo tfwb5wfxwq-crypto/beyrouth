@@ -2228,10 +2228,31 @@ function updateStatsDisplay(statsOrders) {
   document.getElementById('statClients').textContent = clients;
 }
 
-function updateTopbarStats() {
-  const total = orders.length;
-  const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
-  document.getElementById('topbarStats').textContent = `${total} commande${total > 1 ? 's' : ''} — ${revenue.toFixed(2).replace('.',',')} €`;
+async function updateTopbarStats() {
+  // Compter toutes les commandes du jour (pas seulement "en cours")
+  const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
+
+  try {
+    const { data, error } = await sb
+      .from('orders')
+      .select('total')
+      .gte('created_at', `${today}T00:00:00`)
+      .lte('created_at', `${today}T23:59:59`)
+      .neq('statut', 'cancelled'); // Exclure les annulées
+
+    if (error) throw error;
+
+    const total = data?.length || 0;
+    const revenue = data?.reduce((s, o) => s + (o.total || 0), 0) || 0;
+
+    document.getElementById('topbarStats').textContent = `📊 Aujourd'hui : ${total} commande${total > 1 ? 's' : ''} — ${(revenue / 100).toFixed(2).replace('.', ',')} €`;
+  } catch (err) {
+    console.error('Erreur updateTopbarStats:', err);
+    // Fallback: afficher les commandes en cours
+    const total = orders.length;
+    const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+    document.getElementById('topbarStats').textContent = `${total} en cours — ${(revenue / 100).toFixed(2).replace('.', ',')} €`;
+  }
 }
 
 // ===== REALTIME =====

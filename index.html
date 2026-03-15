@@ -1690,6 +1690,12 @@ function openPaymentModal(paymentOrderId, objectSecret, orderNum, total, email, 
             </button>
 
             <div id="restoCardsContainer" style="display:none;margin-top:12px;">
+              <!-- Message week-end (si applicable) -->
+              <div id="restoWeekendWarning" style="display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:12px 16px;margin-bottom:10px;font-size:0.9rem;color:#991b1b;line-height:1.5;">
+                ⏰ <strong>Les cartes restaurant sont uniquement acceptées du lundi au vendredi.</strong><br>
+                Veuillez utiliser une carte bancaire.
+              </div>
+
               <div style="display:flex;flex-direction:column;gap:10px;">
                 <!-- Edenred Ticket Restaurant -->
                 <div onclick="selectPaymentMethod('edenred')" id="method_edenred" style="border:2px solid #e5e7eb;border-radius:10px;padding:14px 18px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;background:#fff;">
@@ -1763,6 +1769,9 @@ function toggleRestoCards(event) {
     icon.style.transform = 'rotate(180deg)';
     btn.style.background = '#f0fdf4';
     btn.style.borderColor = '#1B8C3E';
+
+    // Vérifier si week-end et griser les cartes resto
+    updateRestoCardsAvailability();
   } else {
     container.style.display = 'none';
     icon.style.transform = 'rotate(0deg)';
@@ -1771,11 +1780,57 @@ function toggleRestoCards(event) {
   }
 }
 
+// Griser les cartes resto le week-end
+function updateRestoCardsAvailability() {
+  const today = new Date().getDay(); // 0 = Dimanche, 6 = Samedi
+  const isWeekend = today === 0 || today === 6;
+  const warning = document.getElementById('restoWeekendWarning');
+  const restoCards = ['edenred', 'swile', 'conecs', 'restoflash'];
+
+  if (isWeekend) {
+    // Afficher le message d'avertissement
+    if (warning) warning.style.display = 'block';
+
+    // Griser tous les boutons de cartes resto
+    restoCards.forEach(cardId => {
+      const el = document.getElementById(`method_${cardId}`);
+      if (el) {
+        el.style.opacity = '0.5';
+        el.style.cursor = 'not-allowed';
+        el.style.pointerEvents = 'none';
+      }
+    });
+  } else {
+    // Cacher le message et réactiver les boutons
+    if (warning) warning.style.display = 'none';
+
+    restoCards.forEach(cardId => {
+      const el = document.getElementById(`method_${cardId}`);
+      if (el) {
+        el.style.opacity = '1';
+        el.style.cursor = 'pointer';
+        el.style.pointerEvents = 'auto';
+      }
+    });
+  }
+}
+
 function selectPaymentMethod(method) {
+  // Vérifier si c'est une carte resto ET si on est le week-end
+  const isRestoCard = ['edenred', 'swile', 'conecs', 'restoflash'].includes(method);
+  const today = new Date().getDay(); // 0 = Dimanche, 6 = Samedi
+  const isWeekend = today === 0 || today === 6;
+
+  if (isRestoCard && isWeekend) {
+    haptic.trigger('error');
+    showToast('⏰ Les cartes restaurant ne sont acceptées que du lundi au vendredi', 'error');
+    return;
+  }
+
   haptic.trigger('nudge'); // Vibration légère sélection moyen de paiement
 
   // Si c'est une carte resto, ouvrir le toggle d'abord
-  if (['edenred', 'swile', 'conecs', 'restoflash'].includes(method)) {
+  if (isRestoCard) {
     const container = document.getElementById('restoCardsContainer');
     if (container.style.display === 'none') {
       const btn = document.getElementById('toggleRestoBtn');

@@ -201,22 +201,11 @@ serve(async (req) => {
 
     const autoAcceptEnabled = autoAcceptSetting?.value === 'true'
 
-    // Vérifier si le restaurant est ouvert (Lun-Ven 11h30-21h00)
-    const now = new Date()
-    const parisTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }))
-    const day = parisTime.getDay() // 0 = Dimanche, 1 = Lundi, ..., 5 = Vendredi
-    const hour = parisTime.getHours()
-    const minute = parisTime.getMinutes()
-    const currentMinutes = hour * 60 + minute
+    console.log(`🤖 Auto-accept: ${autoAcceptEnabled ? 'ACTIVÉ' : 'DÉSACTIVÉ'}`)
 
-    const isWeekday = day >= 1 && day <= 5 // Lundi à Vendredi
-    const isOpenHours = currentMinutes >= 11 * 60 + 30 && currentMinutes <= 21 * 60 // 11h30 - 21h00
-    const isRestaurantOpen = isWeekday && isOpenHours
-
-    console.log(`🕐 Restaurant ${isRestaurantOpen ? 'OUVERT' : 'FERMÉ'} (${day}, ${hour}h${minute})`)
-
-    // Si AUTO-ACCEPT activé ET restaurant OUVERT : passer directement en statut "acceptee" + email
-    if (autoAcceptEnabled && isRestaurantOpen && updatedOrder && updatedOrder[0]) {
+    // Si AUTO-ACCEPT activé : passer directement en statut "acceptee" + email
+    // (Paco contrôle l'activation via le toggle, même le week-end si il veut)
+    if (autoAcceptEnabled && updatedOrder && updatedOrder[0]) {
       console.log(`🤖 Auto-accept activé, passage automatique en "acceptee" pour ${orderNum}`)
 
       // Update statut à "acceptee"
@@ -239,11 +228,9 @@ serve(async (req) => {
         }
       }
     }
-    // Si AUTO-ACCEPT désactivé OU restaurant fermé : envoyer email de paiement (en attente validation)
-    else if ((!autoAcceptEnabled || !isRestaurantOpen) && updatedOrder && updatedOrder[0]) {
-      if (autoAcceptEnabled && !isRestaurantOpen) {
-        console.log(`⏰ Auto-accept activé mais restaurant fermé → en attente validation manuelle`)
-      }
+    // Si AUTO-ACCEPT désactivé : envoyer email de paiement (en attente validation)
+    else if (!autoAcceptEnabled && updatedOrder && updatedOrder[0]) {
+      console.log(`⏸️ Auto-accept désactivé → en attente validation manuelle`)
       try {
         const emailResponse = await supabase.functions.invoke('send-payment-confirmation', {
           body: { orderId: updatedOrder[0].id }

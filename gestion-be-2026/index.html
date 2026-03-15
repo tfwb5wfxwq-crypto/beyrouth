@@ -1056,6 +1056,7 @@ let currentTab = 'orders';
 // ===== SETTINGS =====
 let clickCollectEnabled = true;
 let autoAcceptOrders = false;
+let lastCheckDay = new Date().getDay(); // Pour détecter passage week-end
 
 async function loadSettings() {
   try {
@@ -1153,13 +1154,42 @@ async function toggleAutoAccept() {
   }
 }
 
-// Indiquer visuellement si hors horaires (mais ne jamais bloquer)
-function checkAutoAcceptAvailability() {
+// Désactivation automatique week-end + indication visuelle hors horaires
+async function checkAutoAcceptAvailability() {
   const toggleEl = document.getElementById('toggleAutoAccept');
   if (!toggleEl) return;
 
+  const now = new Date();
+  const currentDay = now.getDay();
+  const isWeekend = currentDay === 0 || currentDay === 6;
+
+  // Détecter passage en week-end (vendredi → samedi)
+  if (currentDay !== lastCheckDay) {
+    // Jour a changé
+    if ((lastCheckDay === 5 && currentDay === 6) || // Vendredi → Samedi
+        (lastCheckDay === 6 && currentDay === 0)) { // Samedi → Dimanche (au cas où)
+      // Début du week-end : désactiver auto-accept automatiquement
+      if (autoAcceptOrders) {
+        autoAcceptOrders = false;
+        toggleEl.checked = false;
+
+        try {
+          await sb.from('settings').upsert({
+            key: 'auto_accept_orders',
+            value: 'false'
+          });
+          haptic.trigger('warning');
+          showToast('⏰ Auto-Accept désactivé pour le week-end (peut être réactivé manuellement)', 'warning');
+        } catch (err) {
+          console.error('Erreur désactivation auto week-end:', err);
+        }
+      }
+    }
+    lastCheckDay = currentDay;
+  }
+
+  // Indication visuelle si hors horaires (mais reste cliquable)
   if (!isRestaurantOpen() && autoAcceptOrders) {
-    // Indiquer visuellement que c'est hors horaires (mais laisser actif)
     toggleEl.parentElement.style.opacity = '0.7';
     toggleEl.parentElement.title = '⚠️ Hors horaires - seules les CB seront acceptées';
   } else {

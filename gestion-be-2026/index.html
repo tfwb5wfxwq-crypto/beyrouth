@@ -682,6 +682,7 @@ button{cursor:pointer;font-family:inherit;border:none}
       En cours <span class="tab-badge" id="ordersBadge" style="display:none">0</span>
     </button>
     <button class="tab" data-tab="completed" onclick="switchTab('completed')">Terminées</button>
+    <button class="tab" data-tab="archives" onclick="switchTab('archives')">Archives</button>
     <button class="tab" data-tab="clients" onclick="switchTab('clients')">Clients</button>
     <button class="tab" data-tab="menu" onclick="switchTab('menu')">Menu</button>
     <button class="tab" data-tab="stats" onclick="switchTab('stats')">Stats</button>
@@ -716,6 +717,72 @@ button{cursor:pointer;font-family:inherit;border:none}
       </div>
       <div class="orders-list grid-view" id="completedList">
         <div class="no-orders">Chargement...</div>
+      </div>
+    </div>
+
+    <!-- Archives Tab -->
+    <div class="tab-content" id="tab-archives" style="display:none">
+      <h2 style="margin-bottom:16px;color:var(--bordeaux)">Gestion des archives</h2>
+
+      <!-- Stats archivage -->
+      <div class="stats-grid" style="margin-bottom:24px">
+        <div class="stat-card">
+          <div class="stat-value" id="archiveLevel1Count">0</div>
+          <div class="stat-label">📦 Masquées (30j)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="archiveLevel2Count">0</div>
+          <div class="stat-label">🗄️ Archivées (1an)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="archiveLevel3Count">0</div>
+          <div class="stat-label">🗑️ Éligibles purge (3ans)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="archiveTotalSize">0 MB</div>
+          <div class="stat-label">Taille totale BDD</div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
+        <button onclick="runArchivingNow()" style="padding:12px 24px;background:var(--bordeaux);color:#fff;border-radius:var(--radius);font-weight:600;font-size:.95rem;transition:all .3s">
+          ▶️ Exécuter archivage maintenant
+        </button>
+        <button onclick="loadArchiveLogs()" style="padding:12px 24px;background:#f0f0f0;color:var(--noir);border-radius:var(--radius);font-weight:600;font-size:.95rem;transition:all .3s">
+          📊 Voir logs d'archivage
+        </button>
+        <button onclick="computeAnalytics()" style="padding:12px 24px;background:var(--gold);color:#fff;border-radius:var(--radius);font-weight:600;font-size:.95rem;transition:all .3s">
+          📈 Recalculer analytics
+        </button>
+      </div>
+
+      <!-- Recherche archives -->
+      <div style="background:#fff;padding:24px;border-radius:var(--radius);margin-bottom:24px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--bordeaux);margin-bottom:16px;">🔍 Rechercher dans les archives</h3>
+        <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+          <input type="text" id="archiveSearchInput" placeholder="Numéro commande, email client..." style="flex:1;min-width:200px;padding:12px 16px;border:2px solid #e0e0e0;border-radius:var(--radius);font-size:.95rem">
+          <input type="date" id="archiveDateFrom" style="padding:12px 16px;border:2px solid #e0e0e0;border-radius:var(--radius);font-size:.95rem">
+          <input type="date" id="archiveDateTo" style="padding:12px 16px;border:2px solid #e0e0e0;border-radius:var(--radius);font-size:.95rem">
+          <button onclick="searchArchives()" style="padding:12px 24px;background:var(--noir);color:#fff;border-radius:var(--radius);font-weight:600;font-size:.95rem">Rechercher</button>
+        </div>
+        <div style="font-size:.85rem;color:#888">
+          💡 Recherche dans toutes les commandes archivées (> 30 jours). Max 100 résultats.
+        </div>
+      </div>
+
+      <!-- Résultats recherche -->
+      <div id="archiveResults" style="display:none">
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--bordeaux);margin-bottom:12px;">Résultats</h3>
+        <div class="orders-list grid-view" id="archiveResultsList">
+          <div class="no-orders">Aucun résultat</div>
+        </div>
+      </div>
+
+      <!-- Logs archivage -->
+      <div id="archiveLogsSection" style="display:none;margin-top:24px">
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--bordeaux);margin-bottom:12px;">📋 Logs d'archivage</h3>
+        <div id="archiveLogsList" style="background:#fff;padding:16px;border-radius:var(--radius);box-shadow:0 2px 8px rgba(0,0,0,.06)"></div>
       </div>
     </div>
 
@@ -1592,6 +1659,7 @@ function switchTab(tab) {
   if (tab === 'stats') updateStats();
   if (tab === 'completed') loadCompleted('today');
   if (tab === 'clients') loadClients();
+  if (tab === 'archives') loadArchiveStats();
 }
 
 // ===== ORDER FILTER =====
@@ -2667,6 +2735,222 @@ async function loadCompleted(days) {
   });
 
   list.innerHTML = html;
+}
+
+// ========== ARCHIVES MANAGEMENT ==========
+
+async function loadArchiveStats() {
+  try {
+    // Level 1: Soft archived (> 30 days)
+    const {count: level1Count, error: e1} = await sb
+      .from('orders')
+      .select('*', {count: 'exact', head: true})
+      .not('auto_archived_at', 'is', null)
+      .eq('archived', false);
+
+    // Level 2: Fully archived (> 1 year)
+    const {count: level2Count, error: e2} = await sb
+      .from('orders')
+      .select('*', {count: 'exact', head: true})
+      .eq('archived', true)
+      .is('purge_eligible_at', null);
+
+    // Level 3: Purge eligible (> 3 years)
+    const {count: level3Count, error: e3} = await sb
+      .from('orders')
+      .select('*', {count: 'exact', head: true})
+      .not('purge_eligible_at', 'is', null);
+
+    document.getElementById('archiveLevel1Count').textContent = level1Count || 0;
+    document.getElementById('archiveLevel2Count').textContent = level2Count || 0;
+    document.getElementById('archiveLevel3Count').textContent = level3Count || 0;
+
+    // Database size (simplified estimation)
+    const totalArchived = (level1Count || 0) + (level2Count || 0) + (level3Count || 0);
+    const sizeEstimate = (totalArchived * 2).toFixed(1); // ~2KB per order
+    document.getElementById('archiveTotalSize').textContent = sizeEstimate + ' KB';
+
+  } catch (err) {
+    console.error('Error loading archive stats:', err);
+    showToast('❌ Erreur chargement stats archives');
+  }
+}
+
+async function runArchivingNow() {
+  if (!confirm('Exécuter l\'archivage maintenant ?\n\nCela va :\n• Masquer les commandes > 30 jours\n• Archiver les commandes > 1 an\n• Marquer éligibles à la purge les commandes > 3 ans')) {
+    return;
+  }
+
+  showToast('⏳ Archivage en cours...');
+
+  try {
+    const {data, error} = await sb.rpc('smart_archive_orders');
+
+    if (error) throw error;
+
+    const result = data?.[0] || {level_1_hidden: 0, level_2_archived: 0, level_3_purge_eligible: 0};
+    const level1 = result.level_1_hidden || 0;
+    const level2 = result.level_2_archived || 0;
+    const level3 = result.level_3_purge_eligible || 0;
+
+    showToast(`✅ Archivage terminé\n📦 ${level1} masquées\n🗄️ ${level2} archivées\n🗑️ ${level3} éligibles purge`);
+
+    loadArchiveStats();
+    loadArchiveLogs();
+  } catch (err) {
+    console.error('Error running archiving:', err);
+    showToast('❌ Erreur lors de l\'archivage');
+  }
+}
+
+async function searchArchives() {
+  const searchInput = document.getElementById('archiveSearchInput').value.trim();
+  const dateFrom = document.getElementById('archiveDateFrom').value;
+  const dateTo = document.getElementById('archiveDateTo').value;
+
+  if (!searchInput && !dateFrom && !dateTo) {
+    showToast('⚠️ Veuillez saisir un critère de recherche');
+    return;
+  }
+
+  const resultsList = document.getElementById('archiveResultsList');
+  const resultsSection = document.getElementById('archiveResults');
+
+  resultsList.innerHTML = '<div class="no-orders">Recherche en cours...</div>';
+  resultsSection.style.display = 'block';
+
+  try {
+    let query = sb
+      .from('orders')
+      .select('*')
+      .or('archived.eq.true,auto_archived_at.not.is.null')
+      .order('created_at', {ascending: false})
+      .limit(100);
+
+    // Search by order number or email
+    if (searchInput) {
+      query = query.or(`numero_commande.ilike.%${searchInput}%,client_email.ilike.%${searchInput}%`);
+    }
+
+    // Date range
+    if (dateFrom) {
+      query = query.gte('created_at', dateFrom + 'T00:00:00');
+    }
+    if (dateTo) {
+      query = query.lte('created_at', dateTo + 'T23:59:59');
+    }
+
+    const {data, error} = await query;
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      resultsList.innerHTML = '<div class="no-orders">Aucun résultat trouvé</div>';
+      return;
+    }
+
+    let html = '';
+    data.forEach(order => {
+      const date = new Date(order.created_at);
+      const dateStr = date.toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric'});
+      const timeStr = date.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
+      const statusEmoji = order.statut === 'recuperee' ? '📦' : order.statut === 'cancelled' ? '✕' : '⏳';
+      const statusLabel = order.statut === 'recuperee' ? 'Récupérée' : order.statut === 'cancelled' ? 'Annulée' : order.statut;
+
+      const archiveLevel = order.purge_eligible_at ? '🗑️ Éligible purge' :
+                          order.archived ? '🗄️ Archivée' :
+                          order.auto_archived_at ? '📦 Masquée' : '';
+
+      html += renderOrderCard(order, archiveLevel, dateStr, timeStr, statusEmoji, statusLabel);
+    });
+
+    resultsList.innerHTML = html;
+    showToast(`✅ ${data.length} résultat(s) trouvé(s)`);
+
+  } catch (err) {
+    console.error('Error searching archives:', err);
+    resultsList.innerHTML = '<div class="no-orders">Erreur lors de la recherche</div>';
+    showToast('❌ Erreur lors de la recherche');
+  }
+}
+
+async function loadArchiveLogs() {
+  const logsSection = document.getElementById('archiveLogsSection');
+  const logsList = document.getElementById('archiveLogsList');
+
+  logsSection.style.display = 'block';
+  logsList.innerHTML = 'Chargement...';
+
+  try {
+    const {data, error} = await sb
+      .from('archive_logs')
+      .select('*')
+      .order('executed_at', {ascending: false})
+      .limit(20);
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      logsList.innerHTML = 'Aucun log d\'archivage trouvé';
+      return;
+    }
+
+    let html = '<table style="width:100%;border-collapse:collapse;font-size:.9rem">';
+    html += '<thead style="background:#f5f5f5;text-align:left">';
+    html += '<tr><th style="padding:8px">Date</th><th style="padding:8px">Archivées</th><th style="padding:8px">Durée</th></tr>';
+    html += '</thead><tbody>';
+
+    data.forEach(log => {
+      const date = new Date(log.executed_at).toLocaleString('fr-FR');
+      const duration = log.execution_time || 'N/A';
+      html += `<tr style="border-bottom:1px solid #eee">
+        <td style="padding:8px">${date}</td>
+        <td style="padding:8px;font-weight:600;color:var(--bordeaux)">${log.archived_count}</td>
+        <td style="padding:8px;color:#666">${duration}</td>
+      </tr>`;
+    });
+
+    html += '</tbody></table>';
+    logsList.innerHTML = html;
+
+  } catch (err) {
+    console.error('Error loading archive logs:', err);
+    logsList.innerHTML = 'Erreur lors du chargement des logs';
+  }
+}
+
+async function computeAnalytics() {
+  if (!confirm('Recalculer les analytics ?\n\nCela va recalculer les statistiques pour toutes les commandes archivées. Cette opération peut prendre quelques minutes.')) {
+    return;
+  }
+
+  showToast('⏳ Calcul en cours...');
+
+  try {
+    // Calculate analytics for the last 365 days
+    const endDate = new Date().toISOString().split('T')[0];
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 365);
+    const startDateStr = startDate.toISOString().split('T')[0];
+
+    const {data, error} = await sb.rpc('compute_analytics_batch', {
+      start_date: startDateStr,
+      end_date: endDate
+    });
+
+    if (error) throw error;
+
+    const result = data?.[0] || {days_processed: 0, total_orders: 0, total_revenue: 0};
+    const daysProcessed = result.days_processed || 0;
+    const totalOrders = result.total_orders || 0;
+    const totalRevenue = result.total_revenue || 0;
+
+    showToast(`✅ Analytics recalculées\n📊 ${daysProcessed} jours\n📦 ${totalOrders} commandes\n💰 ${totalRevenue?.toFixed(2)} €`);
+
+  } catch (err) {
+    console.error('Error computing analytics:', err);
+    showToast('❌ Erreur lors du calcul des analytics');
+  }
 }
 
 // ===== CLIENTS =====

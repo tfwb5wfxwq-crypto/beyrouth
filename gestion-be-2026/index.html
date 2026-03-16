@@ -1612,9 +1612,16 @@ function scrollToSection(sectionId) {
 
 // ===== ORDERS =====
 async function loadOrders() {
+  // Charger uniquement les commandes récentes (7 derniers jours) et non archivées
+  // pour éviter de surcharger l'admin après plusieurs mois d'activité
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
   const {data} = await sb.from('orders')
     .select('*')
     .in('statut', ['payee', 'acceptee', 'en_preparation', 'prete'])
+    .eq('archived', false)  // Exclure les commandes archivées
+    .gte('created_at', sevenDaysAgo.toISOString())  // 7 derniers jours max
     .order('created_at', {ascending: false});
   orders = data || [];
   debouncedRenderOrders();

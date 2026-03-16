@@ -2132,6 +2132,29 @@ async function handleEdenredOAuthCallback() {
   const isEdenredCallback = urlParams.get('edenred_oauth') === '1';
   const paymentDataStr = sessionStorage.getItem('edenred_payment_data');
 
+  // Fix: Afficher erreur si callback Edenred mais données manquantes (code expiré/déjà utilisé)
+  if (isEdenredCallback && code && !paymentDataStr) {
+    console.warn('⚠️ Callback Edenred détecté mais paymentData manquant (code expiré ou déjà utilisé)');
+    document.body.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg-soft);font-family:system-ui,-apple-system,sans-serif;">
+        <div style="text-align:center;padding:40px;max-width:600px;background:white;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.1);">
+          <div style="font-size:3rem;margin-bottom:20px;">⏰</div>
+          <p style="font-size:1.3rem;font-weight:600;color:var(--dark);margin:0 0 16px;">Lien de paiement expiré</p>
+          <p style="font-size:1rem;color:var(--text-soft);margin:0 0 32px;line-height:1.6;">
+            Ce lien de paiement a déjà été utilisé ou a expiré.<br><br>
+            Si votre paiement a été accepté, vous recevrez une confirmation par email.<br>
+            Sinon, merci de créer une nouvelle commande.
+          </p>
+          <a href="/" style="display:inline-block;background:#1B8C3E;color:white;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:600;font-size:1rem;">Retour à l'accueil</a>
+        </div>
+      </div>
+    `;
+
+    // Auto-redirect après 8 secondes
+    setTimeout(() => { window.location.href = '/'; }, 8000);
+    return;
+  }
+
   if (!isEdenredCallback || !code || !paymentDataStr) {
     return; // Pas un callback OAuth Edenred
   }
@@ -2158,7 +2181,10 @@ async function handleEdenredOAuthCallback() {
     // Récupérer les données sauvegardées (déjà vérifiées dans la détection du callback)
     const paymentData = JSON.parse(paymentDataStr);
 
-    // ÉTAPE 2 : Échanger le code contre un access_token et créer le paiement
+    // ÉTAPE 2 : Échanger le code contre un access_token et créer le paiement (avec timeout 30s)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
     const response = await fetch(`${SUPABASE_URL}/functions/v1/edenred-oauth-callback`, {
       method: 'POST',
       headers: {
@@ -2171,8 +2197,11 @@ async function handleEdenredOAuthCallback() {
         orderNum: paymentData.orderNum, // TODO: Remove after CSRF validation fixed
         total: paymentData.total,
         redirectUri: paymentData.redirectUri
-      })
+      }),
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Erreur réseau' }));
@@ -2202,7 +2231,10 @@ async function handleEdenredOAuthCallback() {
     let errorTitle = '❌ Erreur de paiement';
     let errorMessage = e.message || 'Une erreur est survenue lors du paiement.';
 
-    if (e.message && e.message.includes('TRANSACTION_TIME_NOT_ALLOWED')) {
+    if (e.name === 'AbortError') {
+      errorTitle = '⏱️ Délai dépassé';
+      errorMessage = 'Le serveur de paiement ne répond pas.<br><br>Veuillez vérifier votre connexion et réessayer, ou utiliser une carte bancaire.';
+    } else if (e.message && e.message.includes('TRANSACTION_TIME_NOT_ALLOWED')) {
       errorTitle = '⏰ Paiement non autorisé';
       errorMessage = 'Les cartes restaurant ne peuvent être utilisées que <strong>du lundi au vendredi</strong>.<br><br>Merci de réessayer en semaine ou d\'utiliser une carte bancaire.';
     } else if (e.message && e.message.includes('LIMIT_EXCEEDED')) {

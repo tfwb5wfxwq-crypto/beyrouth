@@ -24,7 +24,7 @@ BEGIN
   SET archived = true
   WHERE archived = false
     AND created_at < NOW() - INTERVAL '365 days'
-    AND statut IN ('recuperee', 'annulee');
+    AND statut IN ('recuperee', 'cancelled');
 
   GET DIAGNOSTICS count_archived = ROW_COUNT;
 

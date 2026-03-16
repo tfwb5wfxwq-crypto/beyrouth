@@ -25,7 +25,7 @@ serve(async (req) => {
         JSON.stringify({
           success: true,
           token,
-          expiresIn: 315360000 // 10 ans (jamais besoin de se reconnecter)
+          expiresIn: 604800 // 7 jours (équilibre sécurité/UX)
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -57,22 +57,28 @@ serve(async (req) => {
       )
     }
 
-    // Construire le récapitulatif des items
+    // Construire le récapitulatif des items (avec fallback qty/quantite, name/nom, price/prix)
     const itemsHtml = order.items.map((item: any) => {
+      const qty = item.qty || item.quantite || 1
+      const name = item.name || item.nom || 'Article'
+      const price = item.price || item.prix || 0
+
       let html = `
       <tr style="border-bottom: 1px solid #f0f0f0;">
-        <td style="padding: 12px 0; font-size: 14px; color: #1a1a1a;">${item.quantite}× ${item.nom}</td>
-        <td style="padding: 12px 0; text-align: right; font-size: 14px; color: #1a1a1a; font-weight: 500;">${(item.prix * item.quantite).toFixed(2)}€</td>
+        <td style="padding: 12px 0; font-size: 14px; color: #1a1a1a;">${qty}× ${name}</td>
+        <td style="padding: 12px 0; text-align: right; font-size: 14px; color: #1a1a1a; font-weight: 500;">${(price * qty).toFixed(2)}€</td>
       </tr>
       `
 
       // Ajouter les suppléments si présents
       if (item.supplements && item.supplements.length > 0) {
         item.supplements.forEach((supp: any) => {
+          const suppName = supp.name || supp.nom || 'Supplément'
+          const suppPrice = supp.price || supp.prix || 0
           html += `
       <tr style="border-bottom: 1px solid #f0f0f0;">
-        <td style="padding: 8px 0 8px 20px; font-size: 13px; color: #666;">+ ${supp.nom}</td>
-        <td style="padding: 8px 0; text-align: right; font-size: 13px; color: #666;">${supp.prix.toFixed(2)}€</td>
+        <td style="padding: 8px 0 8px 20px; font-size: 13px; color: #666;">+ ${suppName}</td>
+        <td style="padding: 8px 0; text-align: right; font-size: 13px; color: #666;">${suppPrice.toFixed(2)}€</td>
       </tr>
           `
         })
@@ -81,8 +87,11 @@ serve(async (req) => {
       return html
     }).join('')
 
-    // Formater l'heure de retrait
-    const pickupText = order.heure_retrait || 'Dès que possible'
+    // Formater l'heure de retrait (convertir "asap" en texte clair)
+    let pickupText = order.heure_retrait || 'Dès que possible'
+    if (pickupText === 'asap' || pickupText === 'ASAP') {
+      pickupText = 'Dès que possible'
+    }
 
     // Calculer TVA (10% restauration)
     const totalTTC = order.total

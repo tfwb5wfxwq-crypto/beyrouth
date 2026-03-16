@@ -1713,12 +1713,24 @@ function getElapsedTime(order) {
     return `⏰ Retard +${mins} min`;
   }
 
-  // Pour les commandes urgentes/normales : "Dans X min"
+  // Pour les commandes urgentes/normales : "Dans X min" ou "Prêt à HH:MM"
   if (urgency === 'urgent' || urgency === 'normal') {
     const pickupTime = parsePickupTime(order);
     const diffMs = pickupTime - now;
     const mins = Math.floor(diffMs / 60000);
-    if (mins < 1) return '⏰ Maintenant !';
+
+    // Si moins d'1 min ou ASAP : afficher "Prêt à HH:MM" au lieu de "Maintenant !"
+    if (mins < 1 || order.heure_retrait === 'asap') {
+      // Calculer l'heure de prêt (now + 5-20 min selon heure)
+      const readyTime = new Date(now.getTime());
+      const hour = now.getHours();
+      const isRush = (hour === 12 && now.getMinutes() >= 0) || (hour === 13 && now.getMinutes() <= 30);
+      readyTime.setMinutes(readyTime.getMinutes() + (isRush ? 20 : 5));
+      const h = readyTime.getHours().toString().padStart(2, '0');
+      const m = readyTime.getMinutes().toString().padStart(2, '0');
+      return `⏰ Prêt à ${h}h${m}`;
+    }
+
     if (mins < 60) return `Dans ${mins} min`;
     const hours = Math.floor(mins / 60);
     return `Dans ${hours}h${mins % 60 > 0 ? (mins % 60).toString().padStart(2,'0') : ''}`;
@@ -2366,9 +2378,10 @@ function subscribeRealtime() {
 function showToast(message, type = 'info') {
   const toast = document.createElement('div');
   toast.textContent = message;
+  const bgColor = type === 'success' ? '#22c55e' : type === 'warning' ? '#f59e0b' : type === 'error' ? '#ef4444' : '#3b82f6';
   toast.style.cssText = `
     position:fixed;bottom:80px;right:24px;z-index:9999;
-    background:${type === 'success' ? '#22c55e' : type === 'warning' ? '#f59e0b' : '#3b82f6'};
+    background:${bgColor};
     color:#fff;padding:16px 24px;border-radius:12px;
     box-shadow:0 4px 12px rgba(0,0,0,0.2);font-weight:600;font-size:0.95rem;
     animation:slideIn 0.3s ease;max-width:400px;
@@ -2378,52 +2391,6 @@ function showToast(message, type = 'info') {
     toast.style.animation = 'fadeOut 0.3s ease';
     setTimeout(() => toast.remove(), 300);
   }, 3000);
-}
-
-function playAlert() {
-  // Sonnette agréable (ding-dong) avec Web Audio API
-  try {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-    // Fonction pour créer une note avec fade-out doux
-    const playNote = (startTime, frequency, duration, fadeOutDuration = 0.15) => {
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      oscillator.frequency.value = frequency;
-      oscillator.type = 'sine';
-
-      // Envelope ADSR avec fade-out progressif
-      const now = audioContext.currentTime + startTime;
-      gainNode.gain.setValueAtTime(0, now);
-      gainNode.gain.linearRampToValueAtTime(0.5, now + 0.02); // Attack rapide
-      gainNode.gain.linearRampToValueAtTime(0.45, now + duration - fadeOutDuration); // Sustain
-      gainNode.gain.linearRampToValueAtTime(0, now + duration); // Release doux
-
-      oscillator.start(now);
-      oscillator.stop(now + duration + 0.01); // Petit buffer pour éviter coupure
-    };
-
-    // Ding-dong agréable avec fade-out progressif
-    playNote(0, 659.25, 0.35, 0.12);    // Ding (E5) - fade-out 120ms
-    playNote(0.15, 523.25, 0.55, 0.2);  // Dong (C5) - fade-out 200ms plus doux
-  } catch (err) {
-    console.error('Erreur Web Audio API:', err);
-  }
-
-  // Vibrate on mobile
-  if (navigator.vibrate) navigator.vibrate([200,100,200]);
-
-  // Notification native
-  const lastOrder = orders[0];
-  if (lastOrder) {
-    const title = '🔔 Nouvelle commande !';
-    const body = `Commande #${lastOrder.numero} - ${lastOrder.client_nom || 'Client'}\n${lastOrder.total?.toFixed(2)}€ · Retrait: ${lastOrder.heure_retrait === 'asap' ? 'ASAP' : lastOrder.heure_retrait}`;
-    showNativeNotification(title, body);
-  }
 }
 
 // ===== RESCHEDULE ORDER =====
@@ -2467,19 +2434,65 @@ function cancelOrder(orderId) {
   const modal = document.createElement('div');
   modal.className = 'modal-overlay';
   modal.innerHTML = `
-    <div class="modal-box">
-      <div class="modal-title">⚠️ Annuler la commande ${order.numero} ?</div>
-      <p style="text-align:center;color:#666;margin-bottom:20px;">Cette action est irréversible.</p>
+    <div class="modal-box" style="max-width:500px;">
+      <div class="modal-title">⚠️ Annuler la commande ${order.numero}</div>
+      <p style="text-align:center;color:#666;margin-bottom:20px;">Merci de préciser la raison de l'annulation :</p>
+
+      <!-- Raisons pré-remplies -->
+      <div style="margin-bottom:20px;">
+        <label style="display:block;margin-bottom:12px;cursor:pointer;padding:12px;background:#f5f5f5;border-radius:8px;border:2px solid transparent;transition:all 0.2s;" onclick="this.querySelector('input').checked=true;this.style.borderColor='#D4A853';document.querySelectorAll('.cancel-reason-option').forEach(el=>el.style.borderColor='transparent');" class="cancel-reason-option">
+          <input type="radio" name="cancel-reason" value="Client a annulé sa commande" style="margin-right:8px;">
+          <span style="font-weight:500;">Client a annulé sa commande</span>
+        </label>
+
+        <label style="display:block;margin-bottom:12px;cursor:pointer;padding:12px;background:#f5f5f5;border-radius:8px;border:2px solid transparent;transition:all 0.2s;" onclick="this.querySelector('input').checked=true;this.style.borderColor='#D4A853';document.querySelectorAll('.cancel-reason-option').forEach(el=>el.style.borderColor='transparent');" class="cancel-reason-option">
+          <input type="radio" name="cancel-reason" value="Ingrédient ou plat indisponible" style="margin-right:8px;">
+          <span style="font-weight:500;">Ingrédient ou plat indisponible</span>
+        </label>
+
+        <label style="display:block;margin-bottom:12px;cursor:pointer;padding:12px;background:#f5f5f5;border-radius:8px;border:2px solid transparent;transition:all 0.2s;" onclick="this.querySelector('input').checked=true;this.style.borderColor='#D4A853';document.querySelectorAll('.cancel-reason-option').forEach(el=>el.style.borderColor='transparent');" class="cancel-reason-option">
+          <input type="radio" name="cancel-reason" value="Erreur sur la commande" style="margin-right:8px;">
+          <span style="font-weight:500;">Erreur sur la commande</span>
+        </label>
+
+        <label style="display:block;margin-bottom:12px;cursor:pointer;padding:12px;background:#f5f5f5;border-radius:8px;border:2px solid transparent;transition:all 0.2s;" onclick="this.querySelector('input').checked=true;this.style.borderColor='#D4A853';document.querySelectorAll('.cancel-reason-option').forEach(el=>el.style.borderColor='transparent');document.getElementById('cancel-custom-reason').style.display='block';" class="cancel-reason-option">
+          <input type="radio" name="cancel-reason" value="other" style="margin-right:8px;">
+          <span style="font-weight:500;">Autre raison (préciser)</span>
+        </label>
+
+        <textarea id="cancel-custom-reason" placeholder="Précisez la raison..." style="display:none;width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;resize:vertical;min-height:80px;font-family:inherit;font-size:14px;margin-top:8px;"></textarea>
+      </div>
+
       <div class="modal-buttons">
-        <button class="modal-btn modal-btn-secondary" onclick="this.closest('.modal-overlay').remove()">Non, garder</button>
-        <button class="modal-btn modal-btn-primary" style="background:#1A1A1A" onclick="confirmCancel(${orderId})">Oui, annuler</button>
+        <button class="modal-btn modal-btn-secondary" onclick="this.closest('.modal-overlay').remove()">Annuler</button>
+        <button class="modal-btn modal-btn-primary" style="background:#ef4444;" onclick="confirmCancelWithReason(${orderId})">Confirmer l'annulation</button>
       </div>
     </div>
   `;
   document.body.appendChild(modal);
 }
 
-async function confirmCancel(orderId) {
+function confirmCancelWithReason(orderId) {
+  const selectedReason = document.querySelector('input[name="cancel-reason"]:checked');
+  if (!selectedReason) {
+    showToast('⚠️ Veuillez sélectionner une raison', 'warning');
+    return;
+  }
+
+  let reason = selectedReason.value;
+  if (reason === 'other') {
+    const customReason = document.getElementById('cancel-custom-reason').value.trim();
+    if (!customReason) {
+      showToast('⚠️ Veuillez préciser la raison', 'warning');
+      return;
+    }
+    reason = customReason;
+  }
+
+  confirmCancel(orderId, reason);
+}
+
+async function confirmCancel(orderId, cancellationReason = '') {
   const order = orders.find(o => o.id === orderId);
   if (!order) return;
 
@@ -2487,10 +2500,13 @@ async function confirmCancel(orderId) {
     // 1. Mettre en statut "cancelled" pour garder l'historique
     await sb.from('orders').update({statut: 'cancelled'}).eq('id', orderId);
 
-    // 2. Envoyer email d'annulation
+    // 2. Envoyer email d'annulation avec la raison
     try {
       const { data, error } = await sb.functions.invoke('send-cancellation-email', {
-        body: { orderId: orderId }
+        body: {
+          orderId: orderId,
+          cancellationReason: cancellationReason
+        }
       });
       if (error) throw error;
       console.log('✅ Email d\'annulation envoyé');
@@ -2511,7 +2527,7 @@ async function confirmCancel(orderId) {
         console.log('✅ Remboursement PayGreen demandé');
       } catch (err) {
         console.error('❌ Erreur remboursement PayGreen:', err);
-        alert('⚠️ Commande annulée mais remboursement à faire manuellement via dashboard PayGreen');
+        showToast('⚠️ Remboursement à faire manuellement via dashboard PayGreen', 'warning');
       }
     } else if (order.edenred_payment_id) {
       // Remboursement Edenred (Ticket Restaurant)
@@ -2520,11 +2536,11 @@ async function confirmCancel(orderId) {
         console.log('✅ Remboursement Edenred demandé');
       } catch (err) {
         console.error('❌ Erreur remboursement Edenred:', err);
-        alert('⚠️ Commande annulée mais remboursement à faire manuellement via portail Edenred');
+        showToast('⚠️ Remboursement à faire manuellement via portail Edenred', 'warning');
       }
     } else if (isPaid) {
       console.warn('⚠️  Commande payée mais aucun ID de transaction trouvé - remboursement manuel requis');
-      alert('⚠️ Commande annulée mais aucun ID de transaction trouvé.\nVeuillez effectuer le remboursement manuellement.');
+      showToast('⚠️ Aucun ID de transaction - remboursement manuel requis', 'warning');
     }
 
     // 4. Remove from local list (ne s'affiche plus dans "En cours")
@@ -2533,10 +2549,10 @@ async function confirmCancel(orderId) {
     updateTopbarStats();
     document.querySelector('.modal-overlay').remove();
 
-    alert('✅ Commande annulée et email envoyé au client');
+    showToast('✅ Commande annulée et email envoyé au client', 'success');
   } catch (err) {
     console.error('Erreur annulation:', err);
-    alert('❌ Erreur lors de l\'annulation');
+    showToast('❌ Erreur lors de l\'annulation', 'error');
     document.querySelector('.modal-overlay')?.remove();
   }
 }
@@ -2843,6 +2859,81 @@ function closeClientDetail() {
   document.getElementById('clientDetailOverlay').style.display = 'none';
 }
 
+// ============ AUDIO ACTIVATION ============
+// Variable globale pour tracker si l'audio est activé
+let audioContext = null;
+let audioActivated = false;
+
+function activateAudio() {
+  if (audioActivated) return;
+
+  // Créer AudioContext (nécessite une interaction utilisateur)
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  audioContext.resume().then(() => {
+    audioActivated = true;
+    console.log('🔊 Audio activé');
+
+    // Fermer la bannière
+    const banner = document.getElementById('audioActivationBanner');
+    if (banner) banner.remove();
+
+    // Sauvegarder dans localStorage
+    localStorage.setItem('audioActivated', 'true');
+
+    // Jouer un son de confirmation
+    playAlert();
+  });
+}
+
+function playAlert() {
+  // Sonnette agréable (ding-dong) avec Web Audio API
+  if (!audioActivated || !audioContext) {
+    console.warn('🔇 Audio non activé, impossible de jouer le son');
+    // Continuer pour vibration et notification native
+  } else {
+    try {
+      // Fonction pour créer une note avec fade-out doux
+      const playNote = (startTime, frequency, duration, fadeOutDuration = 0.15) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.value = frequency;
+        oscillator.type = 'sine';
+
+        // Envelope ADSR avec fade-out progressif
+        const now = audioContext.currentTime + startTime;
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(0.5, now + 0.02); // Attack rapide
+        gainNode.gain.linearRampToValueAtTime(0.45, now + duration - fadeOutDuration); // Sustain
+        gainNode.gain.linearRampToValueAtTime(0, now + duration); // Release doux
+
+        oscillator.start(now);
+        oscillator.stop(now + duration + 0.01); // Petit buffer pour éviter coupure
+      };
+
+      // Ding-dong agréable avec fade-out progressif
+      playNote(0, 659.25, 0.35, 0.12);    // Ding (E5) - fade-out 120ms
+      playNote(0.15, 523.25, 0.55, 0.2);  // Dong (C5) - fade-out 200ms plus doux
+    } catch (err) {
+      console.error('Erreur Web Audio API:', err);
+    }
+  }
+
+  // Vibrate on mobile
+  if (navigator.vibrate) navigator.vibrate([200,100,200]);
+
+  // Notification native
+  const lastOrder = orders[0];
+  if (lastOrder) {
+    const title = '🔔 Nouvelle commande !';
+    const body = `Commande #${lastOrder.numero} - ${lastOrder.client_nom || 'Client'}\n${lastOrder.total?.toFixed(2)}€ · Retrait: ${lastOrder.heure_retrait === 'asap' ? 'ASAP' : lastOrder.heure_retrait}`;
+    showNativeNotification(title, body);
+  }
+}
+
 // ============ FORCE CACHE CLEAR ON RELOAD ============
 // Vide automatiquement tous les caches à chaque chargement
 // pour garantir que pull-to-refresh charge toujours la dernière version
@@ -2852,6 +2943,49 @@ window.addEventListener('load', () => {
       keys.forEach(key => caches.delete(key));
       console.log('🔄 Cache vidé pour garantir la dernière version');
     });
+  }
+
+  // Vérifier si audio déjà activé (localStorage)
+  if (localStorage.getItem('audioActivated') === 'true') {
+    audioActivated = true;
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    audioContext.resume();
+  } else {
+    // Afficher bannière d'activation audio
+    const banner = document.createElement('div');
+    banner.id = 'audioActivationBanner';
+    banner.style.cssText = `
+      position: fixed;
+      top: 60px;
+      left: 0;
+      right: 0;
+      background: linear-gradient(135deg, #D4A853 0%, #C89840 100%);
+      color: #1a1a1a;
+      padding: 16px 24px;
+      text-align: center;
+      z-index: 9998;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    `;
+    banner.innerHTML = `
+      <span style="font-size: 24px;">🔔</span>
+      <span>Activer les notifications sonores pour les nouvelles commandes</span>
+      <button onclick="activateAudio()" style="
+        background: #1a1a1a;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 14px;
+      ">Activer</button>
+    `;
+    document.body.appendChild(banner);
   }
 });
 </script>

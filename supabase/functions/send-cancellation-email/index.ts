@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { orderId } = await req.json()
+    const { orderId, cancellationReason } = await req.json()
 
     if (!orderId) {
       return new Response(
@@ -96,7 +96,7 @@ serve(async (req) => {
     <div style="padding: 30px 20px; background: #fafafa;">
       <h3 style="margin: 0 0 15px 0; font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Raison de l'annulation</h3>
       <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.6;">
-        Cette annulation peut être due à un problème de disponibilité ou une erreur technique. Nous nous excusons sincèrement pour ce désagrément.
+        ${cancellationReason || 'Cette annulation peut être due à un problème de disponibilité ou une erreur technique. Nous nous excusons sincèrement pour ce désagrément.'}
       </p>
     </div>
 
@@ -158,10 +158,13 @@ serve(async (req) => {
       throw new Error('Erreur envoi email')
     }
 
-    // Marquer l'email comme envoyé
+    // Marquer l'email comme envoyé + sauvegarder la raison
     await supabase
       .from('orders')
-      .update({ cancellation_email_sent_at: new Date().toISOString() })
+      .update({
+        cancellation_email_sent_at: new Date().toISOString(),
+        cancellation_reason: cancellationReason || null
+      })
       .eq('id', orderId)
 
     console.log(`✅ Email d'annulation envoyé pour ${order.numero}`)

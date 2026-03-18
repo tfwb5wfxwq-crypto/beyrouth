@@ -2011,28 +2011,38 @@ function initPayGreen(method) {
 
     // Écouter les events
     window.paygreenjs.attachEventListener(window.paygreenjs.Events.FULL_PAYMENT_DONE, (event) => {
+      // Afficher le loader uniquement quand le paiement est validé
+      const btn = document.getElementById('payBtn');
+      if (btn) {
+        btn.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="animation:spin 1s linear infinite;">
+              <circle cx="10" cy="10" r="8" stroke="white" stroke-width="3" stroke-linecap="round" stroke-dasharray="40 20" opacity="0.9"/>
+            </svg>
+            <span>Traitement en cours<span class="dots"></span></span>
+          </div>
+        `;
+        btn.disabled = true;
+        btn.style.cursor = 'wait';
+      }
       cancelPayment();
       showConfirmation(currentPaymentData.orderNum);
     });
 
     window.paygreenjs.attachEventListener(window.paygreenjs.Events.ERROR, (event) => {
       console.error('PayGreen error:', event);
-      showToast('Erreur : ' + (event.message || 'Réessayez'), 'error');
+      // Réactiver le bouton en cas d'erreur
+      const btn = document.getElementById('payBtn');
+      if (btn) {
+        btn.innerHTML = 'Payer maintenant';
+        btn.disabled = false;
+        btn.style.cursor = 'pointer';
+      }
+      showToast('Erreur : ' + (event.message || 'Vérifiez vos informations de carte'), 'error');
     });
 
-    // Bouton payer
+    // Bouton payer : ne pas afficher de loader, laisser PayGreen valider d'abord
     document.getElementById('payBtn').onclick = () => {
-      const btn = document.getElementById('payBtn');
-      btn.innerHTML = `
-        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="animation:spin 1s linear infinite;">
-            <circle cx="10" cy="10" r="8" stroke="white" stroke-width="3" stroke-linecap="round" stroke-dasharray="40 20" opacity="0.9"/>
-          </svg>
-          <span>Traitement en cours<span class="dots"></span></span>
-        </div>
-      `;
-      btn.disabled = true;
-      btn.style.cursor = 'wait';
       window.paygreenjs.submitPayment();
     };
 

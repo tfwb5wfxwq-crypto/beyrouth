@@ -2041,18 +2041,21 @@ function initPayGreen(method) {
     window.paygreenjs.on(window.paygreenjs.Events.TOKEN_FAIL, (event) => {
       if (paymentTimeout) clearTimeout(paymentTimeout);
       console.error('PayGreen TOKEN_FAIL:', event);
+      console.error('PayGreen TOKEN_FAIL detail:', event.detail);
       resetPayButton();
 
       const errorType = event.detail?.error || event.error;
-      let message = 'Carte invalide';
+      let message = 'Vérifiez vos informations de carte';
 
       if (errorType === 'tokenize_invalid_card') {
         message = 'Numéro de carte invalide';
       } else if (errorType === 'tokenize_unauthorized') {
         message = 'Session expirée, rechargez la page';
+      } else if (errorType) {
+        message = 'Carte invalide : ' + errorType;
       }
 
-      showToast('Erreur : ' + message, 'error');
+      showToast(message, 'error');
     });
 
     // Event PAYMENT_FAIL : paiement refusé par la banque

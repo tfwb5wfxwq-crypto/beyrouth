@@ -6,9 +6,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const EDENRED_AUTHORIZE_URL = 'https://sso.sbx.edenred.io/connect/authorize'
 const REDIRECT_URI = 'https://beyrouth.express/?edenred_oauth=1'
 
-// CORS wildcard temporaire (TODO: restreindre à beyrouth.express après debug)
+// CORS restreint à beyrouth.express
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://beyrouth.express',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
@@ -35,17 +35,38 @@ serve(async (req) => {
       throw new Error('EDENRED_AUTH_CLIENT_ID manquant')
     }
 
-    // Générer un state aléatoire pour protection CSRF (TODO: store in DB for validation)
+    // Créer client Supabase pour stocker le state CSRF
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    // Générer un state aléatoire cryptographique pour protection CSRF
     const state = crypto.randomUUID()
 
-    // Générer l'URL d'autorisation OAuth
+    // Stocker le state en base avec le numéro de commande (expire dans 15 min)
+    const { error: insertError } = await supabase
+      .from('oauth_states')
+      .insert({
+        state: state,
+        order_num: orderNum
+      })
+
+    if (insertError) {
+      console.error('❌ Erreur stockage state CSRF:', insertError)
+      throw new Error('Impossible de générer le token de sécurité')
+    }
+
+    console.log(`🔐 Token CSRF généré et stocké pour commande ${orderNum}`)
+
+    // Générer l'URL d'autorisation OAuth avec le vrai state aléatoire
     const authParams = new URLSearchParams({
       client_id: clientId,
       redirect_uri: REDIRECT_URI,
       response_type: 'code',
       scope: 'openid offline_access edg-xp-mealdelivery-api',
       acr_values: 'tenant:fr-ctrtku',
-      state: orderNum // Temporary: use orderNum as state (TODO: use random token + DB storage)
+      state: state // Utilise le token CSRF aléatoire
     })
 
     const authorizationUrl = `${EDENRED_AUTHORIZE_URL}?${authParams.toString()}`

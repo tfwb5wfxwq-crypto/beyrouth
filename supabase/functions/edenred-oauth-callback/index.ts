@@ -7,9 +7,9 @@ const EDENRED_AUTH_URL = 'https://sso.sbx.edenred.io/connect/token'
 const EDENRED_PAYMENT_URL = 'https://directpayment.stg.eu.edenred.io/v2/transactions'
 const EDENRED_MID = '1418943' // Merchant ID UAT
 
-// CORS wildcard temporaire (TODO: restreindre à beyrouth.express après debug)
+// CORS restreint à beyrouth.express
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://beyrouth.express',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
@@ -32,13 +32,63 @@ serve(async (req) => {
 
     console.log(`🔐 OAuth callback Edenred: échange code pour commande ${orderNum}`)
 
-    // TODO: Re-enable CSRF validation with oauth_states table once debugged
-
-    // Créer client Supabase (pour pouvoir mettre à jour la commande en cas d'erreur)
+    // Créer client Supabase
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
+
+    // ===== VALIDATION CSRF : Vérifier que le state existe et correspond au numéro de commande =====
+    if (state) {
+      const { data: storedState, error: stateError } = await supabase
+        .from('oauth_states')
+        .select('order_num, expires_at')
+        .eq('state', state)
+        .maybeSingle()
+
+      if (stateError) {
+        console.error('❌ Erreur lecture state CSRF:', stateError)
+        return new Response(
+          JSON.stringify({ error: 'Erreur validation sécurité' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Vérifier que le state existe
+      if (!storedState) {
+        console.error('❌ State CSRF invalide ou expiré:', state)
+        return new Response(
+          JSON.stringify({ error: 'Token de sécurité invalide ou expiré' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Vérifier que le state n'est pas expiré
+      if (new Date(storedState.expires_at) < new Date()) {
+        console.error('❌ State CSRF expiré:', state)
+        // Supprimer le state expiré
+        await supabase.from('oauth_states').delete().eq('state', state)
+        return new Response(
+          JSON.stringify({ error: 'Token de sécurité expiré' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Vérifier que le numéro de commande correspond
+      if (storedState.order_num !== orderNum) {
+        console.error(`❌ Mismatch order_num: state=${storedState.order_num}, fourni=${orderNum}`)
+        return new Response(
+          JSON.stringify({ error: 'Token de sécurité ne correspond pas à la commande' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Supprimer le state (usage unique)
+      await supabase.from('oauth_states').delete().eq('state', state)
+      console.log(`✅ Validation CSRF OK pour commande ${orderNum}`)
+    } else {
+      console.warn('⚠️ Pas de state fourni (ancienne version client ?)')
+    }
 
     // Récupérer credentials depuis Supabase Secrets
     const authClientId = Deno.env.get('EDENRED_AUTH_CLIENT_ID') ?? ''

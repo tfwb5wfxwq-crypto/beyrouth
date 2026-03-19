@@ -378,7 +378,7 @@ a{color:inherit;text-decoration:none}
 }
 
 /* ===== TOAST NOTIFICATIONS ===== */
-#toastContainer{position:fixed;bottom:calc(90px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);z-index:10000;display:flex;flex-direction:column;gap:12px;pointer-events:none;width:calc(100% - 32px);max-width:400px}
+#toastContainer{position:fixed;bottom:calc(90px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);z-index:99999;display:flex;flex-direction:column;gap:12px;pointer-events:none;width:calc(100% - 32px);max-width:400px}
 .toast{background:var(--dark);color:#fff;padding:16px 20px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.2),0 0 0 1px rgba(255,255,255,.1) inset;font-size:.9rem;font-weight:500;pointer-events:auto;transform:translateY(100px);opacity:0;transition:all .4s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;gap:12px;line-height:1.4}
 .toast.show{transform:translateY(0);opacity:1}
 .toast.hide{transform:translateY(20px);opacity:0}
@@ -917,23 +917,18 @@ function subscribeRealtime() {
 
 // ===== TOAST NOTIFICATIONS =====
 function showToast(message, type = 'info') {
-  console.log('🟢 [TOAST START] message:', message, 'type:', type);
-
   // Vibration selon le type
   if (type === 'error' || type === 'warning') haptic.trigger('error');
   else if (type === 'success') haptic.trigger('success');
 
   const container = document.getElementById('toastContainer');
-  console.log('🟢 [TOAST] container:', container);
-
   if (!container) {
-    console.error('❌ [TOAST] Container toastContainer introuvable !');
+    console.error('❌ Toast container introuvable');
     return;
   }
 
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  console.log('🟢 [TOAST] toast créé, className:', toast.className);
 
   const icons = {
     error: '❌',
@@ -948,23 +943,15 @@ function showToast(message, type = 'info') {
   `;
 
   container.appendChild(toast);
-  console.log('🟢 [TOAST] toast ajouté au container, enfants:', container.children.length);
 
   // Animation d'entrée
-  setTimeout(() => {
-    toast.classList.add('show');
-    console.log('🟢 [TOAST] classe "show" ajoutée, classes:', toast.className);
-  }, 10);
+  setTimeout(() => toast.classList.add('show'), 10);
 
   // Animation de sortie et suppression
   setTimeout(() => {
     toast.classList.add('hide');
     toast.classList.remove('show');
-    console.log('🟢 [TOAST] animation sortie');
-    setTimeout(() => {
-      toast.remove();
-      console.log('🟢 [TOAST] toast supprimé');
-    }, 400);
+    setTimeout(() => toast.remove(), 400);
   }, 3500);
 }
 
@@ -2073,7 +2060,6 @@ function initPayGreen(method) {
         message = 'Carte invalide : ' + errorType;
       }
 
-      console.log('🔴 AFFICHAGE TOAST:', message);
       showToast(message, 'error');
     });
 

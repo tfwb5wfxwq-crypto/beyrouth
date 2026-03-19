@@ -917,13 +917,23 @@ function subscribeRealtime() {
 
 // ===== TOAST NOTIFICATIONS =====
 function showToast(message, type = 'info') {
+  console.log('🟢 [TOAST START] message:', message, 'type:', type);
+
   // Vibration selon le type
   if (type === 'error' || type === 'warning') haptic.trigger('error');
   else if (type === 'success') haptic.trigger('success');
 
   const container = document.getElementById('toastContainer');
+  console.log('🟢 [TOAST] container:', container);
+
+  if (!container) {
+    console.error('❌ [TOAST] Container toastContainer introuvable !');
+    return;
+  }
+
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
+  console.log('🟢 [TOAST] toast créé, className:', toast.className);
 
   const icons = {
     error: '❌',
@@ -938,15 +948,23 @@ function showToast(message, type = 'info') {
   `;
 
   container.appendChild(toast);
+  console.log('🟢 [TOAST] toast ajouté au container, enfants:', container.children.length);
 
   // Animation d'entrée
-  setTimeout(() => toast.classList.add('show'), 10);
+  setTimeout(() => {
+    toast.classList.add('show');
+    console.log('🟢 [TOAST] classe "show" ajoutée, classes:', toast.className);
+  }, 10);
 
   // Animation de sortie et suppression
   setTimeout(() => {
     toast.classList.add('hide');
     toast.classList.remove('show');
-    setTimeout(() => toast.remove(), 400);
+    console.log('🟢 [TOAST] animation sortie');
+    setTimeout(() => {
+      toast.remove();
+      console.log('🟢 [TOAST] toast supprimé');
+    }, 400);
   }, 3500);
 }
 

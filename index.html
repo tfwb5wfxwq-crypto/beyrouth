@@ -1032,6 +1032,46 @@ function renderMenu() {
   });
 }
 
+// Update juste le stepper d'un item (pas de re-render complet, évite flash blanc)
+function updateItemQuantity(itemId) {
+  const card = document.querySelector(`.menu-card[data-id="${itemId}"]`);
+  if (!card) return;
+
+  const qty = getCartQty(itemId);
+  const item = menuItems.find(i => i.id === itemId);
+  if (!item) return;
+
+  // Chercher ou créer le stepper container
+  let stepperContainer = card.querySelector('.menu-card-stepper');
+  let addButton = card.querySelector('.menu-card-add');
+
+  if (qty > 0) {
+    // Afficher le stepper
+    if (!stepperContainer) {
+      // Créer le stepper si il n'existe pas
+      if (addButton) addButton.remove();
+      const html = `
+        <div class="menu-card-stepper">
+          <button onclick="event.stopPropagation();changeQty(${itemId},-1)" ${!item.disponible ? 'disabled' : ''}>&minus;</button>
+          <span>${qty}</span>
+          <button onclick="event.stopPropagation();addToCart(${itemId})" ${!item.disponible ? 'disabled' : ''}>+</button>
+        </div>`;
+      card.insertAdjacentHTML('beforeend', html);
+    } else {
+      // Mettre à jour juste le nombre
+      const qtySpan = stepperContainer.querySelector('span');
+      if (qtySpan) qtySpan.textContent = qty;
+    }
+  } else {
+    // Cacher le stepper, afficher le bouton +
+    if (stepperContainer) {
+      stepperContainer.remove();
+      const html = `<button class="menu-card-add" onclick="event.stopPropagation();addToCart(${itemId})" ${!item.disponible ? 'disabled' : ''}>+</button>`;
+      card.insertAdjacentHTML('beforeend', html);
+    }
+  }
+}
+
 function renderNavCats() {
   const nav = document.getElementById('navCats');
   nav.innerHTML = categories.map(cat =>
@@ -1065,7 +1105,7 @@ function addToCart(itemId) {
     });
   }
   haptic.trigger('success'); // Vibration ajout panier
-  saveCart(); updateCartUI(); renderMenu();
+  saveCart(); updateCartUI(); updateItemQuantity(itemId);
   if (isNew) showUpsellBubble(itemId);
 }
 
@@ -1239,7 +1279,7 @@ function changeQty(itemId, delta) {
   haptic.trigger('nudge'); // Vibration légère +/-
   item.qty += delta;
   if (item.qty <= 0) cart = cart.filter(c => c.id !== itemId);
-  saveCart(); updateCartUI(); renderMenu();
+  saveCart(); updateCartUI(); updateItemQuantity(itemId);
 }
 
 function updateCartUI() {

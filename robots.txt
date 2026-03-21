@@ -1,21 +1,5 @@
-# Robots.txt - Beyrouth Express
-# Restaurant libanais La Défense - Click & Collect
-
 User-agent: *
 Allow: /
-Allow: /index.html
-Allow: /traiteur/
-
-# Pages privées - Ne pas indexer
 Disallow: /gestion-be-2026/
-Disallow: /commande.html
-Disallow: /confirmation.html
-Disallow: /test-images.html
-Disallow: /flyer-beyrouth.html
 
-# Fichiers temporaires
-Disallow: /*.tmp
-Disallow: /*.log
-
-# Sitemap
 Sitemap: https://beyrouth.express/sitemap.xml

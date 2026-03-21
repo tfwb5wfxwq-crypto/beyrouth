@@ -7,6 +7,23 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// 🔒 SÉCURITÉ : Vérifier si le restaurant est ouvert (Lun-Ven 11h30-21h00)
+function isOpenNow(): boolean {
+  const now = new Date()
+  // Convert to Paris timezone (UTC+1 or UTC+2 depending on DST)
+  const parisTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }))
+  const day = parisTime.getDay() // 0=Dimanche, 1=Lundi, ..., 5=Vendredi
+  const h = parisTime.getHours()
+  const m = parisTime.getMinutes()
+  const nowMin = h * 60 + m
+
+  // Lun-Ven (1-5) de 11h30 (690 min) à 21h00 (1260 min)
+  if (day >= 1 && day <= 5) {
+    return nowMin >= 690 && nowMin < 1260
+  }
+  return false
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -127,11 +144,12 @@ serve(async (req) => {
 
     const autoAcceptEnabled = autoAcceptSetting?.value === 'true'
 
+    const isOpen = isOpenNow()
     console.log(`🤖 Auto-accept: ${autoAcceptEnabled ? 'ACTIVÉ' : 'DÉSACTIVÉ'}`)
+    console.log(`🕐 Restaurant: ${isOpen ? 'OUVERT' : 'FERMÉ'}`)
 
-    // Si AUTO-ACCEPT activé ET statut = payee : passer directement en "acceptee"
-    // (Paco contrôle l'activation via le toggle, même le week-end si il veut)
-    if (newStatus === 'payee' && !wasAlreadyPaid && autoAcceptEnabled && data && data[0]) {
+    // Si AUTO-ACCEPT activé ET restaurant OUVERT : passer directement en "acceptee"
+    if (newStatus === 'payee' && !wasAlreadyPaid && autoAcceptEnabled && isOpen && data && data[0]) {
       console.log(`🤖 Auto-accept activé, passage automatique en "acceptee" pour ${orderId}`)
 
       // Update statut à "acceptee"
@@ -154,9 +172,10 @@ serve(async (req) => {
         }
       }
     }
-    // Si AUTO-ACCEPT désactivé : envoyer email de paiement (en attente validation)
-    else if (newStatus === 'payee' && !wasAlreadyPaid && !autoAcceptEnabled && data && data[0]) {
-      console.log(`⏸️ Auto-accept désactivé → en attente validation manuelle`)
+    // Si AUTO-ACCEPT désactivé OU restaurant FERMÉ : envoyer email de paiement (en attente validation)
+    else if (newStatus === 'payee' && !wasAlreadyPaid && data && data[0]) {
+      const reason = !autoAcceptEnabled ? 'Auto-accept désactivé' : 'Restaurant fermé'
+      console.log(`⏸️ ${reason} → en attente validation manuelle`)
       try {
         const emailResponse = await supabase.functions.invoke('send-payment-confirmation', {
           body: { orderId: data[0].id }

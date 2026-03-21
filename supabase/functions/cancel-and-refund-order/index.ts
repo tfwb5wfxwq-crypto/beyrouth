@@ -13,6 +13,44 @@ serve(async (req) => {
   }
 
   try {
+    // 🔒 SÉCURITÉ : Vérifier authentification admin
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.error('❌ Tentative accès sans token')
+      return new Response(
+        JSON.stringify({ error: 'Non autorisé - token admin requis' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const adminToken = authHeader.replace('Bearer ', '')
+
+    // Créer client Supabase avec le token admin pour validation
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: authHeader }
+        }
+      }
+    )
+
+    // Vérifier que le token est valide en tentant une opération admin
+    const { data: adminCheck, error: authError } = await supabaseAuth
+      .from('settings')
+      .select('key')
+      .limit(1)
+      .maybeSingle()
+
+    if (authError) {
+      console.error('❌ Token admin invalide:', authError)
+      return new Response(
+        JSON.stringify({ error: 'Token admin invalide ou expiré' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const { orderId, reason } = await req.json()
 
     if (!orderId || !reason) {

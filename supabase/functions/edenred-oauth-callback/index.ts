@@ -2,10 +2,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// URLs Edenred UAT (Test)
-const EDENRED_AUTH_URL = 'https://sso.sbx.edenred.io/connect/token'
-const EDENRED_PAYMENT_URL = 'https://directpayment.stg.eu.edenred.io/v2/transactions'
-const EDENRED_MID = '1418943' // Merchant ID UAT
+// URLs Edenred PRODUCTION
+const EDENRED_AUTH_URL = 'https://sso.edenred.io/connect/token'
+const EDENRED_PAYMENT_URL = 'https://directpayment.eu.edenred.io/v2/transactions'
+const EDENRED_MID = '1422285' // Merchant ID PROD (SARL PAPA)
 
 // CORS restreint à beyrouth.express
 const corsHeaders = {

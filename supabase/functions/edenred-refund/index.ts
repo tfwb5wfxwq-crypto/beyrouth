@@ -2,8 +2,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// URLs Edenred UAT (Test)
-const EDENRED_REFUND_URL = 'https://directpayment.stg.eu.edenred.io/v2/transactions'
+// URLs Edenred PRODUCTION
+const EDENRED_REFUND_URL = 'https://directpayment.eu.edenred.io/v2/transactions'
 
 // CORS permissif pour beyrouth.express (avec et sans www)
 const allowedOrigins = ['https://beyrouth.express', 'https://www.beyrouth.express']

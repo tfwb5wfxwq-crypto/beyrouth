@@ -2,10 +2,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// URLs Edenred UAT (Test)
-const EDENRED_AUTH_URL = 'https://sso.sbx.edenred.io/connect/token'
-const EDENRED_PAYMENT_URL = 'https://directpayment.stg.eu.edenred.io/v2/payment'
-const EDENRED_MID = '1418943' // Merchant ID UAT
+// URLs Edenred PRODUCTION
+const EDENRED_AUTH_URL = 'https://sso.edenred.io/connect/token'
+const EDENRED_PAYMENT_URL = 'https://directpayment.eu.edenred.io/v2/payment'
+const EDENRED_MID = '1422285' // Merchant ID PROD (SARL PAPA)
 
 // Credentials depuis Supabase Secrets
 const EDENRED_AUTH_CLIENT_ID = Deno.env.get('EDENRED_AUTH_CLIENT_ID') ?? ''
@@ -14,7 +14,7 @@ const EDENRED_PAYMENT_CLIENT_ID = Deno.env.get('EDENRED_PAYMENT_CLIENT_ID') ?? '
 const EDENRED_PAYMENT_CLIENT_SECRET = Deno.env.get('EDENRED_PAYMENT_CLIENT_SECRET') ?? ''
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*', // Permet tous les domaines (GitHub Pages, www, localhost)
+  'Access-Control-Allow-Origin': 'https://beyrouth.express',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 

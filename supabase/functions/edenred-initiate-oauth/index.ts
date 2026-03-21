@@ -2,8 +2,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// URLs Edenred UAT (Test)
-const EDENRED_AUTHORIZE_URL = 'https://sso.sbx.edenred.io/connect/authorize'
+// URLs Edenred PRODUCTION
+const EDENRED_AUTHORIZE_URL = 'https://sso.edenred.io/connect/authorize'
 const REDIRECT_URI = 'https://beyrouth.express/?edenred_oauth=1'
 
 // CORS restreint à beyrouth.express

@@ -3,7 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://beyrouth.express',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
@@ -32,8 +32,8 @@ serve(async (req) => {
       throw new Error('Credentials Edenred manquants')
     }
 
-    // 1. Obtenir un access token OAuth (UAT)
-    const tokenResponse = await fetch('https://sso.sbx.edenred.io/connect/token', {
+    // 1. Obtenir un access token OAuth (PRODUCTION)
+    const tokenResponse = await fetch('https://sso.edenred.io/connect/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -54,9 +54,9 @@ serve(async (req) => {
 
     const { access_token } = await tokenResponse.json()
 
-    // 2. Appeler "Get Transaction By ID" (UAT)
+    // 2. Appeler "Get Transaction By ID" (PRODUCTION)
     const paymentResponse = await fetch(
-      `https://directpayment.stg.eu.edenred.io/v2/transactions/${transaction_id}`,
+      `https://directpayment.eu.edenred.io/v2/transactions/${transaction_id}`,
       {
         headers: {
           'Authorization': `Bearer ${access_token}`,

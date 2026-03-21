@@ -1812,12 +1812,11 @@ function updateRestoCardsAvailability() {
   const minute = now.getMinutes();
   const currentMinutes = hour * 60 + minute;
 
-  const isWeekend = day === 0 || day === 6;
-  const isWeekday = day >= 1 && day <= 5;
+  const isSunday = day === 0;
   const isOpenHours = currentMinutes >= 11 * 60 + 30 && currentMinutes <= 21 * 60; // 11h30 - 21h00
 
-  // Cartes resto bloquées si week-end OU hors horaires
-  const isBlocked = isWeekend || !isOpenHours || !isWeekday;
+  // Cartes resto bloquées si dimanche OU hors horaires (samedi autorisé aux heures d'ouverture)
+  const isBlocked = isSunday || !isOpenHours;
 
   const warning = document.getElementById('restoWeekendWarning');
   const restoCards = ['edenred', 'swile', 'conecs', 'restoflash'];
@@ -1825,8 +1824,8 @@ function updateRestoCardsAvailability() {
   if (isBlocked) {
     // Afficher le message d'avertissement adapté
     if (warning) {
-      if (isWeekend) {
-        warning.innerHTML = '⏰ <strong>Les cartes restaurant sont uniquement acceptées du lundi au vendredi.</strong><br>Veuillez utiliser une carte bancaire.';
+      if (isSunday) {
+        warning.innerHTML = '⏰ <strong>Les cartes restaurant sont acceptées du lundi au samedi de 11h30 à 21h00.</strong><br>Veuillez utiliser une carte bancaire.';
       } else {
         warning.innerHTML = '⏰ <strong>Les cartes restaurant sont uniquement acceptées de 11h30 à 21h00.</strong><br>Veuillez utiliser une carte bancaire.';
       }
@@ -1858,7 +1857,7 @@ function updateRestoCardsAvailability() {
 }
 
 function selectPaymentMethod(method) {
-  // Vérifier si c'est une carte resto ET si c'est bloqué (week-end ou hors horaires)
+  // Vérifier si c'est une carte resto ET si c'est bloqué (dimanche ou hors horaires)
   const isRestoCard = ['edenred', 'swile', 'conecs', 'restoflash'].includes(method);
 
   if (isRestoCard) {
@@ -1868,16 +1867,15 @@ function selectPaymentMethod(method) {
     const minute = now.getMinutes();
     const currentMinutes = hour * 60 + minute;
 
-    const isWeekend = day === 0 || day === 6;
-    const isWeekday = day >= 1 && day <= 5;
+    const isSunday = day === 0;
     const isOpenHours = currentMinutes >= 11 * 60 + 30 && currentMinutes <= 21 * 60; // 11h30 - 21h00
 
-    const isBlocked = isWeekend || !isOpenHours || !isWeekday;
+    const isBlocked = isSunday || !isOpenHours;
 
     if (isBlocked) {
       haptic.trigger('error');
-      if (isWeekend) {
-        showToast('⏰ Les cartes restaurant ne sont acceptées que du lundi au vendredi', 'error');
+      if (isSunday) {
+        showToast('⏰ Les cartes restaurant ne sont acceptées que du lundi au samedi de 11h30 à 21h00', 'error');
       } else {
         showToast('⏰ Les cartes restaurant ne sont acceptées que de 11h30 à 21h00', 'error');
       }

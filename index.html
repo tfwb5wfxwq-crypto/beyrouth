@@ -1002,14 +1002,7 @@ function renderMenu() {
   });
   container.innerHTML = html;
 
-  // Wait for images ONLY on first load (avoid re-hiding loader on cart updates)
-  const loader = document.getElementById('menuLoader');
-  const menu = document.getElementById('menu');
-
-  // If menu already visible, skip image loading (just updating cart quantities)
-  if (menu && menu.style.display === 'block') return;
-
-  // First load: wait for images with 3s timeout fallback
+  // Wait for all images to load before showing menu
   const images = container.querySelectorAll('img');
   const imagePromises = Array.from(images).map(img => {
     return new Promise((resolve) => {
@@ -1017,16 +1010,14 @@ function renderMenu() {
         resolve();
       } else {
         img.onload = () => resolve();
-        img.onerror = () => resolve();
+        img.onerror = () => resolve(); // Continue even if image fails to load
       }
     });
   });
 
-  // Race between image loading and 3s timeout
-  Promise.race([
-    Promise.all(imagePromises),
-    new Promise(resolve => setTimeout(resolve, 3000))
-  ]).then(() => {
+  Promise.all(imagePromises).then(() => {
+    const loader = document.getElementById('menuLoader');
+    const menu = document.getElementById('menu');
     if (loader) loader.style.display = 'none';
     if (menu) menu.style.display = 'block';
   });

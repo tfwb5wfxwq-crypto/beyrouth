@@ -2201,8 +2201,12 @@ async function confirmCancelOrder(orderId) {
   showToast(`⏳ Annulation et remboursement de ${order.numero}...`, 'info');
 
   try {
-    // Appeler Edge Function pour gérer remboursement + email
+    // Appeler Edge Function pour gérer remboursement + email (avec auth admin)
+    const adminToken = localStorage.getItem('adminToken');
     const { data, error } = await sb.functions.invoke('cancel-and-refund-order', {
+      headers: {
+        Authorization: `Bearer ${adminToken}`
+      },
       body: { orderId, reason }
     });
 

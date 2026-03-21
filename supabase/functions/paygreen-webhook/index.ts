@@ -13,40 +13,54 @@ serve(async (req) => {
   }
 
   try {
-    // Vérifier la signature HMAC
+    // 🔒 SÉCURITÉ : Vérification HMAC OBLIGATOIRE
     const signature = req.headers.get('x-paygreen-signature')
     const webhookHmac = Deno.env.get('PAYGREEN_WEBHOOK_HMAC')
 
-    if (webhookHmac && signature) {
-      const body = await req.text()
-      const encoder = new TextEncoder()
-      const key = await crypto.subtle.importKey(
-        'raw',
-        encoder.encode(webhookHmac),
-        { name: 'HMAC', hash: 'SHA-256' },
-        false,
-        ['verify']
+    // Validation HMAC obligatoire
+    if (!webhookHmac) {
+      console.error('❌ PAYGREEN_WEBHOOK_HMAC non configuré')
+      return new Response(
+        JSON.stringify({ error: 'Webhook HMAC not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
-      const signatureBuffer = Uint8Array.from(signature.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)))
-      const isValid = await crypto.subtle.verify(
-        'HMAC',
-        key,
-        signatureBuffer,
-        encoder.encode(body)
-      )
-
-      if (!isValid) {
-        console.error('Signature HMAC invalide')
-        return new Response(
-          JSON.stringify({ error: 'Invalid signature' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
-      var webhookData = JSON.parse(body)
-    } else {
-      var webhookData = await req.json()
     }
+
+    if (!signature) {
+      console.error('❌ Signature HMAC manquante dans webhook')
+      return new Response(
+        JSON.stringify({ error: 'Missing HMAC signature' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Vérifier la signature HMAC
+    const body = await req.text()
+    const encoder = new TextEncoder()
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(webhookHmac),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify']
+    )
+    const signatureBuffer = Uint8Array.from(signature.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)))
+    const isValid = await crypto.subtle.verify(
+      'HMAC',
+      key,
+      signatureBuffer,
+      encoder.encode(body)
+    )
+
+    if (!isValid) {
+      console.error('❌ Signature HMAC invalide')
+      return new Response(
+        JSON.stringify({ error: 'Invalid HMAC signature' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const webhookData = JSON.parse(body)
 
     console.log('Webhook Paygreen reçu:', JSON.stringify(webhookData))
 

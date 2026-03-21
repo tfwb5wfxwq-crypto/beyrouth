@@ -7,7 +7,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const ADMIN_CODE = Deno.env.get('ADMIN_CODE') || 'A5qYIeJatg'
+// Code admin depuis Supabase Secrets (obligatoire)
+const ADMIN_CODE = Deno.env.get('ADMIN_CODE')
+if (!ADMIN_CODE) {
+  throw new Error('ADMIN_CODE not configured in Supabase secrets')
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {

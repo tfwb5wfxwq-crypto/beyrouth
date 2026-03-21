@@ -90,6 +90,65 @@ serve(async (req) => {
       console.warn('⚠️ Pas de state fourni (ancienne version client ?)')
     }
 
+    // ===== VALIDATION MONTANT : Recalculer côté serveur pour éviter manipulation =====
+    const { data: orderData, error: orderError } = await supabase
+      .from('orders')
+      .select('items')
+      .eq('numero', orderNum)
+      .maybeSingle()
+
+    if (orderError || !orderData) {
+      console.error('❌ Commande introuvable:', orderNum)
+      return new Response(
+        JSON.stringify({ error: 'Commande introuvable' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const items = orderData.items
+    if (items && items.length > 0) {
+      // Récupérer les prix des items depuis menu_items
+      const itemIds = items.map((i: any) => i.id)
+      const { data: menuData } = await supabase
+        .from('menu_items')
+        .select('id, prix, nom')
+        .in('id', itemIds)
+
+      if (!menuData || menuData.length !== itemIds.length) {
+        return new Response(
+          JSON.stringify({ error: 'Certains plats ne sont plus au menu. Veuillez créer une nouvelle commande.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Recalculer le montant côté serveur
+      let serverTotal = 0
+      items.forEach((item: any) => {
+        const menuItem = menuData.find(m => m.id === item.id)
+        if (!menuItem) {
+          throw new Error(`Item invalide: ${item.id}`)
+        }
+        serverTotal += menuItem.prix * (item.qty || 1)
+      })
+
+      // Arrondir à 2 décimales puis convertir en centimes
+      serverTotal = Math.round(serverTotal * 100)
+
+      // Vérifier que le montant client correspond (tolérance 2 centimes pour arrondi)
+      const clientTotal = total // déjà en centimes
+      if (Math.abs(serverTotal - clientTotal) > 2) {
+        console.error('❌ MONTANT INVALIDE:', { serverTotal, clientTotal, diff: Math.abs(serverTotal - clientTotal) })
+        return new Response(
+          JSON.stringify({
+            error: 'Le montant de la commande a changé. Veuillez actualiser la page et créer une nouvelle commande.'
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      console.log('✅ Validation montant Edenred OK:', { serverTotal, clientTotal })
+    }
+
     // Récupérer credentials depuis Supabase Secrets
     const authClientId = Deno.env.get('EDENRED_AUTH_CLIENT_ID') ?? ''
     const authClientSecret = Deno.env.get('EDENRED_AUTH_CLIENT_SECRET') ?? ''

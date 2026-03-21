@@ -910,6 +910,10 @@ const SUPABASE_URL = 'https://xbuftfwcyontgqbbrrjt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidWZ0ZndjeW9udGdxYmJycmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2Njg1NzksImV4cCI6MjA4NjI0NDU3OX0.ROkSccADlpLsWMgqyiX_xNaFdJNR8P4R-LJCnZV2Gzg';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// 🔧 MEMORY LEAK FIX: Store interval IDs for cleanup on logout
+let intervals = [];
+let realtimeChannel = null; // 🔧 MEMORY LEAK FIX: Store realtime channel for cleanup
+
 // 🔒 SÉCURITÉ : Fonction d'échappement HTML pour prévenir les XSS
 function escapeHtml(text) {
   if (!text) return '';
@@ -1555,6 +1559,20 @@ async function doLogin() {
 }
 
 async function doLogout() {
+  // 🔧 MEMORY LEAK FIX: Nettoyer tous les intervals avant logout
+  intervals.forEach(id => clearInterval(id));
+  intervals = [];
+
+  // 🔧 MEMORY LEAK FIX: Unsubscribe from realtime channel
+  if (realtimeChannel) {
+    try {
+      realtimeChannel.unsubscribe();
+      realtimeChannel = null;
+    } catch (e) {
+      console.error('Erreur unsubscribe realtime:', e);
+    }
+  }
+
   localStorage.removeItem('adminToken');
   localStorage.removeItem('adminTokenExpiry');
   localStorage.removeItem('adminCode');
@@ -1577,20 +1595,20 @@ async function showDashboard() {
 
   // Horloge temps réel
   updateClock();
-  setInterval(updateClock, 1000);
+  intervals.push(setInterval(updateClock, 1000));
 
   // Mise à jour des timers (juste le texte, pas de re-render)
-  setInterval(updateTimers, 10000); // toutes les 10s
+  intervals.push(setInterval(updateTimers, 10000)); // toutes les 10s
 
   // Vérifier périodiquement si la pause est expirée
-  setInterval(updateSlotPauseButton, 1000); // toutes les 1s pour le compte à rebours
+  intervals.push(setInterval(updateSlotPauseButton, 1000)); // toutes les 1s pour le compte à rebours
 
   // Vérifier auto-accept availability (week-end, horaires)
   checkAutoAcceptAvailability();
 
   // POLLING : Recharger les commandes toutes les 5 secondes
   // (backup si realtime ne fonctionne pas)
-  setInterval(async () => {
+  intervals.push(setInterval(async () => {
     // Sauvegarder les IDs actuels
     const oldIds = orders.map(o => o.id).join(',');
 
@@ -1612,12 +1630,12 @@ async function showDashboard() {
       // NOTE: Pas de son ici, seulement via Realtime
       // Le polling est juste un backup si Realtime fail
     }
-  }, 5000);
+  }, 5000));
 
   // REFRESH INTELLIGENT toutes les 10s pour re-classifier les commandes
   // Compare les catégories avant/après → 0 flash si rien n'a changé
   let lastOrdersSignature = '';
-  setInterval(() => {
+  intervals.push(setInterval(() => {
     if (currentTab !== 'orders') return;
 
     // Calculer signature (ID + statut + catégorie)
@@ -1635,7 +1653,7 @@ async function showDashboard() {
       debouncedRenderOrders();
       updateTopbarStats();
     }
-  }, 10000);
+  }, 10000));
 
   // Mode kiosque: demander permissions + wake lock + plein écran
   requestNotificationPermission();
@@ -2384,7 +2402,8 @@ async function updateTopbarStats() {
 function subscribeRealtime() {
   console.log('🔌 Initialisation subscription realtime...');
 
-  const channel = sb.channel('admin-orders')
+  // 🔧 MEMORY LEAK FIX: Store channel for cleanup
+  realtimeChannel = sb.channel('admin-orders')
     .on('postgres_changes', {event:'INSERT', schema:'public', table:'orders'}, payload => {
       console.log('📥 INSERT reçu:', payload.new);
 
@@ -2445,7 +2464,7 @@ function subscribeRealtime() {
 
   // Vérifier l'état de la connexion
   setTimeout(() => {
-    console.log('📊 Channel state:', channel);
+    console.log('📊 Channel state:', realtimeChannel);
   }, 2000);
 }
 
@@ -3224,6 +3243,23 @@ function playAlert() {
     showNativeNotification(title, body);
   }
 }
+
+// ============ MEMORY LEAK FIX: CLEANUP ON PAGE UNLOAD ============
+// Nettoyer tous les intervals et realtime avant de quitter/recharger la page
+window.addEventListener('beforeunload', () => {
+  intervals.forEach(id => clearInterval(id));
+  intervals = [];
+
+  // Unsubscribe from realtime channel
+  if (realtimeChannel) {
+    try {
+      realtimeChannel.unsubscribe();
+      realtimeChannel = null;
+    } catch (e) {
+      console.error('Erreur unsubscribe realtime:', e);
+    }
+  }
+});
 
 // ============ FORCE CACHE CLEAR ON RELOAD ============
 // Vide automatiquement tous les caches à chaque chargement

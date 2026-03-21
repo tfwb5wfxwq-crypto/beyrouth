@@ -602,6 +602,7 @@ const PAYGREEN_SHOP_ID = 'sh_55f9f298d8ce478db7b87117ec86ce11';
 const IMAGE_VERSION = Date.now(); // Cache busting version - défini une seule fois au chargement
 let sb = null;
 let paygreen = null;
+let realtimeChannels = []; // 🔧 MEMORY LEAK FIX: Store realtime channels for cleanup
 try { sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null; } catch(e) { console.error('Supabase init error:', e); }
 try { if (window.Paygreen) paygreen = new window.Paygreen(PAYGREEN_PUBLIC_KEY); } catch(e) { console.error('Paygreen init error:', e); }
 
@@ -879,7 +880,8 @@ async function loadFromSupabase() {
 }
 
 function subscribeRealtime() {
-  sb.channel('menu-changes')
+  // 🔧 MEMORY LEAK FIX: Store channels for cleanup
+  const menuChannel = sb.channel('menu-changes')
     .on('postgres_changes', {event:'*', schema:'public', table:'menu_items'}, () => {
       console.log('🔔 Realtime: Menu item changé');
       loadFromSupabase().then(() => {
@@ -892,7 +894,7 @@ function subscribeRealtime() {
     });
 
   // Écouter les changements de pause créneaux
-  sb.channel('settings-changes')
+  const settingsChannel = sb.channel('settings-changes')
     .on('postgres_changes', {
       event: 'UPDATE',
       schema: 'public',
@@ -913,6 +915,9 @@ function subscribeRealtime() {
     .subscribe((status) => {
       console.log('📡 Realtime settings status:', status);
     });
+
+  // Store channels for cleanup
+  realtimeChannels.push(menuChannel, settingsChannel);
 }
 
 // ===== TOAST NOTIFICATIONS =====
@@ -970,7 +975,7 @@ function renderMenu() {
         <div class="menu-card ${!item.disponible ? 'menu-card-unavailable' : ''}" data-id="${item.id}" onclick="${item.disponible ? `addToCart(${item.id})` : ''}">
           <div class="menu-card-visual">
             ${item.image_url
-              ? `<img src="${item.image_url}?v=${IMAGE_VERSION}" alt="${item.nom}">`
+              ? `<img src="${item.image_url}?v=${IMAGE_VERSION}" alt="${item.nom}" loading="lazy">`
               : `<span class="emoji-placeholder">${item.emoji || '🍽️'}</span>`
             }
             ${!item.disponible ? '<div class="unavailable-badge">Bientôt disponible</div>' : ''}
@@ -1654,6 +1659,7 @@ async function submitOrder() {
 
 // ===== PAYMENT INLINE =====
 let currentPaymentData = null;
+let isSubmittingPayment = false; // 🔒 DOUBLE-SUBMIT FIX: Global flag to prevent multiple payment submissions
 
 function openPaymentModal(paymentOrderId, objectSecret, orderNum, total, email, name, phone, pickup) {
   currentPaymentData = { paymentOrderId, objectSecret, orderNum, total, email, name, phone, pickup };
@@ -1944,6 +1950,13 @@ function initPayGreen(method) {
     const btn = document.getElementById('payBtn');
     btn.textContent = '🧪 Simuler paiement (TEST)';
     btn.onclick = async () => {
+      // 🔒 DOUBLE-SUBMIT FIX: Prevent multiple submissions
+      if (isSubmittingPayment) {
+        console.warn('⚠️ Paiement déjà en cours, double-submit bloqué');
+        return;
+      }
+      isSubmittingPayment = true;
+
       btn.innerHTML = `
         <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="animation:spin 1s linear infinite;">
@@ -1985,6 +1998,7 @@ function initPayGreen(method) {
         console.error('❌ Erreur lors de l\'envoi de l\'email:', emailError);
       }
 
+      isSubmittingPayment = false; // 🔒 Reset flag on success
       cancelPayment();
       showConfirmation(orderNum);
     };
@@ -2030,6 +2044,7 @@ function initPayGreen(method) {
     // Écouter les events (nouvelle syntaxe on() au lieu de attachEventListener)
     window.paygreenjs.on(window.paygreenjs.Events.FULL_PAYMENT_DONE, (event) => {
       if (paymentTimeout) clearTimeout(paymentTimeout);
+      isSubmittingPayment = false; // 🔒 Reset flag on success
       cancelPayment();
       showConfirmation(currentPaymentData.orderNum);
     });
@@ -2037,6 +2052,7 @@ function initPayGreen(method) {
     // Event ERROR : erreur générale PayGreen
     window.paygreenjs.on(window.paygreenjs.Events.ERROR, (event) => {
       if (paymentTimeout) clearTimeout(paymentTimeout);
+      isSubmittingPayment = false; // 🔒 Reset flag on error
       console.error('PayGreen ERROR:', event);
       resetPayButton();
       showToast('Erreur : ' + (event.detail?.message || event.message || 'Une erreur est survenue'), 'error');
@@ -2045,6 +2061,7 @@ function initPayGreen(method) {
     // Event TOKEN_FAIL : carte invalide, champs vides, etc.
     window.paygreenjs.on(window.paygreenjs.Events.TOKEN_FAIL, (event) => {
       if (paymentTimeout) clearTimeout(paymentTimeout);
+      isSubmittingPayment = false; // 🔒 Reset flag on error
       console.error('PayGreen TOKEN_FAIL:', event);
       console.error('PayGreen TOKEN_FAIL detail:', event.detail);
       resetPayButton();
@@ -2066,6 +2083,7 @@ function initPayGreen(method) {
     // Event PAYMENT_FAIL : paiement refusé par la banque
     window.paygreenjs.on(window.paygreenjs.Events.PAYMENT_FAIL, (event) => {
       if (paymentTimeout) clearTimeout(paymentTimeout);
+      isSubmittingPayment = false; // 🔒 Reset flag on error
       console.error('PayGreen PAYMENT_FAIL:', event);
       resetPayButton();
       showToast('Paiement refusé par votre banque', 'error');
@@ -2073,6 +2091,13 @@ function initPayGreen(method) {
 
     // Bouton payer : loader immédiat + timeout de sécurité
     document.getElementById('payBtn').onclick = () => {
+      // 🔒 DOUBLE-SUBMIT FIX: Prevent multiple submissions
+      if (isSubmittingPayment) {
+        console.warn('⚠️ Paiement déjà en cours, double-submit bloqué');
+        return;
+      }
+      isSubmittingPayment = true;
+
       const btn = document.getElementById('payBtn');
 
       // Afficher le loader
@@ -2090,6 +2115,7 @@ function initPayGreen(method) {
       // Timeout de sécurité (5 secondes)
       paymentTimeout = setTimeout(() => {
         console.warn('Timeout paiement - aucune réponse de PayGreen');
+        isSubmittingPayment = false; // 🔒 Reset flag on timeout
         resetPayButton();
         showToast('Délai dépassé, veuillez réessayer', 'error');
       }, 5000);
@@ -2111,6 +2137,13 @@ function initPayGreen(method) {
 // ===== EDENRED PAYMENT (OAuth Flow) =====
 async function initEdenred() {
   if (!currentPaymentData) return;
+
+  // 🔒 DOUBLE-SUBMIT FIX: Prevent multiple submissions
+  if (isSubmittingPayment) {
+    console.warn('⚠️ Paiement déjà en cours, double-submit bloqué');
+    return;
+  }
+  isSubmittingPayment = true;
 
   // Afficher un message de chargement
   const paymentForm = document.getElementById('paymentForm');
@@ -2170,6 +2203,9 @@ async function initEdenred() {
   } catch (e) {
     console.error('Erreur init OAuth Edenred:', e);
     showToast('Erreur : ' + e.message, 'error');
+
+    // 🔒 DOUBLE-SUBMIT FIX: Reset flag on error
+    isSubmittingPayment = false;
 
     // Restaurer l'affichage des moyens de paiement
     paymentForm.style.display = 'none';
@@ -3062,6 +3098,19 @@ if (document.startViewTransition) {
     }
   });
 }
+
+// ===== REALTIME CLEANUP ON PAGE UNLOAD =====
+window.addEventListener('beforeunload', () => {
+  // 🔧 MEMORY LEAK FIX: Unsubscribe from all realtime channels
+  realtimeChannels.forEach(channel => {
+    try {
+      channel.unsubscribe();
+    } catch (e) {
+      console.error('Erreur unsubscribe channel:', e);
+    }
+  });
+  realtimeChannels = [];
+});
 </script>
 </body>
 </html>

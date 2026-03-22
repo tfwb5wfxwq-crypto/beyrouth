@@ -48,6 +48,15 @@ serve(async (req) => {
       )
     }
 
+    // 🔒 Protection double-envoi
+    if (order.reminder_email_sent_at) {
+      console.log(`⏭️  Email de relance déjà envoyé pour ${order.numero}`)
+      return new Response(
+        JSON.stringify({ success: true, message: 'Email déjà envoyé' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // Formater l'heure de retrait
     const pickupText = order.heure_retrait || 'Dès que possible'
 
@@ -65,8 +74,13 @@ serve(async (req) => {
 
     <!-- Header sobre -->
     <div style="padding: 32px 24px; border-bottom: 1px solid #e0e0e0; text-align: center;">
-      <div style="display: inline-flex; align-items: center; gap: 12px;"><img src="https://beyrouth.express/img/logo-olives.svg" alt="Falafels" style="height: 50px; width: auto; vertical-align: middle;"><img src="https://beyrouth.express/img/logo-text.svg" alt="Beyrouth Express" style="height: 45px; width: auto; vertical-align: middle;"></div>
-      <div style="font-size: 13px; color: #666; margin-top: 12px;">Click <div style="font-size: 13px; color: #666; margin-top: 4px;">Click & Collect · A Beyrouth</div> Collect · Restaurant Libanais La Défense</div>
+      <div style="background: #1a1a1a; border-radius: 12px; padding: 20px; display: inline-block; margin-bottom: 12px;">
+        <div style="display: inline-flex; align-items: center; gap: 12px;">
+          <img src="https://beyrouth.express/img/logo-olives.svg" alt="Falafels" style="height: 50px; width: auto; vertical-align: middle;">
+          <img src="https://beyrouth.express/img/logo-text.svg" alt="Beyrouth Express" style="height: 45px; width: auto; vertical-align: middle;">
+        </div>
+      </div>
+      <div style="font-size: 13px; color: #666; margin-top: 12px;">Click & Collect · Restaurant Libanais La Défense</div>
     </div>
 
     <!-- Titre principal -->
@@ -80,6 +94,10 @@ serve(async (req) => {
       <div style="background: #fafafa; border-left: 3px solid #D4A853; padding: 16px 20px; border-radius: 2px;">
         <div style="font-size: 13px; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Numéro de commande</div>
         <div style="font-size: 28px; font-weight: 700; font-family: 'Courier New', monospace; color: #1a1a1a; letter-spacing: 2px;">${order.numero}</div>
+        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e0e0e0;">
+          <div style="font-size: 13px; color: #888; margin-bottom: 4px;">Heure de retrait prévue</div>
+          <div style="font-size: 16px; font-weight: 600; color: #1a1a1a;">${pickupText}</div>
+        </div>
       </div>
     </div>
 
@@ -117,10 +135,11 @@ serve(async (req) => {
         'Authorization': `Bearer ${resendApiKey}`
       },
       body: JSON.stringify({
-        from: 'Beyrouth Express <noreply@beyrouth.express>',
+        from: 'A Beyrouth <commande@beyrouth.express>',
         to: order.client_email,
-        subject: `⏰ ${order.numero} - Votre commande vous attend !`,
-        html: emailHtml
+        subject: `⏰ ${order.numero} - Votre commande vous attend`,
+        html: emailHtml,
+        reply_to: 'contact@beyrouth.express'
       })
     })
 
@@ -132,6 +151,11 @@ serve(async (req) => {
     }
 
     console.log(`✅ Email de relance envoyé pour ${order.numero}`)
+
+    // Timestamp en BDD pour éviter doubles envois
+    await supabase.from('orders').update({
+      reminder_email_sent_at: new Date().toISOString()
+    }).eq('id', orderId)
 
     return new Response(
       JSON.stringify({ success: true, emailId: emailResult.id }),

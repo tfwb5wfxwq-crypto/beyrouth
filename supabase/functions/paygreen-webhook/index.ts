@@ -55,11 +55,10 @@ serve(async (req) => {
   }
 
   try {
-    // 🔒 SÉCURITÉ : Vérification HMAC OBLIGATOIRE
-    const signature = req.headers.get('x-paygreen-signature')
+    // 🔒 SÉCURITÉ : Vérification HMAC (signature PayGreen)
+    const signature = req.headers.get('signature') // PayGreen utilise "signature" (pas "x-paygreen-signature")
     const webhookHmac = Deno.env.get('PAYGREEN_WEBHOOK_HMAC')
 
-    // Validation HMAC obligatoire
     if (!webhookHmac) {
       console.error('❌ PAYGREEN_WEBHOOK_HMAC non configuré')
       return new Response(
@@ -76,7 +75,7 @@ serve(async (req) => {
       )
     }
 
-    // Vérifier la signature HMAC
+    // Vérifier la signature HMAC (PayGreen utilise base64, pas hex)
     const body = await req.text()
     const encoder = new TextEncoder()
     const key = await crypto.subtle.importKey(
@@ -86,11 +85,13 @@ serve(async (req) => {
       false,
       ['verify']
     )
-    const signatureBuffer = Uint8Array.from(signature.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)))
+
+    // PayGreen envoie la signature en base64
+    const signatureBytes = Uint8Array.from(atob(signature), c => c.charCodeAt(0))
     const isValid = await crypto.subtle.verify(
       'HMAC',
       key,
-      signatureBuffer,
+      signatureBytes,
       encoder.encode(body)
     )
 
@@ -106,12 +107,15 @@ serve(async (req) => {
 
     console.log('Webhook Paygreen reçu:', JSON.stringify(webhookData))
 
-    // Extraire les infos du webhook
-    const { id, status, orderId, amount } = webhookData
+    // Extraire les infos du webhook (PayGreen utilise "reference" et "event")
+    const { id, event, reference, amount } = webhookData
+    const orderNum = reference // PayGreen met le numéro de commande dans "reference"
+    const status = event // PayGreen met le statut dans "event" (ex: "payment_order.successed")
 
-    if (!orderId || !status) {
+    if (!orderNum || !status) {
+      console.error('Données webhook invalides:', { orderNum, status, webhookData })
       return new Response(
-        JSON.stringify({ error: 'Données webhook invalides' }),
+        JSON.stringify({ error: 'Données webhook invalides (reference ou event manquant)' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -123,26 +127,29 @@ serve(async (req) => {
     )
 
     // Mapper le statut Paygreen au statut de commande
+    // PayGreen envoie des events comme "payment_order.successed", "payment_order.refused", etc.
     let newStatus = 'pending'
-    if (status === 'SUCCESSED' || status === 'SUCCESS' || status === 'PAID') {
+    if (status.includes('successed') || status.includes('success') || status.includes('paid')) {
       newStatus = 'payee'
-    } else if (status === 'CANCELLED' || status === 'REFUSED') {
+    } else if (status.includes('cancelled') || status.includes('refused') || status.includes('canceled')) {
       newStatus = 'cancelled'
-    } else if (status === 'REFUNDED') {
+    } else if (status.includes('refunded')) {
       newStatus = 'refunded'
     }
 
+    console.log(`Mapping PayGreen event "${status}" → statut "${newStatus}"`)
+
     // Récupérer la commande avec retry (webhook peut arriver très rapidement)
-    const existingOrder = await findOrderWithRetry(supabase, orderId, 3)
+    const existingOrder = await findOrderWithRetry(supabase, orderNum, 3)
 
     if (!existingOrder) {
-      throw new Error(`Commande ${orderId} introuvable après retry`)
+      throw new Error(`Commande ${orderNum} introuvable après retry`)
     }
 
     const wasAlreadyPaid = existingOrder.statut === 'payee' || existingOrder.payment_confirmed_at !== null
 
     // Mettre à jour la commande
-    const { data, error } = await supabase
+    const { data, error} = await supabase
       .from('orders')
       .update({
         statut: newStatus,
@@ -150,7 +157,7 @@ serve(async (req) => {
         paygreen_transaction_id: id,
         payment_confirmed_at: newStatus === 'payee' ? new Date().toISOString() : null
       })
-      .eq('numero', orderId)
+      .eq('numero', orderNum)
       .select()
 
     if (error) {
@@ -158,7 +165,7 @@ serve(async (req) => {
       throw error
     }
 
-    console.log(`✅ Commande ${orderId} mise à jour: ${newStatus}`)
+    console.log(`✅ Commande ${orderNum} mise à jour: ${newStatus}`)
 
     // Vérifier si auto-accept est activé
     const { data: autoAcceptSetting } = await supabase

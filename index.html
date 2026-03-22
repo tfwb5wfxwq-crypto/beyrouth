@@ -558,7 +558,7 @@ a{color:inherit;text-decoration:none}
 <!-- Modal de confirmation créé dynamiquement via JS -->
 
 <!-- UPSELL -->
-<div class="upsell-bubble" id="upsellBubble">
+<div class="upsell-bubble" id="upsellBubble" aria-hidden="true">
   <span class="upsell-bubble-emoji" id="upsellEmoji"></span>
   <div class="upsell-bubble-text" id="upsellText"></div>
   <button class="upsell-bubble-btn" id="upsellBtn" onclick="applyUpsell()">Ajouter</button>
@@ -571,7 +571,7 @@ a{color:inherit;text-decoration:none}
     <p class="footer-brand">Beyrouth Express</p>
     <p class="footer-sub">Service en ligne de A Beyrouth</p>
     <p class="footer-address">4 Esplanade du Général de Gaulle, 92400 Courbevoie</p>
-    <p class="footer-hours">Lun–Ven 11h30–20h30</p>
+    <p class="footer-hours">Restaurant : Lun–Ven 11h30–21h00 · Click & collect 7j/7</p>
     <div style="display:flex;gap:16px;margin:20px 0;justify-content:center">
       <a href="https://www.instagram.com/a_beyrouth/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;background:linear-gradient(135deg, #833AB4 0%, #FD1D1D 50%, #F77737 100%);border-radius:12px;transition:all .3s ease;box-shadow:0 2px 8px rgba(131,58,180,0.3)" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 6px 16px rgba(131,58,180,0.5)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 2px 8px rgba(131,58,180,0.3)'" aria-label="Instagram">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -767,11 +767,13 @@ const DEMO_ITEMS = [
 
 // ===== HORAIRES =====
 const BUSINESS_HOURS = [
+  [0, 11, 30, 20, 30],  // Dimanche: 11h30 - 20h30 (dernière commande, CB uniquement)
   [1, 11, 30, 20, 30],  // Lundi: 11h30 - 20h30 (dernière commande)
   [2, 11, 30, 20, 30],  // Mardi: 11h30 - 20h30 (dernière commande)
   [3, 11, 30, 20, 30],  // Mercredi: 11h30 - 20h30 (dernière commande)
   [4, 11, 30, 20, 30],  // Jeudi: 11h30 - 20h30 (dernière commande)
   [5, 11, 30, 20, 30],  // Vendredi: 11h30 - 20h30 (dernière commande)
+  [6, 11, 30, 20, 30],  // Samedi: 11h30 - 20h30 (dernière commande, CB uniquement)
 ];
 const JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 

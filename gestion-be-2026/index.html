@@ -2614,7 +2614,11 @@ async function confirmCancel(orderId, cancellationReason = '') {
 
     // 2. Envoyer email d'annulation avec la raison
     try {
+      const adminToken = localStorage.getItem('adminToken');
       const { data, error } = await sb.functions.invoke('send-cancellation-email', {
+        headers: {
+          Authorization: `Bearer ${adminToken}`
+        },
         body: {
           orderId: orderId,
           cancellationReason: cancellationReason
@@ -2675,7 +2679,11 @@ async function refundPayGreenTransaction(transactionId, amount) {
 
   console.log(`🔄 Demande remboursement PayGreen (ID: ${transactionId}, montant: ${amount}€)`);
 
+  const adminToken = localStorage.getItem('adminToken');
   const { data, error } = await sb.functions.invoke('paygreen-refund', {
+    headers: {
+      Authorization: `Bearer ${adminToken}`
+    },
     body: {
       transactionId: transactionId,
       amount: Math.round(amount * 100) // Montant en centimes (standardisé avec Edenred)
@@ -2701,7 +2709,11 @@ async function refundEdenredTransaction(captureId, amount) {
 
   console.log(`🔄 Demande remboursement Edenred (ID: ${captureId}, montant: ${amount}€)`);
 
+  const adminToken = localStorage.getItem('adminToken');
   const { data, error } = await sb.functions.invoke('edenred-refund', {
+    headers: {
+      Authorization: `Bearer ${adminToken}`
+    },
     body: {
       captureId: captureId,
       amount: Math.round(amount * 100), // Montant en centimes

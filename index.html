@@ -1761,9 +1761,9 @@ function openPaymentModal(paymentOrderId, objectSecret, orderNum, total, email, 
   // Créer la section paiement inline avec effet blur iOS
   const paymentSection = document.createElement('div');
   paymentSection.id = 'paymentSection';
-  paymentSection.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(245,245,247,0.85);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);z-index:10000;overflow-y:auto;animation:slideUp 0.3s ease;padding-top:20px;';
+  paymentSection.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(245,245,247,0.85);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);z-index:10000;overflow-y:auto;animation:slideUp 0.3s ease;padding:20px 0;display:flex;align-items:center;justify-content:center;';
   paymentSection.innerHTML = `
-    <div style="max-width:500px;margin:0 auto;padding:0 20px;">
+    <div style="max-width:500px;width:100%;margin:0 auto;padding:0 20px;max-height:90vh;overflow-y:auto;">
       <button onclick="cancelPayment()" style="background:none;border:none;color:var(--text-soft);font-size:0.9rem;padding:12px 0;cursor:pointer;display:flex;align-items:center;gap:6px;margin-bottom:16px;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         Retour au panier

@@ -980,7 +980,7 @@ function renderMenu() {
         <div class="menu-card ${!item.disponible ? 'menu-card-unavailable' : ''}" data-id="${item.id}" onclick="${item.disponible ? `addToCart(${item.id})` : ''}">
           <div class="menu-card-visual">
             ${item.image_url
-              ? `<img src="${item.image_url}?v=${IMAGE_VERSION}" alt="${item.nom}" loading="lazy">`
+              ? `<img src="${item.image_url}?v=${IMAGE_VERSION}" alt="${item.nom}" loading="lazy" decoding="async">`
               : `<span class="emoji-placeholder">${item.emoji || '🍽️'}</span>`
             }
             ${!item.disponible ? '<div class="unavailable-badge">Bientôt disponible</div>' : ''}
@@ -1288,7 +1288,8 @@ function changeQty(itemId, delta) {
 }
 
 function updateCartUI() {
-  const total = cart.reduce((s, c) => s + c.prix * c.qty, 0);
+  // 🔒 FIX #79: Arrondir à chaque étape pour éviter floating point errors (0.1 + 0.2 = 0.30000000004)
+  const total = cart.reduce((s, c) => Math.round((s + c.prix * c.qty) * 100) / 100, 0);
   const count = cart.reduce((s, c) => s + c.qty, 0);
   const bar = document.getElementById('bottomBar');
   bar.classList.toggle('show', count > 0);
@@ -1614,6 +1615,12 @@ function validateName(name) {
 }
 
 async function submitOrder() {
+  // 🔒 FIX #1: Empêcher double-click (client débité 2×)
+  if (isSubmittingPayment) {
+    console.warn('⚠️ Paiement déjà en cours, blocage double-click');
+    return;
+  }
+
   const name = document.getElementById('clientName').value.trim();
   const email = document.getElementById('clientEmail').value.trim();
   const phone = document.getElementById('clientPhone').value.trim();
@@ -1635,11 +1642,21 @@ async function submitOrder() {
     showToast('Le restaurant est fermé. Choisissez un autre créneau.', 'error');
     return;
   }
-  if (!cart.length) return;
+
+  // 🔒 FIX #2: Vérifier panier AVANT de désactiver le bouton
+  if (!cart.length) {
+    showToast('⚠️ Votre panier est vide', 'error');
+    return;
+  }
+
+  // Activer le flag de soumission
+  isSubmittingPayment = true;
+
   const btn = document.getElementById('cartSubmit');
   btn.disabled = true; btn.textContent = 'Redirection paiement...';
   saveClientInfo();
-  const total = cart.reduce((s, c) => s + c.prix * c.qty, 0);
+  // 🔒 FIX #79: Arrondir à chaque étape pour éviter floating point errors (0.1 + 0.2 = 0.30000000004)
+  const total = cart.reduce((s, c) => Math.round((s + c.prix * c.qty) * 100) / 100, 0);
   const orderNum = await generateUniqueOrderNum();
   const note = document.getElementById('clientNote').value.trim();
   const optin = document.getElementById('optinPromos').checked;
@@ -1707,6 +1724,8 @@ async function submitOrder() {
     showToast(`Erreur lors du paiement: ${e.message || 'Réessayez'}`, 'error');
     btn.disabled = false;
     btn.textContent = 'Passer la commande';
+    // 🔒 FIX #1: Reset flag pour permettre retry
+    isSubmittingPayment = false;
     if (sb) await sb.from('orders').delete().eq('numero', orderNum);
   }
 }

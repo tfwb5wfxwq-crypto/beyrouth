@@ -1632,7 +1632,7 @@ async function showDashboard() {
       // NOTE: Pas de son ici, seulement via Realtime
       // Le polling est juste un backup si Realtime fail
     }
-  }, 5000));
+  }, 30000)); // 🔒 FIX #74: 30s au lieu de 5s (évite dépassement quota Supabase 500k rows/month)
 
   // REFRESH INTELLIGENT toutes les 10s pour re-classifier les commandes
   // Compare les catégories avant/après → 0 flash si rien n'a changé
@@ -1994,6 +1994,15 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
         <div style="min-width:70px;text-align:right;font-weight:700;font-size:0.95rem;color:#1a1a1a;flex-shrink:0;">
           ${(order.total || 0).toFixed(2).replace('.',',')} €
         </div>
+
+        ${/* 🔒 FIX #81: Afficher moyen de paiement */}
+        ${(() => {
+          const paymentMethod = order.paygreen_transaction_id ? 'CB' :
+                                order.edenred_payment_id ? 'Edenred' : 'Inconnu';
+          const paymentIcon = order.paygreen_transaction_id ? '💳' :
+                             order.edenred_payment_id ? '🎫' : '❓';
+          return `<span style="flex-shrink:0;font-size:0.75rem;padding:4px 8px;background:#f0f0f0;border-radius:6px;color:#666;white-space:nowrap;" title="Moyen de paiement">${paymentIcon} ${paymentMethod}</span>`;
+        })()}
 
         ${!isHistory
           ? `<div class="order-actions" style="display:flex;gap:8px;flex-shrink:0;margin-left:auto;">${getActionButtons(order)}</div>`
@@ -2434,10 +2443,13 @@ function subscribeRealtime() {
         }
       }
 
-      // Auto-accept si activé
-      if (autoAcceptOrders && payload.new.statut === 'payee') {
+      // Auto-accept si activé ET restaurant ouvert (Lun-Ven 11h30-21h00)
+      // 🔒 FIX #3: Vérifier horaires restaurant avant auto-accept
+      if (autoAcceptOrders && payload.new.statut === 'payee' && isRestaurantOpen()) {
         console.log('🤖 Auto-accept activé, acceptation automatique de la commande', payload.new.numero);
         updateStatus(payload.new.id, 'acceptee');
+      } else if (autoAcceptOrders && payload.new.statut === 'payee' && !isRestaurantOpen()) {
+        console.warn('⚠️ Auto-accept désactivé (restaurant fermé), commande reste en attente:', payload.new.numero);
       }
     })
     .on('postgres_changes', {event:'UPDATE', schema:'public', table:'orders'}, payload => {

@@ -2416,13 +2416,13 @@ async function updateTopbarStats() {
     const total = data?.length || 0;
     const revenue = data?.reduce((s, o) => s + (o.total || 0), 0) || 0;
 
-    document.getElementById('topbarStats').textContent = `📊 Aujourd'hui : ${total} commande${total > 1 ? 's' : ''} — ${(revenue / 100).toFixed(2).replace('.', ',')} €`;
+    document.getElementById('topbarStats').textContent = `📊 Aujourd'hui : ${total} commande${total > 1 ? 's' : ''} — ${revenue.toFixed(2).replace('.', ',')} €`;
   } catch (err) {
     console.error('Erreur updateTopbarStats:', err);
     // Fallback: afficher les commandes en cours
     const total = orders.length;
     const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
-    document.getElementById('topbarStats').textContent = `${total} en cours — ${(revenue / 100).toFixed(2).replace('.', ',')} €`;
+    document.getElementById('topbarStats').textContent = `${total} en cours — ${revenue.toFixed(2).replace('.', ',')} €`;
   }
 }
 

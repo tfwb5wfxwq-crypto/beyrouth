@@ -159,6 +159,16 @@ serve(async (req) => {
       </table>
     </div>
 
+    ${order.note && order.note.trim() ? `
+    <!-- Note client -->
+    <div style="padding: 0 24px 20px 24px;">
+      <div style="background: #fef2f2; border-left: 3px solid #f87171; padding: 14px 18px; border-radius: 6px;">
+        <div style="font-size: 12px; color: #991b1b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Votre note</div>
+        <div style="font-size: 14px; color: #7f1d1d; line-height: 1.5;">${order.note.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+      </div>
+    </div>
+    ` : ''}
+
     <!-- Adresse retrait -->
     <div style="padding: 0 24px 32px 24px;">
       <div style="font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Lieu de retrait</div>

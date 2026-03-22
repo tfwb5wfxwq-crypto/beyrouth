@@ -2133,9 +2133,11 @@ function initPayGreen(method) {
     // Écouter les events (nouvelle syntaxe on() au lieu de attachEventListener)
     window.paygreenjs.on(window.paygreenjs.Events.FULL_PAYMENT_DONE, (event) => {
       if (paymentTimeout) clearTimeout(paymentTimeout);
+      // 🔒 FIX #87: Sauvegarder orderNum AVANT cancelPayment() qui met currentPaymentData à null
+      const orderNum = currentPaymentData.orderNum;
       setPaymentFlag(false); // 🔒 Reset flag on success
       cancelPayment();
-      showConfirmation(currentPaymentData.orderNum);
+      showConfirmation(orderNum);
     });
 
     // Event ERROR : erreur générale PayGreen

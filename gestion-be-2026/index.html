@@ -1991,18 +1991,27 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
           : `<span class="order-time-badge" style="cursor:default;flex-shrink:0;">${statusEmoji} ${statusLabel} — ${dateStr} ${timeStr}</span>`
         }
 
-        <div style="min-width:70px;text-align:right;font-weight:700;font-size:0.95rem;color:#1a1a1a;flex-shrink:0;">
-          ${(order.total || 0).toFixed(2).replace('.',',')} €
-        </div>
-
-        ${(() => {
-          // 🔒 FIX #81: Afficher moyen de paiement
-          const paymentMethod = order.paygreen_transaction_id ? 'CB' :
-                                order.edenred_payment_id ? 'Edenred' : 'Inconnu';
-          const paymentIcon = order.paygreen_transaction_id ? '💳' :
-                             order.edenred_payment_id ? '🎫' : '❓';
-          return `<span style="flex-shrink:0;font-size:0.75rem;padding:4px 8px;background:#f0f0f0;border-radius:6px;color:#666;white-space:nowrap;" title="Moyen de paiement">${paymentIcon} ${paymentMethod}</span>`;
-        })()}
+        ${isHistory
+          ? `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:60px;flex-shrink:0;">
+            <div style="font-weight:700;font-size:0.9rem;color:#1a1a1a;white-space:nowrap;">
+              ${(order.total || 0).toFixed(2).replace('.',',')} €
+            </div>
+            <div style="font-size:0.65rem;color:#888;">
+              ${order.paygreen_transaction_id ? '💳 CB' : order.edenred_payment_id ? '🎫 TR' : '❓'}
+            </div>
+          </div>`
+          : `<div style="min-width:70px;text-align:right;font-weight:700;font-size:0.95rem;color:#1a1a1a;flex-shrink:0;">
+            ${(order.total || 0).toFixed(2).replace('.',',')} €
+          </div>
+          ${(() => {
+            // 🔒 FIX #81: Afficher moyen de paiement
+            const paymentMethod = order.paygreen_transaction_id ? 'CB' :
+                                  order.edenred_payment_id ? 'Edenred' : 'Inconnu';
+            const paymentIcon = order.paygreen_transaction_id ? '💳' :
+                               order.edenred_payment_id ? '🎫' : '❓';
+            return `<span style="flex-shrink:0;font-size:0.75rem;padding:4px 8px;background:#f0f0f0;border-radius:6px;color:#666;white-space:nowrap;" title="Moyen de paiement">${paymentIcon} ${paymentMethod}</span>`;
+          })()}`
+        }
 
         ${!isHistory
           ? `<div class="order-actions" style="display:flex;gap:8px;flex-shrink:0;margin-left:auto;">${getActionButtons(order)}</div>`

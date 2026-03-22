@@ -7,6 +7,27 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// 🔒 FIX #75: Helper pour fetch avec timeout (évite hang infini si API externe down)
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 10000): Promise<Response> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    })
+    clearTimeout(timeoutId)
+    return response
+  } catch (error) {
+    clearTimeout(timeoutId)
+    if (error.name === 'AbortError') {
+      throw new Error(`Timeout API externe (${timeoutMs}ms)`)
+    }
+    throw error
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -84,10 +105,11 @@ serve(async (req) => {
 
     if (order.paygreen_transaction_id) {
       // REMBOURSEMENT PAYGREEN
-      console.log('💳 Remboursement PayGreen:', order.paygreen_transaction_id)
+      // 🔒 FIX #71: Migration API v2 → v3 (v2 retourne 404)
+      console.log('💳 Remboursement PayGreen (API v3):', order.paygreen_transaction_id)
 
-      const paygreenResponse = await fetch(
-        `https://pgapi.paygreen.fr/shop/${Deno.env.get('PAYGREEN_SHOP_ID')}/transaction/${order.paygreen_transaction_id}/refund`,
+      const paygreenResponse = await fetchWithTimeout(
+        `https://api.paygreen.fr/payment/payment-orders/${order.paygreen_transaction_id}/refund`,
         {
           method: 'POST',
           headers: {
@@ -97,7 +119,8 @@ serve(async (req) => {
           body: JSON.stringify({
             amount: order.total // montant en centimes
           })
-        }
+        },
+        10000 // 10s timeout
       )
 
       if (paygreenResponse.ok) {
@@ -215,7 +238,7 @@ serve(async (req) => {
 </html>
       `
 
-      const resendResponse = await fetch('https://api.resend.com/emails', {
+      const resendResponse = await fetchWithTimeout('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
@@ -228,7 +251,7 @@ serve(async (req) => {
           html: emailHtml,
           reply_to: 'contact@beyrouth.express'
         })
-      })
+      }, 10000)
 
       if (resendResponse.ok) {
         console.log('✅ Email annulation envoyé')

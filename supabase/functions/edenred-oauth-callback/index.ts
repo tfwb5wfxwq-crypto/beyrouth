@@ -13,6 +13,27 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// 🔒 FIX #75: Helper pour fetch avec timeout (évite hang infini si API externe down)
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 10000): Promise<Response> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    })
+    clearTimeout(timeoutId)
+    return response
+  } catch (error) {
+    clearTimeout(timeoutId)
+    if (error.name === 'AbortError') {
+      throw new Error(`Timeout API externe (${timeoutMs}ms)`)
+    }
+    throw error
+  }
+}
+
 // 🔒 SÉCURITÉ : Vérifier si le restaurant est ouvert (Lun-Ven 11h30-21h00)
 function isOpenNow(): boolean {
   const now = new Date()
@@ -151,9 +172,9 @@ serve(async (req) => {
       // Arrondir à 2 décimales puis convertir en centimes
       serverTotal = Math.round(serverTotal * 100)
 
-      // Vérifier que le montant client correspond (tolérance 2 centimes pour arrondi)
+      // 🔒 FIX #77: Vérifier que le montant client correspond (tolérance 1 centime pour arrondi au lieu de 2)
       const clientTotal = total // déjà en centimes
-      if (Math.abs(serverTotal - clientTotal) > 2) {
+      if (Math.abs(serverTotal - clientTotal) > 1) {
         console.error('❌ MONTANT INVALIDE:', { serverTotal, clientTotal, diff: Math.abs(serverTotal - clientTotal) })
         return new Response(
           JSON.stringify({
@@ -178,7 +199,7 @@ serve(async (req) => {
 
     // ===== ÉTAPE 1 : Échanger le code contre un access_token =====
     console.log('📝 Échange code OAuth contre access_token...')
-    const tokenResponse = await fetch(EDENRED_AUTH_URL, {
+    const tokenResponse = await fetchWithTimeout(EDENRED_AUTH_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -191,7 +212,7 @@ serve(async (req) => {
         client_secret: authClientSecret,
         redirect_uri: redirectUri
       })
-    })
+    }, 10000)
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text()
@@ -237,7 +258,7 @@ serve(async (req) => {
       tstamp: new Date().toISOString()
     }
 
-    const paymentResponse = await fetch(EDENRED_PAYMENT_URL, {
+    const paymentResponse = await fetchWithTimeout(EDENRED_PAYMENT_URL, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -247,7 +268,7 @@ serve(async (req) => {
         'Accept': 'application/json'
       },
       body: JSON.stringify(paymentPayload)
-    })
+    }, 10000)
 
     if (!paymentResponse.ok) {
       const errorText = await paymentResponse.text()

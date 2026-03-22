@@ -7,6 +7,31 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// 🔒 FIX #80: Helper pour retry avec backoff exponentiel (webhook peut arriver avant création commande)
+async function findOrderWithRetry(supabase: any, orderNum: string, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('id, statut, payment_confirmed_at')
+      .eq('numero', orderNum)
+      .maybeSingle()
+
+    if (data) {
+      console.log(`✅ Commande trouvée (tentative ${i + 1}/${maxRetries})`)
+      return data
+    }
+
+    if (i < maxRetries - 1) {
+      // Backoff exponentiel : 500ms, 1s, 2s
+      const delay = 500 * Math.pow(2, i)
+      console.warn(`⏳ Commande ${orderNum} introuvable, retry dans ${delay}ms... (${i + 1}/${maxRetries})`)
+      await new Promise(resolve => setTimeout(resolve, delay))
+    }
+  }
+
+  throw new Error(`Commande ${orderNum} introuvable après ${maxRetries} tentatives`)
+}
+
 // 🔒 SÉCURITÉ : Vérifier si le restaurant est ouvert (Lun-Ven 11h30-21h00)
 function isOpenNow(): boolean {
   const now = new Date()
@@ -107,14 +132,14 @@ serve(async (req) => {
       newStatus = 'refunded'
     }
 
-    // Récupérer la commande pour vérifier si email déjà envoyé
-    const { data: existingOrder } = await supabase
-      .from('orders')
-      .select('id, statut, payment_confirmed_at')
-      .eq('numero', orderId)
-      .single()
+    // Récupérer la commande avec retry (webhook peut arriver très rapidement)
+    const existingOrder = await findOrderWithRetry(supabase, orderId, 3)
 
-    const wasAlreadyPaid = existingOrder?.statut === 'payee' || existingOrder?.payment_confirmed_at !== null
+    if (!existingOrder) {
+      throw new Error(`Commande ${orderId} introuvable après retry`)
+    }
+
+    const wasAlreadyPaid = existingOrder.statut === 'payee' || existingOrder.payment_confirmed_at !== null
 
     // Mettre à jour la commande
     const { data, error } = await supabase

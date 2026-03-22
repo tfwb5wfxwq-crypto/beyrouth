@@ -2071,7 +2071,11 @@ async function updateStatus(orderId, newStatus) {
 
   try {
     // Utiliser Edge Function sécurisée (bypass RLS)
+    const adminToken = localStorage.getItem('adminToken');
     const { data: result, error: updateError } = await sb.functions.invoke('update-order-status', {
+      headers: {
+        Authorization: `Bearer ${adminToken}`
+      },
       body: { orderId, newStatus }
     });
 
@@ -2086,6 +2090,9 @@ async function updateStatus(orderId, newStatus) {
       haptic.trigger('success'); // Vibration confirmation acceptation
       try {
         const { data, error } = await sb.functions.invoke('send-order-confirmation', {
+          headers: {
+            Authorization: `Bearer ${adminToken}`
+          },
           body: { orderId: orderId }
         });
         if (error) throw error;
@@ -2114,7 +2121,11 @@ async function remindOrder(orderId) {
   showToast(`📧 Envoi de l'email de relance à ${escapeHtml(order.client_prenom || 'client')}...`, 'info');
 
   try {
+    const adminToken = localStorage.getItem('adminToken');
     const { data, error } = await sb.functions.invoke('send-order-reminder', {
+      headers: {
+        Authorization: `Bearer ${adminToken}`
+      },
       body: { orderId: orderId }
     });
     if (error) throw error;
@@ -2281,16 +2292,19 @@ async function toggleMenuItem(id, newValue) {
   const numId = parseInt(id, 10);
   const boolValue = newValue === 'true' || newValue === true;
 
-  // Récupérer le code admin depuis localStorage
-  const adminCode = localStorage.getItem('adminCode');
-  if (!adminCode) {
-    alert('Erreur: Code admin manquant');
+  // Récupérer le token admin depuis localStorage
+  const adminToken = localStorage.getItem('adminToken');
+  if (!adminToken) {
+    alert('Erreur: Token admin manquant');
     return;
   }
 
   // Appeler Edge Function sécurisée
   const response = await sb.functions.invoke('toggle-menu-item', {
-    body: { code_admin: adminCode, item_id: numId, disponible: boolValue }
+    headers: {
+      Authorization: `Bearer ${adminToken}`
+    },
+    body: { item_id: numId, disponible: boolValue }
   });
 
   // Debug complet de la réponse

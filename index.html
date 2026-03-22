@@ -1600,8 +1600,10 @@ async function generateUniqueOrderNum() {
 
 // 🔒 VALIDATIONS STRICTES pour sécurité et qualité des données
 function validateEmail(email) {
-  // RFC 5322 simplifié - Format: text@domain.tld
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  // 🔒 FIX #78: Regex stricte - alphanumeric + TLD min 2 caractères
+  // Bloque: test@test, @example.com, test@, test@example
+  // Accepte: test@gmail.com, ludovik+tag@example.co.uk
+  return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
 }
 
 function validatePhone(phone) {

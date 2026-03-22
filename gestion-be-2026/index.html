@@ -1995,8 +1995,8 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
           ${(order.total || 0).toFixed(2).replace('.',',')} €
         </div>
 
-        ${/* 🔒 FIX #81: Afficher moyen de paiement */}
         ${(() => {
+          // 🔒 FIX #81: Afficher moyen de paiement
           const paymentMethod = order.paygreen_transaction_id ? 'CB' :
                                 order.edenred_payment_id ? 'Edenred' : 'Inconnu';
           const paymentIcon = order.paygreen_transaction_id ? '💳' :

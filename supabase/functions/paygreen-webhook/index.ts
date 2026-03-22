@@ -32,21 +32,18 @@ async function findOrderWithRetry(supabase: any, orderNum: string, maxRetries = 
   throw new Error(`Commande ${orderNum} introuvable après ${maxRetries} tentatives`)
 }
 
-// 🔒 SÉCURITÉ : Vérifier si le restaurant est ouvert (Lun-Ven 11h30-21h00)
+// 🔒 SÉCURITÉ : Vérifier si le restaurant est ouvert (7j/7 11h30-21h00)
 function isOpenNow(): boolean {
   const now = new Date()
   // Convert to Paris timezone (UTC+1 or UTC+2 depending on DST)
   const parisTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }))
-  const day = parisTime.getDay() // 0=Dimanche, 1=Lundi, ..., 5=Vendredi
   const h = parisTime.getHours()
   const m = parisTime.getMinutes()
   const nowMin = h * 60 + m
 
-  // Lun-Ven (1-5) de 11h30 (690 min) à 21h00 (1260 min)
-  if (day >= 1 && day <= 5) {
-    return nowMin >= 690 && nowMin < 1260
-  }
-  return false
+  // Tous les jours de 11h30 (690 min) à 21h00 (1260 min)
+  // ⚠️ RAPPEL : Cartes resto interdites samedi/dimanche (bloqué côté client), seule CB acceptée
+  return nowMin >= 690 && nowMin < 1260
 }
 
 serve(async (req) => {

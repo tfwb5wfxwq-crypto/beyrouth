@@ -1651,8 +1651,8 @@ async function submitOrder() {
     return;
   }
 
-  // Activer le flag de soumission
-  isSubmittingPayment = true;
+  // Activer le flag de soumission (avec fail-safe 30s)
+  setPaymentFlag(true);
 
   const btn = document.getElementById('cartSubmit');
   btn.disabled = true; btn.textContent = 'Redirection paiement...';
@@ -1718,6 +1718,8 @@ async function submitOrder() {
     // Ouvrir le paiement dans un modal (mode inline PayGreenJS)
     if (data.paymentOrderId && data.objectSecret) {
       openPaymentModal(data.paymentOrderId, data.objectSecret, orderNum, total, email, name, phone, pickup);
+      // 🔒 FIX #82: Reset flag after opening modal - the modal's "Payer" button will set it again
+      setPaymentFlag(false);
     } else {
       throw new Error('Données de paiement non reçues');
     }
@@ -1727,7 +1729,7 @@ async function submitOrder() {
     btn.disabled = false;
     btn.textContent = 'Passer la commande';
     // 🔒 FIX #1: Reset flag pour permettre retry
-    isSubmittingPayment = false;
+    setPaymentFlag(false);
     if (sb) await sb.from('orders').delete().eq('numero', orderNum);
   }
 }
@@ -1735,6 +1737,20 @@ async function submitOrder() {
 // ===== PAYMENT INLINE =====
 let currentPaymentData = null;
 let isSubmittingPayment = false; // 🔒 DOUBLE-SUBMIT FIX: Global flag to prevent multiple payment submissions
+let paymentFlagTimeout = null; // 🔒 FIX #82: Fail-safe timeout to auto-reset flag
+
+// 🔒 FIX #82: Helper to set flag with auto-reset fail-safe (30s)
+function setPaymentFlag(value) {
+  if (paymentFlagTimeout) clearTimeout(paymentFlagTimeout);
+  isSubmittingPayment = value;
+  if (value) {
+    // Auto-reset after 30s as fail-safe
+    paymentFlagTimeout = setTimeout(() => {
+      console.warn('⚠️ Payment flag auto-reset après 30s (fail-safe)');
+      isSubmittingPayment = false;
+    }, 30000);
+  }
+}
 
 function openPaymentModal(paymentOrderId, objectSecret, orderNum, total, email, name, phone, pickup) {
   currentPaymentData = { paymentOrderId, objectSecret, orderNum, total, email, name, phone, pickup };
@@ -2028,7 +2044,7 @@ function initPayGreen(method) {
         console.warn('⚠️ Paiement déjà en cours, double-submit bloqué');
         return;
       }
-      isSubmittingPayment = true;
+      setPaymentFlag(true);
 
       btn.innerHTML = `
         <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
@@ -2071,7 +2087,7 @@ function initPayGreen(method) {
         console.error('❌ Erreur lors de l\'envoi de l\'email:', emailError);
       }
 
-      isSubmittingPayment = false; // 🔒 Reset flag on success
+      setPaymentFlag(false); // 🔒 Reset flag on success
       cancelPayment();
       showConfirmation(orderNum);
     };
@@ -2117,7 +2133,7 @@ function initPayGreen(method) {
     // Écouter les events (nouvelle syntaxe on() au lieu de attachEventListener)
     window.paygreenjs.on(window.paygreenjs.Events.FULL_PAYMENT_DONE, (event) => {
       if (paymentTimeout) clearTimeout(paymentTimeout);
-      isSubmittingPayment = false; // 🔒 Reset flag on success
+      setPaymentFlag(false); // 🔒 Reset flag on success
       cancelPayment();
       showConfirmation(currentPaymentData.orderNum);
     });
@@ -2125,7 +2141,7 @@ function initPayGreen(method) {
     // Event ERROR : erreur générale PayGreen
     window.paygreenjs.on(window.paygreenjs.Events.ERROR, (event) => {
       if (paymentTimeout) clearTimeout(paymentTimeout);
-      isSubmittingPayment = false; // 🔒 Reset flag on error
+      setPaymentFlag(false); // 🔒 Reset flag on error
       console.error('PayGreen ERROR:', event);
       resetPayButton();
       showToast('Erreur : ' + (event.detail?.message || event.message || 'Une erreur est survenue'), 'error');
@@ -2134,7 +2150,7 @@ function initPayGreen(method) {
     // Event TOKEN_FAIL : carte invalide, champs vides, etc.
     window.paygreenjs.on(window.paygreenjs.Events.TOKEN_FAIL, (event) => {
       if (paymentTimeout) clearTimeout(paymentTimeout);
-      isSubmittingPayment = false; // 🔒 Reset flag on error
+      setPaymentFlag(false); // 🔒 Reset flag on error
       console.error('PayGreen TOKEN_FAIL:', event);
       console.error('PayGreen TOKEN_FAIL detail:', event.detail);
       resetPayButton();
@@ -2156,7 +2172,7 @@ function initPayGreen(method) {
     // Event PAYMENT_FAIL : paiement refusé par la banque
     window.paygreenjs.on(window.paygreenjs.Events.PAYMENT_FAIL, (event) => {
       if (paymentTimeout) clearTimeout(paymentTimeout);
-      isSubmittingPayment = false; // 🔒 Reset flag on error
+      setPaymentFlag(false); // 🔒 Reset flag on error
       console.error('PayGreen PAYMENT_FAIL:', event);
       resetPayButton();
       showToast('Paiement refusé par votre banque', 'error');
@@ -2169,7 +2185,7 @@ function initPayGreen(method) {
         console.warn('⚠️ Paiement déjà en cours, double-submit bloqué');
         return;
       }
-      isSubmittingPayment = true;
+      setPaymentFlag(true);
 
       const btn = document.getElementById('payBtn');
 
@@ -2188,7 +2204,7 @@ function initPayGreen(method) {
       // Timeout de sécurité (5 secondes)
       paymentTimeout = setTimeout(() => {
         console.warn('Timeout paiement - aucune réponse de PayGreen');
-        isSubmittingPayment = false; // 🔒 Reset flag on timeout
+        setPaymentFlag(false); // 🔒 Reset flag on timeout
         resetPayButton();
         showToast('Délai dépassé, veuillez réessayer', 'error');
       }, 5000);
@@ -2216,7 +2232,7 @@ async function initEdenred() {
     console.warn('⚠️ Paiement déjà en cours, double-submit bloqué');
     return;
   }
-  isSubmittingPayment = true;
+  setPaymentFlag(true);
 
   // Afficher un message de chargement
   const paymentForm = document.getElementById('paymentForm');
@@ -2278,7 +2294,7 @@ async function initEdenred() {
     showToast('Erreur : ' + e.message, 'error');
 
     // 🔒 DOUBLE-SUBMIT FIX: Reset flag on error
-    isSubmittingPayment = false;
+    setPaymentFlag(false);
 
     // Restaurer l'affichage des moyens de paiement
     paymentForm.style.display = 'none';

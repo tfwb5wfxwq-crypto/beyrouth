@@ -2753,7 +2753,7 @@ function updateConfirmModalStatus(order) {
       </div>
       <h2 style="font-size: 1.8rem; font-weight: 800; color: #10B981; margin: 0 0 12px; font-family: 'Playfair Display', serif;">Commande acceptée !</h2>
       <p style="font-size: 1rem; color: #6B6B6B; margin: 0 0 8px; line-height: 1.6;">Votre commande est en préparation</p>
-      <p style="font-size: 0.95rem; color: #10B981; margin: 0; font-weight: 600;">Prête à ${order.heure_retrait || 'bientôt'}</p>
+      <p style="font-size: 0.95rem; color: #10B981; margin: 0; font-weight: 600;">${order.heure_retrait === 'asap' ? 'Prête dès que possible' : 'Prête à ' + order.heure_retrait}</p>
     `;
   } else if (status === 'prete') {
     content = `

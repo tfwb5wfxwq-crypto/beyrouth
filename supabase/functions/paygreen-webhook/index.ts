@@ -193,12 +193,19 @@ serve(async (req) => {
       } else {
         // Envoyer email d'acceptation
         try {
-          await supabase.functions.invoke('send-order-confirmation', {
+          const { data: emailResult, error: emailInvokeError } = await supabase.functions.invoke('send-order-confirmation', {
             body: { orderId: data[0].id }
           })
-          console.log(`📧 Email d'acceptation envoyé pour ${orderId}`)
+
+          if (emailInvokeError) {
+            console.error('❌ Erreur invocation email:', emailInvokeError)
+          } else if (!emailResult?.success) {
+            console.error('❌ Erreur envoi email:', emailResult)
+          } else {
+            console.log(`📧 Email d'acceptation envoyé pour ${orderId}`)
+          }
         } catch (emailError) {
-          console.error('Erreur envoi email acceptation:', emailError)
+          console.error('❌ Exception envoi email acceptation:', emailError)
         }
       }
     }
@@ -208,17 +215,19 @@ serve(async (req) => {
       const reason = !autoAcceptEnabled ? 'Auto-accept désactivé' : 'Restaurant fermé'
       console.log(`⏸️ ${reason} → en attente validation manuelle`)
       try {
-        const emailResponse = await supabase.functions.invoke('send-payment-confirmation', {
+        const { data: emailResult, error: emailInvokeError } = await supabase.functions.invoke('send-payment-confirmation', {
           body: { orderId: data[0].id }
         })
 
-        if (emailResponse.error) {
-          console.error('Erreur envoi email paiement:', emailResponse.error)
+        if (emailInvokeError) {
+          console.error('❌ Erreur invocation email paiement:', emailInvokeError)
+        } else if (!emailResult?.success) {
+          console.error('❌ Erreur envoi email paiement:', emailResult)
         } else {
           console.log(`📧 Email de confirmation paiement envoyé pour ${orderId}`)
         }
       } catch (emailError) {
-        console.error('Erreur appel send-payment-confirmation:', emailError)
+        console.error('❌ Exception envoi email paiement:', emailError)
       }
     }
 

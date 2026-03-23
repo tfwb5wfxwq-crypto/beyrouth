@@ -179,6 +179,7 @@ serve(async (req) => {
 
     // Si AUTO-ACCEPT activé ET restaurant OUVERT : passer directement en "acceptee"
     if (newStatus === 'payee' && !wasAlreadyPaid && autoAcceptEnabled && isOpen && data && data[0]) {
+      const orderId = data[0].id
       console.log(`🤖 Auto-accept activé, passage automatique en "acceptee" pour ${orderId}`)
 
       // Update statut à "acceptee"
@@ -203,6 +204,7 @@ serve(async (req) => {
     }
     // Si AUTO-ACCEPT désactivé OU restaurant FERMÉ : envoyer email de paiement (en attente validation)
     else if (newStatus === 'payee' && !wasAlreadyPaid && data && data[0]) {
+      const orderId = data[0].id
       const reason = !autoAcceptEnabled ? 'Auto-accept désactivé' : 'Restaurant fermé'
       console.log(`⏸️ ${reason} → en attente validation manuelle`)
       try {
@@ -221,7 +223,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, order: orderId, status: newStatus }),
+      JSON.stringify({ success: true, order: orderNum, status: newStatus }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 

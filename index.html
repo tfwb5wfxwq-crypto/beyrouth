@@ -393,6 +393,10 @@ a{color:inherit;text-decoration:none}
 .menu-loader{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:120px 20px;min-height:400px}
 .menu-loader p{margin-top:20px;color:var(--text-soft);font-size:1rem;font-weight:500}
 .spinner{width:48px;height:48px;border:4px solid rgba(212,168,83,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite}
+
+/* Limiter la hauteur des iframes PayGreen (notamment Revolut) */
+#paygreen-container iframe{max-height:400px !important;height:auto !important}
+#paymentForm iframe{max-height:400px !important;height:auto !important}
 </style>
 </head>
 <body>

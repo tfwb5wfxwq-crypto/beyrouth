@@ -288,9 +288,24 @@ async function searchOrder() {
 function displayOrder(order) {
   document.getElementById('statusCard').classList.add('visible');
   document.getElementById('displayNum').textContent = order.numero;
-  document.getElementById('displayTime').textContent = order.heure_retrait === 'asap'
-    ? 'Retrait : dès que possible (15-20 minutes)'
-    : `Retrait : ${order.heure_retrait}`;
+
+  // Afficher l'heure réelle si ASAP et déjà acceptée
+  let pickupText = order.heure_retrait;
+  if (order.heure_retrait === 'asap') {
+    if (order.statut === 'payee' || order.statut === 'pending') {
+      // Pas encore accepté → afficher estimation
+      pickupText = 'dès que possible (15-20 minutes)';
+    } else {
+      // Accepté → calculer heure réelle (created_at + 20 min)
+      const createdAt = new Date(order.created_at);
+      const readyAt = new Date(createdAt.getTime() + 20 * 60 * 1000);
+      const h = readyAt.getHours();
+      const m = readyAt.getMinutes().toString().padStart(2, '0');
+      pickupText = `${h}h${m}`;
+    }
+  }
+
+  document.getElementById('displayTime').textContent = `Retrait : ${pickupText}`;
 
   updateProgress(order.statut);
 
@@ -568,7 +583,8 @@ function subscribeToOrder(num) {
       filter: `numero=eq.${num}`
     }, payload => {
       currentOrder = {...currentOrder, ...payload.new};
-      updateProgress(currentOrder.statut);
+      // Rafraîchir l'affichage complet (heure, note, détails)
+      displayOrder(currentOrder);
       // Vibrate on status change
       if (navigator.vibrate) navigator.vibrate(200);
       // Notification if ready

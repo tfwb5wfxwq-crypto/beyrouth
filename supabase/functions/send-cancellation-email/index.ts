@@ -71,7 +71,7 @@ serve(async (req) => {
   <div style="max-width: 600px; margin: 0 auto; background: #fff;">
     <!-- Header -->
     <div style="background: #1a1a1a; padding: 40px 20px; text-align: center;">
-      <img src="https://beyrouth.express/img/logo-email-final.png" alt="Beyrouth Express" style="width: 400px; max-width: 100%; height: auto; display: block; margin: 0 auto 12px auto; border-radius: 12px;">
+      <img src="https://beyrouth.express/img/logo-email-final.png" alt="Beyrouth Express" style="width: 300px; max-width: 100%; height: auto; display: block; margin: 0 auto 12px auto; border-radius: 12px;">
       <p style="color: rgba(255,255,255,0.8); margin: 8px 0 0 0; font-size: 16px;">Annulation de commande</p>
     </div>
 

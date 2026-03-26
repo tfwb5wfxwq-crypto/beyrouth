@@ -64,16 +64,18 @@ serve(async (req) => {
       )
     }
 
+    // 🔒 Vérification STRICTE de la signature HMAC
+    const body = await req.text()
+
     if (!signature) {
-      console.error('❌ Signature HMAC manquante dans webhook')
+      console.error('❌ Signature HMAC manquante')
       return new Response(
-        JSON.stringify({ error: 'Missing HMAC signature' }),
+        JSON.stringify({ error: 'HMAC signature manquante' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
     // Vérifier la signature HMAC (PayGreen utilise base64, pas hex)
-    const body = await req.text()
     const encoder = new TextEncoder()
     const key = await crypto.subtle.importKey(
       'raw',
@@ -95,10 +97,12 @@ serve(async (req) => {
     if (!isValid) {
       console.error('❌ Signature HMAC invalide')
       return new Response(
-        JSON.stringify({ error: 'Invalid HMAC signature' }),
+        JSON.stringify({ error: 'HMAC signature invalide' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    console.log('✅ Signature HMAC valide')
 
     const webhookData = JSON.parse(body)
 

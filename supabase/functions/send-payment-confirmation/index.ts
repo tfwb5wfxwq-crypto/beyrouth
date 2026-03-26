@@ -75,7 +75,7 @@ serve(async (req) => {
 
     <!-- Header sobre -->
     <div style="padding: 32px 24px; border-bottom: 1px solid #e0e0e0; text-align: center;">
-      <img src="https://beyrouth.express/img/logo-email-final.png" alt="Beyrouth Express" style="width: 400px; max-width: 100%; height: auto; display: block; margin: 0 auto 12px auto; border-radius: 12px;">
+      <img src="https://beyrouth.express/img/logo-email-final.png" alt="Beyrouth Express" style="width: 300px; max-width: 100%; height: auto; display: block; margin: 0 auto 12px auto; border-radius: 12px;">
       <div style="font-size: 13px; color: #666; margin-top: 12px;">Retrait · Restaurant Libanais La Défense</div>
     </div>
 

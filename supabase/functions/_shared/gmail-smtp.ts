@@ -33,8 +33,12 @@ export async function sendEmailViaGmail(options: EmailOptions): Promise<{ succes
       from: `A Beyrouth <${gmailUser}>`,
       to: options.to,
       subject: options.subject,
-      content: options.html,
-      html: options.html,
+      mimeContent: [
+        {
+          contentType: "text/html; charset=utf-8",
+          content: options.html,
+        },
+      ],
       ...(options.replyTo && { replyTo: options.replyTo }),
     })
 

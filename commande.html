@@ -289,7 +289,7 @@ function displayOrder(order) {
   document.getElementById('statusCard').classList.add('visible');
   document.getElementById('displayNum').textContent = order.numero;
   document.getElementById('displayTime').textContent = order.heure_retrait === 'asap'
-    ? 'Retrait : dès que possible'
+    ? 'Retrait : dès que possible (15-20 minutes)'
     : `Retrait : ${order.heure_retrait}`;
 
   updateProgress(order.statut);
@@ -317,6 +317,17 @@ function displayOrder(order) {
     </div>${componentsHtml}`;
   });
   html += `<div class="detail-item"><span>Total</span><span>${(order.total || 0).toFixed(2).replace('.',',')} €</span></div>`;
+
+  // Afficher la note client si présente
+  if (order.note && order.note.trim()) {
+    const safeNote = escapeHtml(order.note);
+    html += `
+      <div style="margin-top:16px;padding:12px;background:#FFF8F0;border-left:3px solid #D4A853;border-radius:4px;">
+        <div style="font-size:.8rem;color:#888;text-transform:uppercase;margin-bottom:6px;letter-spacing:0.5px;">📝 Votre note</div>
+        <div style="font-size:.9rem;color:#1a1a1a;line-height:1.5;">${safeNote}</div>
+      </div>
+    `;
+  }
 
   // Section facture - Système mixte : disponible si récupérée OU 2h après heure retrait
   if (order.statut !== 'cancelled') {
@@ -515,6 +526,21 @@ function updateProgress(currentStatus) {
     else if (i === idx) step.classList.add('current');
     else step.classList.add('pending');
   });
+
+  // Afficher message de validation si commande en attente
+  const existingMsg = document.getElementById('validationMessage');
+  if (existingMsg) existingMsg.remove();
+
+  if (currentStatus === 'payee') {
+    const msg = document.createElement('div');
+    msg.id = 'validationMessage';
+    msg.style.cssText = 'margin-top:16px;padding:14px;background:#FFF8F0;border-left:3px solid #D4A853;border-radius:8px;text-align:center;animation:pulse 2s infinite;';
+    msg.innerHTML = `
+      <div style="font-size:.9rem;color:#1a1a1a;margin-bottom:6px;font-weight:600;">⏳ Validation en cours...</div>
+      <div style="font-size:.8rem;color:#666;">Le restaurant est en train de valider votre commande</div>
+    `;
+    document.querySelector('.progress-bar').after(msg);
+  }
 }
 
 // Parser l'heure de retrait (format "12h30" ou "12:30")

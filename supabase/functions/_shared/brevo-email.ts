@@ -4,6 +4,7 @@ interface EmailOptions {
   subject: string
   html: string
   replyTo?: string
+  orderId?: number  // Pour sync auto du statut
 }
 
 export async function sendEmailViaBrevo(options: EmailOptions): Promise<{ success: boolean; error?: string; id?: string }> {
@@ -27,7 +28,7 @@ export async function sendEmailViaBrevo(options: EmailOptions): Promise<{ succes
       body: JSON.stringify({
         sender: {
           name: 'A Beyrouth',
-          email: 'commande@beyrouth.express'
+          email: 'ludovikh@gmail.com'  // TODO: vérifier commande@beyrouth.express dans Brevo
         },
         to: [
           {
@@ -51,9 +52,44 @@ export async function sendEmailViaBrevo(options: EmailOptions): Promise<{ succes
     const result = await response.json()
     console.log('✅ Email envoyé via Brevo, messageId:', result.messageId)
 
+    // Sync statut email automatiquement (async, ne bloque pas)
+    if (options.orderId && result.messageId) {
+      syncEmailStatusAsync(options.orderId, result.messageId)
+    }
+
     return { success: true, id: result.messageId }
   } catch (error) {
     console.error('❌ Erreur Brevo:', error.message)
     return { success: false, error: error.message }
   }
+}
+
+// Fonction async pour sync le statut email (ne bloque pas l'envoi)
+function syncEmailStatusAsync(orderId: number, messageId: string) {
+  setTimeout(async () => {
+    try {
+      console.log(`🔄 Sync statut email pour commande ${orderId}...`)
+
+      const response = await fetch(
+        `${Deno.env.get('SUPABASE_URL')}/functions/v1/sync-email-status`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ orderId, messageId })
+        }
+      )
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log(`✅ Statut email synced: ${data.status}`)
+      } else {
+        console.error('❌ Erreur sync statut:', await response.text())
+      }
+    } catch (error) {
+      console.error('❌ Erreur sync async:', error.message)
+    }
+  }, 10000) // Attendre 10s pour que Brevo indexe l'email
 }

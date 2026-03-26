@@ -139,7 +139,8 @@ serve(async (req) => {
       to: order.client_email,
       subject: `❌ Commande ${order.numero} annulée - Remboursement en cours`,
       html: emailHtml,
-      replyTo: 'contact@beyrouth.express'
+      replyTo: 'contact@beyrouth.express',
+      orderId: orderId
     })
 
     if (!emailResult.success) {

@@ -1927,6 +1927,23 @@ function renderOrders() {
   badge.textContent = alertCount;
 }
 
+// Badge statut email (discret)
+function getEmailStatusBadge(order) {
+  if (!order.email_status || order.email_status === 'pending') return '';
+
+  const statusConfig = {
+    sent: { emoji: '📧', color: '#999', text: 'Envoyé' },
+    delivered: { emoji: '✅', color: '#22c55e', text: 'Livré' },
+    opened: { emoji: '👁️', color: '#3b82f6', text: 'Lu' },
+    error: { emoji: '❌', color: '#ef4444', text: 'Erreur' }
+  };
+
+  const config = statusConfig[order.email_status];
+  if (!config) return '';
+
+  return `<div id="email-status-${order.id}" style="font-size:0.65rem;color:${config.color};margin-top:2px;font-weight:600;" title="${config.text}">${config.emoji}</div>`;
+}
+
 function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, statusLabel) {
   const items = order.items || [];
   const isHistory = !!dateStr;
@@ -1980,6 +1997,7 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
             const mins = Math.floor((now - reminderTime) / 60000);
             return `<div id="reminder-${order.id}" style="font-size:0.65rem;color:#f97316;margin-top:2px;font-weight:600;">📧 Relancé il y a ${mins} min</div>`;
           })() : ''}
+          ${!isHistory && order.email_status ? getEmailStatusBadge(order) : ''}
         </div>
 
         <div style="flex:1;min-width:200px;font-size:0.8rem;color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">

@@ -194,7 +194,8 @@ serve(async (req) => {
       to: order.client_email,
       subject: `✅ Commande ${order.numero} confirmée - A Beyrouth`,
       html: emailHtml,
-      replyTo: 'contact@beyrouth.express'
+      replyTo: 'contact@beyrouth.express',
+      orderId: orderId  // Pour sync auto du statut
     })
 
     if (!emailResult.success) {

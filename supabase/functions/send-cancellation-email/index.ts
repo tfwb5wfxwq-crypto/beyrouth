@@ -1,6 +1,7 @@
 // Edge Function: Envoyer email d'annulation et remboursement
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { sendEmailViaGmail } from '../_shared/gmail-smtp.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': 'https://beyrouth.express',
@@ -69,9 +70,8 @@ serve(async (req) => {
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5;">
   <div style="max-width: 600px; margin: 0 auto; background: #fff;">
     <!-- Header -->
-    <div style="background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); padding: 40px 20px; text-align: center;">
-      <div style="font-size: 48px; margin-bottom: 10px;">🧆</div>
-      <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 700;">A Beyrouth</h1>
+    <div style="background: #1a1a1a; padding: 40px 20px; text-align: center;">
+      <img src="https://beyrouth.express/img/logo-email-final.png" alt="Beyrouth Express" style="width: 400px; max-width: 100%; height: auto; display: block; margin: 0 auto 12px auto; border-radius: 12px;">
       <p style="color: rgba(255,255,255,0.8); margin: 8px 0 0 0; font-size: 16px;">Annulation de commande</p>
     </div>
 
@@ -134,27 +134,16 @@ serve(async (req) => {
 </html>
     `
 
-    // Envoyer l'email via Resend
-    const resendApiKey = Deno.env.get('RESEND_API_KEY')
-
-    const emailResponse = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${resendApiKey}`
-      },
-      body: JSON.stringify({
-        from: 'Beyrouth Express <noreply@beyrouth.express>',
-        to: order.client_email,
-        subject: `❌ Commande ${order.numero} annulée - Remboursement en cours`,
-        html: emailHtml
-      })
+    // Envoyer l'email via Gmail SMTP
+    const emailResult = await sendEmailViaGmail({
+      to: order.client_email,
+      subject: `❌ Commande ${order.numero} annulée - Remboursement en cours`,
+      html: emailHtml,
+      replyTo: 'contact@beyrouth.express'
     })
 
-    const emailResult = await emailResponse.json()
-
-    if (!emailResponse.ok) {
-      console.error('Erreur envoi email:', emailResult)
+    if (!emailResult.success) {
+      console.error('Erreur envoi email:', emailResult.error)
       throw new Error('Erreur envoi email')
     }
 
@@ -256,7 +245,6 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        emailId: emailResult.id,
         refund: refundResult ? {
           success: !refundResult.refund_error,
           transactionId: refundResult.refund_transaction_id,

@@ -1,6 +1,7 @@
 // Edge Function: Envoyer email immédiat après paiement confirmé
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { sendEmailViaGmail } from '../_shared/gmail-smtp.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': 'https://beyrouth.express',
@@ -74,12 +75,7 @@ serve(async (req) => {
 
     <!-- Header sobre -->
     <div style="padding: 32px 24px; border-bottom: 1px solid #e0e0e0; text-align: center;">
-      <div style="background: #1a1a1a; border-radius: 12px; padding: 20px; display: inline-block; margin-bottom: 12px;">
-        <div style="display: inline-flex; align-items: center; gap: 12px;">
-          <img src="https://beyrouth.express/img/logo-olives.svg" alt="Falafels" style="height: 50px; width: auto; vertical-align: middle;">
-          <img src="https://beyrouth.express/img/logo-text.svg" alt="Beyrouth Express" style="height: 45px; width: auto; vertical-align: middle;">
-        </div>
-      </div>
+      <img src="https://beyrouth.express/img/logo-email-final.png" alt="Beyrouth Express" style="width: 400px; max-width: 100%; height: auto; display: block; margin: 0 auto 12px auto; border-radius: 12px;">
       <div style="font-size: 13px; color: #666; margin-top: 12px;">Retrait · Restaurant Libanais La Défense</div>
     </div>
 
@@ -120,28 +116,16 @@ serve(async (req) => {
 </html>
     `
 
-    // Envoyer l'email via Resend
-    const resendApiKey = Deno.env.get('RESEND_API_KEY')
-
-    const emailResponse = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${resendApiKey}`
-      },
-      body: JSON.stringify({
-        from: 'A Beyrouth <commande@beyrouth.express>',
-        to: order.client_email,
-        subject: `✅ Paiement confirmé - Commande ${order.numero} - A Beyrouth`,
-        html: emailHtml,
-        reply_to: 'contact@beyrouth.express'
-      })
+    // Envoyer l'email via Gmail SMTP
+    const emailResult = await sendEmailViaGmail({
+      to: order.client_email,
+      subject: `✅ Paiement confirmé - Commande ${order.numero} - A Beyrouth`,
+      html: emailHtml,
+      replyTo: 'contact@beyrouth.express'
     })
 
-    const emailResult = await emailResponse.json()
-
-    if (!emailResponse.ok) {
-      console.error('Erreur envoi email:', emailResult)
+    if (!emailResult.success) {
+      console.error('Erreur envoi email:', emailResult.error)
       throw new Error('Erreur envoi email')
     }
 
@@ -154,7 +138,7 @@ serve(async (req) => {
     console.log(`✅ Email de paiement confirmé envoyé pour ${order.numero}`)
 
     return new Response(
-      JSON.stringify({ success: true, emailId: emailResult.id }),
+      JSON.stringify({ success: true }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 

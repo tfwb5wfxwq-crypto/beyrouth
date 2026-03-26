@@ -1,7 +1,7 @@
 // Edge Function: Envoyer email de confirmation quand commande est acceptée
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { sendEmailViaGmail } from '../_shared/gmail-smtp.ts'
+import { sendEmailViaBrevo } from '../_shared/brevo-email.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': 'https://beyrouth.express',
@@ -189,8 +189,8 @@ serve(async (req) => {
 </html>
     `
 
-    // Envoyer l'email via Gmail SMTP
-    const emailResult = await sendEmailViaGmail({
+    // Envoyer l'email via Brevo API
+    const emailResult = await sendEmailViaBrevo({
       to: order.client_email,
       subject: `✅ Commande ${order.numero} confirmée - A Beyrouth`,
       html: emailHtml,

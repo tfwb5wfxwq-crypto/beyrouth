@@ -20,7 +20,7 @@ export async function sendEmailViaGmail(options: EmailOptions): Promise<{ succes
     const client = new SMTPClient({
       connection: {
         hostname: "smtp.gmail.com",
-        port: 465,
+        port: 587,
         tls: true,
         auth: {
           username: gmailUser,

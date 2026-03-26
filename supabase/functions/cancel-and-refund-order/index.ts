@@ -1,6 +1,7 @@
 // Edge Function: Annuler commande + Remboursement auto (PayGreen ou Edenred)
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { sendEmailViaBrevo } from '../_shared/brevo-email.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': 'https://beyrouth.express',
@@ -105,39 +106,81 @@ serve(async (req) => {
 
     if (order.paygreen_transaction_id) {
       // REMBOURSEMENT PAYGREEN
-      // 🔒 FIX #71: Migration API v2 → v3 (v2 retourne 404)
-      console.log('💳 Remboursement PayGreen (API v3):', order.paygreen_transaction_id)
+      console.log('💳 Remboursement PayGreen:', order.paygreen_transaction_id)
 
-      const paygreenResponse = await fetchWithTimeout(
-        `https://api.paygreen.fr/payment/payment-orders/${order.paygreen_transaction_id}/refund`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${Deno.env.get('PAYGREEN_SECRET_KEY')}`,
-            'Content-Type': 'application/json'
+      try {
+        // Étape 1: Obtenir JWT token PayGreen
+        const PAYGREEN_SECRET_KEY = Deno.env.get('PAYGREEN_SECRET_KEY')
+        const PAYGREEN_SHOP_ID = Deno.env.get('PAYGREEN_SHOP_ID')
+
+        const authResponse = await fetchWithTimeout(
+          `https://api.paygreen.fr/auth/authentication/${PAYGREEN_SHOP_ID}/secret-key`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': PAYGREEN_SECRET_KEY,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            }
           },
-          body: JSON.stringify({
-            amount: order.total // montant en centimes
-          })
-        },
-        10000 // 10s timeout
-      )
+          10000
+        )
 
-      if (paygreenResponse.ok) {
-        const refundData = await paygreenResponse.json()
-        console.log('✅ Remboursement PayGreen OK:', refundData)
+        if (!authResponse.ok) {
+          throw new Error(`Auth PayGreen échouée: ${authResponse.status}`)
+        }
+
+        const authData = await authResponse.json()
+        const jwtToken = authData.data?.token || authData.token
+
+        if (!jwtToken) {
+          throw new Error('JWT token non reçu de PayGreen')
+        }
+
+        // Étape 2: Créer le remboursement
+        const refundResponse = await fetchWithTimeout(
+          `https://api.paygreen.fr/payment/payment-orders/${order.paygreen_transaction_id}/refunds`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${jwtToken}`,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              amount: order.total, // En centimes
+              reason: 'customer_request'
+            })
+          },
+          10000
+        )
+
+        if (!refundResponse.ok) {
+          const errorText = await refundResponse.text()
+          throw new Error(`Remboursement échoué (${refundResponse.status}): ${errorText}`)
+        }
+
+        const refundData = await refundResponse.json()
+        const refund = refundData.data || refundData
 
         await supabase.from('orders').update({
-          refund_transaction_id: refundData.data?.id || 'paygreen_refund',
+          refund_transaction_id: refund.id,
           refund_completed_at: new Date().toISOString(),
-          refund_amount: order.total
+          refund_amount: order.total,
+          refund_error: null
         }).eq('id', orderId)
 
+        console.log('✅ Remboursement PayGreen OK:', refund.id)
         refundSuccess = true
-      } else {
-        const errorData = await paygreenResponse.text()
-        console.error('❌ Erreur PayGreen refund:', errorData)
-        refundError = errorData
+
+      } catch (error) {
+        console.error('❌ Erreur remboursement PayGreen:', error.message)
+        refundError = error.message
+
+        await supabase.from('orders').update({
+          refund_requested_at: new Date().toISOString(),
+          refund_error: error.message
+        }).eq('id', orderId)
       }
 
     } else if (order.edenred_payment_id) {
@@ -173,7 +216,7 @@ serve(async (req) => {
 
     if (updateError) throw updateError
 
-    // 4. Envoyer email au client
+    // 4. Envoyer email au client via Brevo
     try {
       const emailHtml = `
 <!DOCTYPE html>
@@ -238,28 +281,21 @@ serve(async (req) => {
 </html>
       `
 
-      const resendResponse = await fetchWithTimeout('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          from: 'A Beyrouth <commande@beyrouth.express>',
-          to: order.client_email,
-          subject: `⚠️ Commande ${order.numero} annulée - Remboursement en cours`,
-          html: emailHtml,
-          reply_to: 'contact@beyrouth.express'
-        })
-      }, 10000)
+      const emailResult = await sendEmailViaBrevo({
+        to: order.client_email,
+        subject: `⚠️ Commande ${order.numero} annulée - Remboursement en cours`,
+        html: emailHtml,
+        replyTo: 'contact@beyrouth.express',
+        orderId: orderId  // Pour sync auto du statut
+      })
 
-      if (resendResponse.ok) {
-        console.log('✅ Email annulation envoyé')
+      if (emailResult.success) {
+        console.log('✅ Email annulation envoyé via Brevo')
         await supabase.from('orders').update({
           cancellation_email_sent_at: new Date().toISOString()
         }).eq('id', orderId)
       } else {
-        console.error('❌ Erreur envoi email:', await resendResponse.text())
+        console.error('❌ Erreur envoi email:', emailResult.error)
       }
 
     } catch (emailError) {

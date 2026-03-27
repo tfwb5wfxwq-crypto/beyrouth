@@ -3249,7 +3249,10 @@ async function computeAnalytics() {
 }
 
 // ===== CLIENTS =====
+let clientsDisplayLimit = 50;  // Afficher 50 clients par défaut
+
 async function loadClients() {
+  clientsDisplayLimit = 50;  // Reset à chaque chargement
   const {data, error} = await sb.from('clients').select('*').order('total_depense', {ascending: false});
 
   if (error) {
@@ -3264,7 +3267,7 @@ async function loadClients() {
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
   const newClients = clients.filter(c => new Date(c.created_at) >= weekAgo).length;
-  const totalOrders = clients.reduce((sum, c) => sum + (c.nb_commandes || 0), 0);
+  const totalOrders = clients.reduce((sum, c) => sum + (c.nombre_commandes || 0), 0);
   const totalRevenue = clients.reduce((sum, c) => sum + (c.total_depense || 0), 0);
 
   document.getElementById('clientsTotal').textContent = totalClients;
@@ -3277,12 +3280,12 @@ async function loadClients() {
   const topHtml = topClients.map(c => `
     <div class="client-card" onclick="showClientDetail('${c.email}')">
       <div class="client-info">
-        <div class="client-name">${escapeHtml(c.prenom) || 'Client'}${c.nb_commandes >= 10 ? ' 🏆' : ''}</div>
+        <div class="client-name">${escapeHtml(c.prenom) || 'Client'}${(c.nombre_commandes || 0) >= 10 ? ' 🏆' : ''}</div>
         <div class="client-contact">${escapeHtml(c.email) || ''} ${c.telephone ? '· ' + escapeHtml(c.telephone) : ''}</div>
       </div>
       <div class="client-stats">
         <div class="client-stat">
-          <div class="client-stat-value">${c.nb_commandes || 0}</div>
+          <div class="client-stat-value">${c.nombre_commandes || 0}</div>
           <div class="client-stat-label">commandes</div>
         </div>
         <div class="client-stat">
@@ -3310,15 +3313,18 @@ async function loadClients() {
 }
 
 function renderAllClients(clientList) {
-  const html = clientList.map(c => `
+  const displayedClients = clientList.slice(0, clientsDisplayLimit);
+  const remaining = clientList.length - clientsDisplayLimit;
+
+  const html = displayedClients.map(c => `
     <div class="client-card" style="margin-bottom:8px;" onclick="showClientDetail('${c.email}')">
       <div class="client-info">
-        <div class="client-name">${escapeHtml(c.prenom) || 'Client'}${c.nb_commandes >= 10 ? ' 🏆' : ''}</div>
+        <div class="client-name">${escapeHtml(c.prenom) || 'Client'}${(c.nombre_commandes || 0) >= 10 ? ' 🏆' : ''}</div>
         <div class="client-contact">${escapeHtml(c.email) || ''} ${c.telephone ? '· ' + escapeHtml(c.telephone) : ''}</div>
       </div>
       <div class="client-stats">
         <div class="client-stat">
-          <div class="client-stat-value">${c.nb_commandes || 0}</div>
+          <div class="client-stat-value">${c.nombre_commandes || 0}</div>
           <div class="client-stat-label">commandes</div>
         </div>
         <div class="client-stat">
@@ -3332,7 +3338,34 @@ function renderAllClients(clientList) {
       </div>
     </div>
   `).join('');
-  document.getElementById('allClientsList').innerHTML = html;
+
+  let loadMoreBtn = '';
+  if (remaining > 0) {
+    loadMoreBtn = `
+      <div style="text-align:center;margin-top:16px;">
+        <button onclick="showMoreClients()" style="padding:12px 24px;background:#f5f5f5;color:var(--bordeaux);border:2px solid var(--gold);border-radius:var(--radius);font-weight:600;cursor:pointer;transition:all .3s;">
+          ➕ Voir ${Math.min(remaining, 50)} clients de plus (${remaining} restants)
+        </button>
+      </div>
+    `;
+  }
+
+  document.getElementById('allClientsList').innerHTML = html + loadMoreBtn;
+}
+
+function showMoreClients() {
+  clientsDisplayLimit += 50;
+  const search = document.getElementById('clientSearch').value.toLowerCase();
+  if (search) {
+    const filtered = clients.filter(c =>
+      (c.prenom || '').toLowerCase().includes(search) ||
+      (c.email || '').toLowerCase().includes(search) ||
+      (c.telephone || '').includes(search)
+    );
+    renderAllClients(filtered);
+  } else {
+    renderAllClients(clients);
+  }
 }
 
 async function showClientDetail(clientEmail) {

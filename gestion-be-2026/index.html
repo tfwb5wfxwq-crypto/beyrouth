@@ -410,6 +410,64 @@ button{cursor:pointer;font-family:inherit;border:none}
 .history-filter.active, .stats-filter.active{background:var(--cream);color:var(--bordeaux);border-color:var(--gold)}
 .history-filter:hover, .stats-filter:hover{background:#eee}
 
+/* Groupes terminées (collapsibles) */
+.completed-group{margin-bottom:14px}
+.completed-group-header{
+  background:var(--cream);padding:12px 16px;border-radius:var(--radius);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  cursor:pointer;transition:all .2s;user-select:none;
+  border:1px solid rgba(212,168,83,.2);
+}
+.completed-group-header:hover{transform:translateX(2px);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.completed-group-title{
+  font-family:'Playfair Display',serif;font-weight:700;font-size:.95rem;
+  color:var(--bordeaux);display:flex;align-items:center;gap:8px;
+}
+.completed-group-stats{
+  font-size:.8rem;color:#888;font-weight:600;
+  background:#fff;padding:4px 12px;border-radius:12px;
+  white-space:nowrap;
+}
+.completed-group-cards{
+  display:grid;grid-template-columns:1fr;gap:8px;
+  margin-top:10px;padding:0 4px;
+}
+.completed-group-cards.collapsed{display:none}
+
+/* Ligne compacte pour commandes terminées */
+.completed-order-line{
+  background:#fff;padding:10px 14px;border-radius:8px;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 1px 4px rgba(0,0,0,.06);
+  border-left:3px solid #ddd;transition:all .2s;
+  font-size:.85rem;
+}
+.completed-order-line:hover{box-shadow:0 2px 6px rgba(0,0,0,.1);transform:translateX(2px)}
+.completed-order-line.recuperee{border-left-color:var(--olive)}
+.completed-order-line.cancelled{border-left-color:#999}
+.completed-order-time{color:#888;font-size:.8rem;min-width:45px}
+.completed-order-num{
+  font-family:'Courier New',monospace;font-weight:700;
+  color:var(--noir);font-size:.9rem;letter-spacing:.5px;min-width:70px;
+}
+.completed-order-client{color:#666;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.completed-order-amount{
+  font-weight:700;color:var(--bordeaux);font-size:.9rem;
+  white-space:nowrap;min-width:60px;text-align:right;
+}
+.completed-order-status{font-size:.75rem;min-width:60px;text-align:center}
+
+/* Responsive groupes terminées */
+@media (max-width:768px){
+  .completed-group-header{padding:10px 12px;font-size:.9rem}
+  .completed-group-title{font-size:.85rem}
+  .completed-group-stats{font-size:.75rem;padding:3px 10px}
+  .completed-order-line{flex-wrap:wrap;gap:8px;font-size:.8rem}
+  .completed-order-time{min-width:40px}
+  .completed-order-num{min-width:60px;font-size:.85rem}
+  .completed-order-amount{font-size:.85rem}
+}
+
 /* ========= CLIENTS ========= */
 .client-card{
   background:#fff;border-radius:var(--radius);padding:16px 20px;
@@ -713,11 +771,12 @@ button{cursor:pointer;font-family:inherit;border:none}
     <div class="tab-content" id="tab-completed" style="display:none">
       <h2 style="margin-bottom:16px;color:var(--bordeaux)">Commandes terminées</h2>
       <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="history-filter active" data-days="today" onclick="loadCompleted('today')">Aujourd'hui</button>
-        <button class="history-filter" data-days="7" onclick="loadCompleted(7)">7 derniers jours</button>
-        <button class="history-filter" data-days="30" onclick="loadCompleted(30)">30 derniers jours</button>
+        <button class="history-filter active" data-period="week" onclick="loadCompleted('week')">Semaine</button>
+        <button class="history-filter" data-period="month" onclick="loadCompleted('month')">Mois</button>
+        <button class="history-filter" data-period="year" onclick="loadCompleted('year')">Année</button>
+        <button class="history-filter" data-period="all" onclick="loadCompleted('all')">Tout</button>
       </div>
-      <div class="orders-list grid-view" id="completedList">
+      <div id="completedList">
         <div class="no-orders">Chargement...</div>
       </div>
     </div>
@@ -1677,7 +1736,7 @@ function switchTab(tab) {
   }
 
   if (tab === 'stats') updateStats();
-  if (tab === 'completed') loadCompleted('today');
+  if (tab === 'completed') loadCompleted('week');
   if (tab === 'clients') loadClients();
   if (tab === 'archives') loadArchiveStats();
 }
@@ -2807,53 +2866,167 @@ async function refundEdenredTransaction(captureId, amount) {
 }
 
 // ===== COMPLETED ORDERS =====
-async function loadCompleted(days) {
+// Global pour stocker l'état des groupes (ouverts/fermés)
+let completedGroupsState = {};
+let currentCompletedPeriod = 'week';
+
+// Toggle groupe collapsed/expanded
+function toggleCompletedGroup(groupKey) {
+  const group = document.getElementById('group-' + groupKey);
+  if (!group) return;
+
+  const isCollapsed = group.classList.contains('collapsed');
+  group.classList.toggle('collapsed', !isCollapsed);
+  completedGroupsState[groupKey] = !isCollapsed;
+}
+
+// Formater le label de date selon la période
+function formatGroupDate(dateKey, period) {
+  const now = new Date();
+  const date = new Date(dateKey);
+
+  // Aujourd'hui
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.floor((today - targetDate) / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return '📅 Aujourd\'hui';
+  if (diffDays === 1) return '📅 Hier';
+
+  // Cette semaine
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - today.getDay() + 1); // Lundi
+  if (targetDate >= weekStart && targetDate < today) {
+    const dayName = date.toLocaleDateString('fr-FR', { weekday: 'long' });
+    return dayName.charAt(0).toUpperCase() + dayName.slice(1);
+  }
+
+  // Semaine dernière
+  const lastWeekStart = new Date(weekStart);
+  lastWeekStart.setDate(weekStart.getDate() - 7);
+  if (targetDate >= lastWeekStart && targetDate < weekStart) {
+    return 'Semaine dernière';
+  }
+
+  // Format standard (Lun 24 mars)
+  const dayName = date.toLocaleDateString('fr-FR', { weekday: 'short' });
+  const dateStr = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  return dayName.charAt(0).toUpperCase() + dayName.slice(1) + ' ' + dateStr;
+}
+
+// Render une ligne compacte pour commande terminée
+function renderCompletedOrderLine(order) {
+  const date = new Date(order.created_at);
+  const timeStr = date.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
+  const statusClass = order.statut === 'recuperee' ? 'recuperee' : 'cancelled';
+  const statusEmoji = order.statut === 'recuperee' ? '✓' : '✕';
+  const prenom = escapeHtml(order.client_prenom || 'Client');
+  const total = parseFloat(order.total || 0).toFixed(2).replace('.', ',');
+
+  return `
+    <div class="completed-order-line ${statusClass}">
+      <span class="completed-order-time">${timeStr}</span>
+      <span class="completed-order-num">${escapeHtml(order.numero)}</span>
+      <span class="completed-order-client">${prenom}</span>
+      <span class="completed-order-amount">${total} €</span>
+      <span class="completed-order-status">${statusEmoji}</span>
+    </div>
+  `;
+}
+
+// Render un groupe de commandes terminées
+function renderCompletedGroup(dateKey, orders, isOpen) {
+  const count = orders.length;
+  const revenue = orders.reduce((sum, o) => sum + parseFloat(o.total || 0), 0);
+  const dateLabel = formatGroupDate(dateKey, currentCompletedPeriod);
+
+  const ordersHtml = orders.map(o => renderCompletedOrderLine(o)).join('');
+
+  return `
+    <div class="completed-group">
+      <div class="completed-group-header" onclick="toggleCompletedGroup('${dateKey}')">
+        <span class="completed-group-title">${dateLabel}</span>
+        <span class="completed-group-stats">${count} cmd • ${revenue.toFixed(2).replace('.', ',')} €</span>
+      </div>
+      <div class="completed-group-cards ${isOpen ? '' : 'collapsed'}" id="group-${dateKey}">
+        ${ordersHtml}
+      </div>
+    </div>
+  `;
+}
+
+async function loadCompleted(period) {
   const list = document.getElementById('completedList');
   list.innerHTML = '<div class="no-orders">Chargement...</div>';
 
+  currentCompletedPeriod = period;
+
   // Update filter buttons
   document.querySelectorAll('.history-filter').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.days == days);
+    btn.classList.toggle('active', btn.dataset.period == period);
   });
 
+  // Construire la requête selon la période
   let query = sb.from('orders')
     .select('*')
     .in('statut', ['recuperee', 'cancelled'])
     .eq('archived', false)
     .order('created_at', {ascending: false});
 
-  if (days === 'today') {
-    const today = new Date().toISOString().split('T')[0];
-    query = query.gte('created_at', today + 'T00:00:00');
-  } else if (days !== 'all') {
-    const date = new Date();
-    date.setDate(date.getDate() - days);
-    query = query.gte('created_at', date.toISOString());
+  const now = new Date();
+  let startDate;
+
+  if (period === 'week') {
+    startDate = new Date(now);
+    startDate.setDate(now.getDate() - 7);
+  } else if (period === 'month') {
+    startDate = new Date(now);
+    startDate.setDate(now.getDate() - 30);
+  } else if (period === 'year') {
+    startDate = new Date(now);
+    startDate.setFullYear(now.getFullYear() - 1);
+  }
+  // 'all' = pas de filtre de date
+
+  if (startDate) {
+    query = query.gte('created_at', startDate.toISOString());
   }
 
   const {data, error} = await query.limit(500);
 
   if (error) {
     list.innerHTML = '<div class="no-orders">Erreur de chargement</div>';
+    console.error('Erreur loadCompleted:', error);
     return;
   }
 
   completedOrders = data || [];
 
   if (!completedOrders.length) {
-    list.innerHTML = '<div class="no-orders">Aucune commande terminée</div>';
+    list.innerHTML = '<div class="no-orders">Aucune commande terminée pour cette période</div>';
     return;
   }
 
-  let html = '';
+  // Grouper par date (YYYY-MM-DD)
+  const groups = {};
   completedOrders.forEach(order => {
     const date = new Date(order.created_at);
-    const dateStr = date.toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'});
-    const timeStr = date.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
-    const statusEmoji = order.statut === 'recuperee' ? '📦' : '✕';
-    const statusLabel = order.statut === 'recuperee' ? 'Récupérée' : 'Annulée';
+    const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
 
-    html += renderOrderCard(order, '', dateStr, timeStr, statusEmoji, statusLabel);
+    if (!groups[dateKey]) {
+      groups[dateKey] = [];
+    }
+    groups[dateKey].push(order);
+  });
+
+  // Trier les groupes par date (du plus récent au plus ancien)
+  const sortedGroupKeys = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+
+  // Render les groupes
+  let html = '';
+  sortedGroupKeys.forEach((dateKey, index) => {
+    const isOpen = index === 0 || completedGroupsState[dateKey]; // Premier groupe ouvert par défaut
+    html += renderCompletedGroup(dateKey, groups[dateKey], isOpen);
   });
 
   list.innerHTML = html;

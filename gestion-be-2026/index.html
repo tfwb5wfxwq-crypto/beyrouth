@@ -3380,7 +3380,7 @@ async function showClientDetail(clientEmail) {
 
   // Show VIP badge if 10+ commandes
   const vipBadge = document.getElementById('clientVipBadge');
-  if (client.nb_commandes >= 10) {
+  if (client.nombre_commandes >= 10) {
     vipBadge.style.display = 'inline-flex';
   } else {
     vipBadge.style.display = 'none';
@@ -3440,7 +3440,7 @@ async function showClientDetail(clientEmail) {
       <div class="client-section-title">📊 Informations</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px">
         <div style="background:#f8f9fa;padding:16px;border-radius:8px;text-align:center">
-          <div style="font-size:1.5rem;font-weight:700;color:var(--bordeaux)">${client.nb_commandes || 0}</div>
+          <div style="font-size:1.5rem;font-weight:700;color:var(--bordeaux)">${client.nombre_commandes || 0}</div>
           <div style="font-size:.85rem;color:#888">Commandes</div>
         </div>
         <div style="background:#f8f9fa;padding:16px;border-radius:8px;text-align:center">
@@ -3448,7 +3448,7 @@ async function showClientDetail(clientEmail) {
           <div style="font-size:.85rem;color:#888">Total dépensé</div>
         </div>
         <div style="background:#f8f9fa;padding:16px;border-radius:8px;text-align:center">
-          <div style="font-size:1.5rem;font-weight:700;color:var(--bordeaux)">${client.nb_commandes > 0 ? (client.total_depense / client.nb_commandes).toFixed(0) : 0} €</div>
+          <div style="font-size:1.5rem;font-weight:700;color:var(--bordeaux)">${client.nombre_commandes > 0 ? (client.total_depense / client.nombre_commandes).toFixed(0) : 0} €</div>
           <div style="font-size:.85rem;color:#888">Panier moyen</div>
         </div>
       </div>

@@ -2223,6 +2223,43 @@ async function updateStatus(orderId, newStatus) {
         }
       }
     }
+
+    // Envoyer email de remerciement quand commande récupérée
+    if (newStatus === 'recuperee') {
+      haptic.trigger('success'); // Vibration confirmation récupération
+
+      // Retry logic avec backoff exponentiel (3 tentatives)
+      let emailSent = false;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          const { data, error } = await sb.functions.invoke('send-order-completed', {
+            headers: {
+              Authorization: `Bearer ${adminToken}`
+            },
+            body: { orderId: orderId }
+          });
+
+          if (error) throw error;
+
+          // SUCCÈS !
+          console.log(`✅ Email de remerciement envoyé (tentative ${attempt}/3):`, data);
+          showToast('✅ Email de remerciement envoyé à ' + (order.client_email || 'client'), 'success', 5000);
+          emailSent = true;
+          break; // Succès → sortir de la boucle
+
+        } catch (err) {
+          console.error(`❌ Tentative ${attempt}/3 envoi email remerciement échouée:`, err);
+
+          if (attempt < 3) {
+            // Attendre avant retry : 1s, 2s, 4s (backoff exponentiel)
+            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt - 1)));
+          } else {
+            // ÉCHEC après 3 tentatives (pas critique, juste log)
+            console.warn('⚠️ Email de remerciement non envoyé, le client pourra quand même télécharger sa facture.');
+          }
+        }
+      }
+    }
   } finally {
     if (card) card.style.opacity = '1';
   }

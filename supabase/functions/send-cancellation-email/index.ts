@@ -58,77 +58,67 @@ serve(async (req) => {
       )
     }
 
-    // Template email (design original noir et or)
+    // Template email (design équilibré)
     const emailHtml = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Commande annulée - A Beyrouth</title>
+  <title>Commande annulée</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5;">
-  <div style="max-width: 600px; margin: 0 auto; background: #fff;">
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;">
+  <div style="max-width:600px;margin:0 auto;background:#fff;">
+
     <!-- Header -->
-    <div style="background: #1a1a1a; padding: 40px 20px; text-align: center;">
-      <img src="https://beyrouth.express/img/logo-email-final.png" alt="Beyrouth Express" style="width: 300px; max-width: 100%; height: auto; display: block; margin: 0 auto 12px auto; border-radius: 12px;">
-      <p style="color: rgba(255,255,255,0.8); margin: 8px 0 0 0; font-size: 16px;">Annulation de commande</p>
+    <div style="padding:24px 20px;text-align:center;border-bottom:1px solid #e0e0e0;">
+      <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width:180px;height:auto;margin:0 auto;">
     </div>
 
-    <!-- Warning Badge -->
-    <div style="text-align: center; padding: 30px 20px;">
-      <div style="width: 80px; height: 80px; background: #FEE2E2; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-        <span style="font-size: 40px; color: #ef4444;">⚠️</span>
+    <!-- Contenu principal -->
+    <div style="padding:24px 20px;">
+
+      <!-- Alerte annulation -->
+      <div style="background:#fef2f2;border-left:3px solid #ef4444;padding:16px 20px;margin-bottom:20px;">
+        <div style="font-size:16px;font-weight:600;color:#991b1b;">❌ Commande annulée</div>
       </div>
-      <h2 style="margin: 0 0 10px 0; font-size: 24px; color: #1a1a1a;">Commande annulée</h2>
-      <p style="margin: 0; color: #666; font-size: 14px;">Nous sommes désolés, votre commande a dû être annulée</p>
-    </div>
 
-    <!-- Order Number -->
-    <div style="background: #FFF8F0; padding: 30px 20px; text-align: center; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
-      <div>
-        <p style="margin: 0 0 5px 0; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Numéro de commande</p>
-        <p style="margin: 0; font-size: 48px; font-weight: 700; color: #ef4444; font-family: 'Courier New', monospace; letter-spacing: 8px;">${order.numero}</p>
+      <!-- Numéro -->
+      <div style="background:#fafafa;padding:16px 20px;margin-bottom:20px;border-radius:6px;">
+        <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">Commande</div>
+        <div style="font-size:22px;font-weight:700;font-family:'Courier New',monospace;color:#ef4444;">${order.numero}</div>
       </div>
-    </div>
 
-    <!-- Info -->
-    <div style="padding: 30px 20px; background: #fafafa;">
-      <h3 style="margin: 0 0 15px 0; font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Raison de l'annulation</h3>
-      <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.6;">
-        ${cancellationReason || 'Cette annulation peut être due à un problème de disponibilité ou une erreur technique. Nous nous excusons sincèrement pour ce désagrément.'}
-      </p>
-    </div>
-
-    <!-- Refund Info -->
-    <div style="padding: 30px 20px;">
-      <div style="background: #FFF8F0; padding: 20px; border-left: 4px solid #D4A853; border-radius: 4px;">
-        <p style="margin: 0 0 10px 0; font-size: 14px; color: #1a1a1a; font-weight: 600;">💳 Remboursement automatique</p>
-        <p style="margin: 0; font-size: 14px; color: #666; line-height: 1.5;">
-          Le montant de <strong>${(order.total / 100).toFixed(2).replace('.', ',')} €</strong> vous sera remboursé sous 5 à 7 jours ouvrés sur votre moyen de paiement initial.
-        </p>
+      ${cancellationReason ? `
+      <!-- Raison -->
+      <div style="background:#fafafa;padding:16px 20px;margin-bottom:20px;border-radius:6px;">
+        <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">Raison</div>
+        <div style="font-size:14px;color:#666;line-height:1.6;">${cancellationReason.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
       </div>
-    </div>
+      ` : ''}
 
-    <!-- Contact -->
-    <div style="padding: 0 20px 30px 20px;">
-      <div style="background: #fafafa; padding: 20px; border-radius: 4px; text-align: center;">
-        <p style="margin: 0 0 10px 0; font-size: 14px; color: #666;">Pour toute question, contactez-nous :</p>
-        <p style="margin: 0; font-size: 14px; color: #1a1a1a;">
-          📍 4 Esplanade du Général de Gaulle, 92400 Courbevoie<br>
-          <span style="font-size: 13px; color: #888;">Métro : La Défense - Sortie 4</span>
-        </p>
+      <!-- Remboursement -->
+      <div style="background:#fef3c7;border-left:3px solid #f59e0b;padding:16px 20px;margin-bottom:20px;">
+        <div style="font-size:14px;font-weight:600;color:#92400e;margin-bottom:6px;">💳 Remboursement automatique</div>
+        <div style="font-size:13px;color:#78350f;line-height:1.5;">Le montant de <strong>${parseFloat(order.total).toFixed(2).replace('.', ',')} €</strong> vous sera remboursé sous 5 à 7 jours ouvrés.</div>
       </div>
+
+      <!-- Contact -->
+      <div style="padding:16px 0;border-top:1px solid #e0e0e0;">
+        <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">📍 Contact</div>
+        <div style="font-size:14px;color:#1a1a1a;line-height:1.5;">
+          <strong>A Beyrouth</strong> · 4 Esp. Gal de Gaulle<br>
+          92400 Courbevoie (La Défense)
+        </div>
+      </div>
+
     </div>
 
     <!-- Footer -->
-    <div style="background: #1a1a1a; padding: 30px 20px; text-align: center;">
-      <p style="margin: 0 0 10px 0; color: rgba(255,255,255,0.6); font-size: 13px;">Toutes nos excuses pour ce désagrément</p>
-      <p style="margin: 0; color: rgba(255,255,255,0.4); font-size: 12px;">4 Esplanade du Général de Gaulle, 92400 Courbevoie</p>
-      <div style="margin-top: 20px;">
-        <a href="https://beyrouth.express" style="color: #D4A853; text-decoration: none; font-size: 13px;">beyrouth.express</a>
-      </div>
+    <div style="background:#fafafa;padding:20px;border-top:1px solid #e0e0e0;text-align:center;">
+      <a href="https://beyrouth.express" style="font-size:13px;color:#D4A853;text-decoration:none;">beyrouth.express</a>
     </div>
+
   </div>
 </body>
 </html>

@@ -61,59 +61,57 @@ serve(async (req) => {
     // Formater l'heure de retrait
     const pickupText = order.heure_retrait || 'Dès que possible'
 
-    // Template email (design sobre)
+    // Template email (design équilibré)
     const emailHtml = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Votre commande vous attend - A Beyrouth</title>
+  <title>Votre commande vous attend</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5;">
-  <div style="max-width: 600px; margin: 0 auto; background: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;">
+  <div style="max-width:600px;margin:0 auto;background:#fff;">
 
-    <!-- Header sobre -->
-    <div style="padding: 32px 24px; border-bottom: 1px solid #e0e0e0; text-align: center;">
-      <img src="https://beyrouth.express/img/logo-email-final.png" alt="Beyrouth Express" style="width: 300px; max-width: 100%; height: auto; display: block; margin: 0 auto 12px auto; border-radius: 12px;">
-      <div style="font-size: 13px; color: #666; margin-top: 12px;">Click & Collect · Restaurant Libanais La Défense</div>
+    <!-- Header -->
+    <div style="padding:24px 20px;text-align:center;border-bottom:1px solid #e0e0e0;">
+      <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width:180px;height:auto;margin:0 auto;">
     </div>
 
-    <!-- Titre principal -->
-    <div style="padding: 32px 24px 24px 24px;">
-      <div style="font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px;">Votre commande vous attend</div>
-      <div style="font-size: 14px; color: #666; line-height: 1.5;">Rappel : votre commande est prête au retrait.</div>
-    </div>
+    <!-- Contenu principal -->
+    <div style="padding:24px 20px;">
 
-    <!-- Info principale -->
-    <div style="padding: 0 24px 24px 24px;">
-      <div style="background: #fafafa; border-left: 3px solid #D4A853; padding: 16px 20px; border-radius: 2px;">
-        <div style="font-size: 13px; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Numéro de commande</div>
-        <div style="font-size: 28px; font-weight: 700; font-family: 'Courier New', monospace; color: #1a1a1a; letter-spacing: 2px;">${order.numero}</div>
-        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e0e0e0;">
-          <div style="font-size: 13px; color: #888; margin-bottom: 4px;">Heure de retrait prévue</div>
-          <div style="font-size: 16px; font-weight: 600; color: #1a1a1a;">${pickupText}</div>
+      <!-- Alerte -->
+      <div style="background:#fef3c7;border-left:3px solid #f59e0b;padding:16px 20px;margin-bottom:20px;">
+        <div style="font-size:16px;font-weight:600;color:#92400e;">⏰ Votre commande vous attend</div>
+      </div>
+
+      <!-- Numéro + Heure -->
+      <div style="background:#fafafa;padding:16px 20px;margin-bottom:20px;border-radius:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div style="font-size:12px;color:#888;text-transform:uppercase;">Commande</div>
+          <div style="font-size:22px;font-weight:700;font-family:'Courier New',monospace;color:#1a1a1a;">${order.numero}</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid #e0e0e0;">
+          <div style="font-size:12px;color:#888;text-transform:uppercase;">Retrait</div>
+          <div style="font-size:15px;font-weight:600;color:#1a1a1a;">${pickupText}</div>
         </div>
       </div>
-    </div>
 
-    <!-- Adresse retrait -->
-    <div style="padding: 0 24px 32px 24px;">
-      <div style="font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Lieu de retrait</div>
-      <div style="font-size: 14px; color: #1a1a1a; line-height: 1.6; margin-bottom: 8px;">
-        <strong>A Beyrouth</strong><br>
-        4 Esplanade du Général de Gaulle<br>
-        92400 Courbevoie (La Défense)
+      <!-- Adresse -->
+      <div style="padding:16px 0;border-top:1px solid #e0e0e0;">
+        <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">📍 Retrait</div>
+        <div style="font-size:14px;color:#1a1a1a;line-height:1.5;">
+          <strong>A Beyrouth</strong> · 4 Esp. Gal de Gaulle<br>
+          92400 Courbevoie (La Défense)
+        </div>
       </div>
-      <a href="https://maps.google.com/?q=4+Esplanade+du+Général+de+Gaulle+92400+Courbevoie" style="font-size: 14px; color: #D4A853; text-decoration: none; font-weight: 500;">→ Voir sur Google Maps</a>
+
     </div>
 
     <!-- Footer -->
-    <div style="background: #fafafa; padding: 24px; border-top: 1px solid #e0e0e0; text-align: center;">
-      <div style="font-size: 12px; color: #888; line-height: 1.6;">
-        À bientôt chez A Beyrouth<br>
-        <a href="https://beyrouth.express" style="color: #D4A853; text-decoration: none; margin-top: 8px; display: inline-block;">beyrouth.express</a>
-      </div>
+    <div style="background:#fafafa;padding:20px;border-top:1px solid #e0e0e0;text-align:center;">
+      <a href="https://beyrouth.express" style="font-size:13px;color:#D4A853;text-decoration:none;">beyrouth.express</a>
     </div>
 
   </div>

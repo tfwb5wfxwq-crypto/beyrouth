@@ -65,9 +65,9 @@ serve(async (req) => {
       const price = item.price || item.prix || 0
 
       let html = `
-      <tr style="border-bottom: 1px solid #f0f0f0;">
-        <td style="padding: 12px 0; font-size: 14px; color: #1a1a1a;">${qty}× ${name}</td>
-        <td style="padding: 12px 0; text-align: right; font-size: 14px; color: #1a1a1a; font-weight: 500;">${(price * qty).toFixed(2)}€</td>
+      <tr style="border-bottom:1px solid #f0f0f0;">
+        <td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${qty}× ${name}</td>
+        <td style="padding:10px 0;text-align:right;font-size:14px;color:#1a1a1a;font-weight:500;">${(price * qty).toFixed(2)}€</td>
       </tr>
       `
 
@@ -77,9 +77,9 @@ serve(async (req) => {
           const suppName = supp.name || supp.nom || 'Supplément'
           const suppPrice = supp.price || supp.prix || 0
           html += `
-      <tr style="border-bottom: 1px solid #f0f0f0;">
-        <td style="padding: 8px 0 8px 20px; font-size: 13px; color: #666;">+ ${suppName}</td>
-        <td style="padding: 8px 0; text-align: right; font-size: 13px; color: #666;">${suppPrice.toFixed(2)}€</td>
+      <tr style="border-bottom:1px solid #f0f0f0;">
+        <td style="padding:8px 0 8px 20px;font-size:13px;color:#666;">+ ${suppName}</td>
+        <td style="padding:8px 0;text-align:right;font-size:13px;color:#666;">${suppPrice.toFixed(2)}€</td>
       </tr>
           `
         })
@@ -99,89 +99,74 @@ serve(async (req) => {
     const totalHT = totalTTC / 1.10
     const tva = totalTTC - totalHT
 
-    // Template email (design sobre)
+    // Template email (design équilibré)
     const emailHtml = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Commande confirmée - A Beyrouth</title>
+  <title>Commande confirmée</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5;">
-  <div style="max-width: 600px; margin: 0 auto; background: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;">
+  <div style="max-width:600px;margin:0 auto;background:#fff;">
 
-    <!-- Header avec logo -->
-    <div style="padding: 32px 24px; border-bottom: 1px solid #e0e0e0; text-align: center;">
-      <img src="https://beyrouth.express/img/logo-email-final.png" alt="Beyrouth Express" style="width: 300px; max-width: 100%; height: auto; display: block; margin: 0 auto 12px auto; border-radius: 12px;">
-      <div style="font-size: 13px; color: #666; margin-top: 12px;">Retrait · Restaurant Libanais La Défense</div>
+    <!-- Header -->
+    <div style="padding:24px 20px;text-align:center;border-bottom:1px solid #e0e0e0;">
+      <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width:180px;height:auto;margin:0 auto;">
     </div>
 
-    <!-- Titre principal -->
-    <div style="padding: 32px 24px 24px 24px;">
-      <div style="font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px;">Commande confirmée</div>
-      <div style="font-size: 14px; color: #666; line-height: 1.5;">Votre commande a été acceptée et sera prête pour le retrait.</div>
-    </div>
+    <!-- Contenu principal -->
+    <div style="padding:24px 20px;">
 
-    <!-- Info principale -->
-    <div style="padding: 0 24px 24px 24px;">
-      <div style="background: #fafafa; border-left: 3px solid #D4A853; padding: 16px 20px; border-radius: 2px;">
-        <div style="font-size: 13px; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Numéro de commande</div>
-        <div style="font-size: 28px; font-weight: 700; font-family: 'Courier New', monospace; color: #1a1a1a; letter-spacing: 2px;">${order.numero}</div>
-        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e0e0e0;">
-          <div style="font-size: 13px; color: #888; margin-bottom: 4px;">Heure de retrait</div>
-          <div style="font-size: 16px; font-weight: 600; color: #1a1a1a;">${pickupText}</div>
+      <!-- Statut -->
+      <div style="background:#f0fdf4;border-left:3px solid #22c55e;padding:16px 20px;margin-bottom:20px;">
+        <div style="font-size:16px;font-weight:600;color:#166534;">✅ Commande confirmée</div>
+      </div>
+
+      <!-- Numéro + Heure -->
+      <div style="background:#fafafa;padding:16px 20px;margin-bottom:20px;border-radius:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Commande</div>
+          <div style="font-size:22px;font-weight:700;font-family:'Courier New',monospace;color:#1a1a1a;">${order.numero}</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid #e0e0e0;">
+          <div style="font-size:12px;color:#888;text-transform:uppercase;">Retrait</div>
+          <div style="font-size:15px;font-weight:600;color:#1a1a1a;">${pickupText}</div>
         </div>
       </div>
-    </div>
 
-    <!-- Récapitulatif commande -->
-    <div style="padding: 0 24px 24px 24px;">
-      <div style="font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Détail de votre commande</div>
-      <table style="width: 100%; border-collapse: collapse;">
+      <!-- Items -->
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
         ${itemsHtml}
-        <tr style="border-top: 1px solid #f0f0f0;">
-          <td style="padding: 12px 0; font-size: 13px; color: #888;">Total HT</td>
-          <td style="padding: 12px 0; text-align: right; font-size: 14px; color: #1a1a1a;">${totalHT.toFixed(2)}€</td>
-        </tr>
-        <tr style="border-bottom: 1px solid #f0f0f0;">
-          <td style="padding: 8px 0; font-size: 13px; color: #888;">TVA 10%</td>
-          <td style="padding: 8px 0; text-align: right; font-size: 14px; color: #1a1a1a;">${tva.toFixed(2)}€</td>
-        </tr>
-        <tr style="border-top: 2px solid #1a1a1a;">
-          <td style="padding: 16px 0 0 0; font-size: 16px; color: #1a1a1a; font-weight: 600;">Total TTC</td>
-          <td style="padding: 16px 0 0 0; text-align: right; font-size: 18px; color: #1a1a1a; font-weight: 700;">${totalTTC.toFixed(2)}€</td>
+        <tr style="border-top:2px solid #1a1a1a;">
+          <td style="padding:14px 0 0 0;font-size:16px;font-weight:600;color:#1a1a1a;">Total TTC</td>
+          <td style="padding:14px 0 0 0;text-align:right;font-size:18px;font-weight:700;color:#1a1a1a;">${totalTTC.toFixed(2)}€</td>
         </tr>
       </table>
-    </div>
 
-    ${order.note && order.note.trim() ? `
-    <!-- Note client -->
-    <div style="padding: 0 24px 20px 24px;">
-      <div style="background: #fef2f2; border-left: 3px solid #f87171; padding: 14px 18px; border-radius: 6px;">
-        <div style="font-size: 12px; color: #991b1b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Votre note</div>
-        <div style="font-size: 14px; color: #7f1d1d; line-height: 1.5;">${order.note.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+      ${order.note && order.note.trim() ? `
+      <!-- Note -->
+      <div style="background:#fef2f2;border-left:3px solid #f87171;padding:14px 18px;margin-bottom:20px;border-radius:6px;">
+        <div style="font-size:12px;color:#991b1b;font-weight:600;text-transform:uppercase;margin-bottom:6px;">Note</div>
+        <div style="font-size:14px;color:#7f1d1d;line-height:1.5;">${order.note.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
       </div>
-    </div>
-    ` : ''}
+      ` : ''}
 
-    <!-- Adresse retrait -->
-    <div style="padding: 0 24px 32px 24px;">
-      <div style="font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Lieu de retrait</div>
-      <div style="font-size: 14px; color: #1a1a1a; line-height: 1.6; margin-bottom: 8px;">
-        <strong>A Beyrouth</strong><br>
-        4 Esplanade du Général de Gaulle<br>
-        92400 Courbevoie (La Défense)
+      <!-- Adresse -->
+      <div style="padding:16px 0;border-top:1px solid #e0e0e0;">
+        <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">📍 Retrait</div>
+        <div style="font-size:14px;color:#1a1a1a;line-height:1.5;">
+          <strong>A Beyrouth</strong> · 4 Esp. Gal de Gaulle<br>
+          92400 Courbevoie (La Défense)
+        </div>
       </div>
-      <a href="https://maps.google.com/?q=4+Esplanade+du+Général+de+Gaulle+92400+Courbevoie" style="font-size: 14px; color: #D4A853; text-decoration: none; font-weight: 500;">→ Voir sur Google Maps</a>
+
     </div>
 
     <!-- Footer -->
-    <div style="background: #fafafa; padding: 24px; border-top: 1px solid #e0e0e0; text-align: center;">
-      <div style="font-size: 12px; color: #888; line-height: 1.6;">
-        À bientôt chez A Beyrouth<br>
-        <a href="https://beyrouth.express" style="color: #D4A853; text-decoration: none; margin-top: 8px; display: inline-block;">beyrouth.express</a>
-      </div>
+    <div style="background:#fafafa;padding:20px;border-top:1px solid #e0e0e0;text-align:center;">
+      <a href="https://beyrouth.express" style="font-size:13px;color:#D4A853;text-decoration:none;">beyrouth.express</a>
     </div>
 
   </div>

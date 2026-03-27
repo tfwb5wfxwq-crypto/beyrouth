@@ -1,4 +1,4 @@
-// Edge Function: Envoyer email immédiat après paiement confirmé
+// Edge Function: Envoyer email après récupération commande (avec lien facture + avis)
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { sendEmailViaBrevo } from '../_shared/brevo-email.ts'
@@ -41,34 +41,36 @@ serve(async (req) => {
       throw new Error('Commande introuvable')
     }
 
-    // Vérifier que la commande est payée
-    if (order.statut !== 'payee') {
+    // Vérifier que la commande est bien récupérée
+    if (order.statut !== 'recuperee') {
       return new Response(
-        JSON.stringify({ error: 'Commande pas encore payée' }),
+        JSON.stringify({ error: 'Commande pas encore récupérée' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
     // Vérifier qu'on n'a pas déjà envoyé l'email
-    if (order.payment_email_sent_at) {
-      console.log(`⏭️  Email de paiement déjà envoyé pour ${order.numero}`)
+    if (order.completed_email_sent_at) {
+      console.log(`⏭️  Email de remerciement déjà envoyé pour commande ${order.numero}`)
       return new Response(
         JSON.stringify({ success: true, message: 'Email déjà envoyé' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Formater l'heure de retrait
-    const pickupText = order.heure_retrait || 'Dès que possible'
+    // Liens externes
+    const trackingUrl = `https://beyrouth.express/commande.html?numero=${order.numero}&action=facture`
+    const googleReviewUrl = 'https://maps.app.goo.gl/mKChLAAquBDL2C5c6'
+    const instagramUrl = 'https://www.instagram.com/a_beyrouth/'
 
-    // Template email (design équilibré)
+    // Template email (design épuré)
     const emailHtml = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Paiement confirmé</title>
+  <title>Merci pour votre visite !</title>
 </head>
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;">
   <div style="max-width:600px;margin:0 auto;background:#fff;">
@@ -79,23 +81,48 @@ serve(async (req) => {
     </div>
 
     <!-- Contenu principal -->
-    <div style="padding:24px 20px;">
+    <div style="padding:32px 24px;text-align:center;">
 
-      <!-- Statut -->
-      <div style="background:#fef3c7;border-left:3px solid #f59e0b;padding:16px 20px;margin-bottom:20px;">
-        <div style="font-size:16px;font-weight:600;color:#92400e;margin-bottom:6px;">✅ Paiement confirmé</div>
-        <div style="font-size:13px;color:#78350f;">En attente de validation</div>
+      <!-- Emoji + Message -->
+      <div style="font-size:48px;margin-bottom:16px;">🧆</div>
+      <h1 style="margin:0 0 12px 0;font-size:24px;font-weight:700;color:#1a1a1a;">Merci pour votre visite !</h1>
+      <p style="margin:0 0 24px 0;font-size:16px;color:#666;line-height:1.6;">
+        Votre commande <strong>${order.numero}</strong> a bien été récupérée.<br>
+        À très bientôt chez A Beyrouth !
+      </p>
+
+      <!-- Boutons CTA -->
+      <div style="margin:32px 0;">
+
+        <!-- Facture PDF -->
+        <a href="${trackingUrl}" style="display:inline-block;background:#D4A853;color:#1a1a1a;text-decoration:none;padding:14px 28px;border-radius:6px;font-weight:600;font-size:15px;margin-bottom:12px;">
+          📄 Télécharger mon ticket de caisse
+        </a>
+
+        <!-- Google Reviews -->
+        <div style="margin-top:16px;">
+          <a href="${googleReviewUrl}" style="display:inline-block;background:#fff;border:2px solid #e0e0e0;color:#1a1a1a;text-decoration:none;padding:12px 24px;border-radius:6px;font-weight:600;font-size:14px;">
+            ⭐ Donnez votre avis sur Google
+          </a>
+        </div>
+
+        <!-- Instagram -->
+        <div style="margin-top:12px;">
+          <a href="${instagramUrl}" style="display:inline-block;background:#fff;border:2px solid #e0e0e0;color:#1a1a1a;text-decoration:none;padding:12px 24px;border-radius:6px;font-weight:600;font-size:14px;">
+            📸 Suivez-nous sur Instagram
+          </a>
+        </div>
+
       </div>
 
-      <!-- Message -->
-      <div style="font-size:14px;color:#666;line-height:1.6;margin-bottom:20px;">
-        Vous recevrez un email de confirmation dès que le restaurant aura accepté votre commande.
-      </div>
-
-      <!-- Numéro -->
-      <div style="background:#fafafa;padding:16px 20px;border-radius:6px;">
-        <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">Commande</div>
-        <div style="font-size:22px;font-weight:700;font-family:'Courier New',monospace;color:#1a1a1a;">${order.numero}</div>
+      <!-- Adresse -->
+      <div style="margin-top:32px;padding-top:24px;border-top:1px solid #e0e0e0;">
+        <div style="font-size:14px;color:#888;line-height:1.6;">
+          <strong style="color:#1a1a1a;">A Beyrouth</strong><br>
+          4 Esplanade du Général de Gaulle<br>
+          92400 Courbevoie (La Défense)<br>
+          Métro : La Défense (lignes 1, A, T2)
+        </div>
       </div>
 
     </div>
@@ -113,10 +140,10 @@ serve(async (req) => {
     // Envoyer l'email via Brevo API
     const emailResult = await sendEmailViaBrevo({
       to: order.client_email,
-      subject: `✅ Paiement confirmé - Commande ${order.numero} - A Beyrouth`,
+      subject: `Merci pour votre visite ! 🧆 - A Beyrouth`,
       html: emailHtml,
       replyTo: 'contact@beyrouth.express',
-      orderId: orderId
+      orderId: orderId  // Pour sync auto du statut
     })
 
     if (!emailResult.success) {
@@ -127,18 +154,18 @@ serve(async (req) => {
     // Marquer l'email comme envoyé
     await supabase
       .from('orders')
-      .update({ payment_email_sent_at: new Date().toISOString() })
+      .update({ completed_email_sent_at: new Date().toISOString() })
       .eq('id', orderId)
 
-    console.log(`✅ Email de paiement confirmé envoyé pour ${order.numero}`)
+    console.log(`✅ Email de remerciement envoyé pour ${order.numero}`)
 
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ success: true, emailId: emailResult.id }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
-    console.error('Erreur send-payment-confirmation:', error)
+    console.error('Erreur send-order-completed:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

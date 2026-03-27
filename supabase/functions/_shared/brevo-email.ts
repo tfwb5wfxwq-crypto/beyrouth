@@ -28,7 +28,7 @@ export async function sendEmailViaBrevo(options: EmailOptions): Promise<{ succes
       body: JSON.stringify({
         sender: {
           name: 'A Beyrouth',
-          email: 'ludovikh@gmail.com'  // TODO: vérifier commande@beyrouth.express dans Brevo
+          email: 'commande@beyrouth.express'
         },
         to: [
           {

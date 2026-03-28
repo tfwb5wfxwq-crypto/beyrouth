@@ -1664,7 +1664,15 @@ async function submitOrder() {
   setPaymentFlag(true);
 
   const btn = document.getElementById('cartSubmit');
-  btn.disabled = true; btn.textContent = 'Redirection paiement...';
+  btn.disabled = true;
+  btn.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="animation:spin 1s linear infinite;">
+        <circle cx="10" cy="10" r="8" stroke="white" stroke-width="3" stroke-linecap="round" stroke-dasharray="40 20" opacity="0.9"/>
+      </svg>
+      <span>Préparation du paiement...</span>
+    </div>
+  `;
   saveClientInfo();
   // 🔒 FIX #79: Arrondir à chaque étape pour éviter floating point errors (0.1 + 0.2 = 0.30000000004)
   const total = cart.reduce((s, c) => Math.round((s + c.prix * c.qty) * 100) / 100, 0);
@@ -1711,7 +1719,9 @@ async function submitOrder() {
       if (insertError) throw insertError;
     }
 
-    btn.textContent = 'Ouverture du paiement...';
+    // Mettre à jour le texte du spinner (pas btn.textContent qui écrase le HTML)
+    const btnSpan = btn.querySelector('span');
+    if (btnSpan) btnSpan.textContent = 'Ouverture du paiement...';
 
     // Appeler l'Edge Function pour créer la session Paygreen
     const {data, error} = await sb.functions.invoke('create-payment', {

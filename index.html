@@ -2799,8 +2799,10 @@ function updateConfirmModalStatus(order) {
       <div class="status-icon pulse" style="background: linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%); box-shadow: 0 12px 32px rgba(245, 158, 11, 0.4);">
         <span style="font-size: 3rem; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));">⏳</span>
       </div>
-      <div style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); border-radius: 16px; padding: 16px 20px; margin-bottom: 16px; border: 2px solid #F59E0B;">
-        <h2 style="font-size: 1.2rem; font-weight: 600; color: #F59E0B; margin: 0; font-family: 'Inter', system-ui, sans-serif; letter-spacing: -0.01em;">En attente de validation<span class="dots"></span></h2>
+      <div style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); border-radius: 16px; padding: 18px 20px; margin-bottom: 16px; border: 2px solid #F59E0B;">
+        <h2 style="font-size: 1.3rem; font-weight: 700; color: #F59E0B; margin: 0 0 8px; font-family: 'Inter', system-ui, sans-serif; letter-spacing: -0.01em;">Validation en cours<span class="dots"></span></h2>
+        <p style="font-size: 0.95rem; color: #92400E; margin: 0; line-height: 1.5;">Le restaurant va confirmer votre commande dans quelques instants.</p>
+        <p style="font-size: 0.85rem; color: #92400E; margin: 8px 0 0; font-weight: 600;">📱 Cette page se mettra à jour automatiquement</p>
       </div>
     `;
   } else if (status === 'acceptee') {
@@ -2837,7 +2839,7 @@ function updateConfirmModalStatus(order) {
   // Message email
   if (emailMsg) {
     if (status === 'payee') {
-      emailMsg.innerHTML = '<strong>✉️ Email de confirmation envoyé</strong><br><span style="font-size:0.8rem;color:#666;">Vous serez notifié dès validation du restaurant</span>';
+      emailMsg.innerHTML = '<strong>✉️ Paiement confirmé</strong><br><span style="font-size:0.9rem;color:#1565C0;font-weight:600;margin-top:4px;display:block;">Vous recevrez un email dès que le restaurant aura validé votre commande</span>';
     } else if (status === 'acceptee' || status === 'prete') {
       emailMsg.innerHTML = '<strong>✉️ Email de confirmation envoyé</strong>';
     } else if (status === 'recuperee') {

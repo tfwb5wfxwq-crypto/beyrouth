@@ -578,7 +578,7 @@ button{cursor:pointer;font-family:inherit;border:none}
   .topbar h1{font-size:1.1rem}
   .topbar a img:first-child{height:22px!important} /* Logo olives */
   .topbar a img:last-child{height:18px!important} /* Logo text */
-  #currentTime{display:none!important} /* Masquer l'heure sur tablette */
+  #currentTime{font-size:.8rem!important}
   .topbar-right{
     flex-wrap:nowrap;
     gap:6px;
@@ -713,14 +713,14 @@ button{cursor:pointer;font-family:inherit;border:none}
 <!-- ===== DASHBOARD ===== -->
 <div class="dashboard" id="dashboard">
   <div class="topbar">
-    <div style="display:flex;align-items:center;gap:12px">
+    <div style="display:flex;align-items:center;">
       <a href="https://beyrouth.express" target="_blank" style="display:flex;align-items:center;gap:6px;text-decoration:none;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
         <img src="../img/logo-olives.svg" alt="Falafels" style="height:26px;filter:drop-shadow(0 0 6px rgba(212,175,55,0.15));">
         <img src="../img/logo-text.svg" alt="Beyrouth Express" style="height:20px;filter:drop-shadow(0 0 6px rgba(212,175,55,0.15));">
       </a>
-      <div id="currentTime" style="font-size:0.95rem;font-weight:600;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:0.3px;text-shadow:0 2px 4px rgba(0,0,0,0.2);margin-left:4px;"></div>
     </div>
     <div class="topbar-right">
+      <div id="currentTime" style="font-size:0.85rem;font-weight:600;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:0.3px;text-shadow:0 2px 4px rgba(0,0,0,0.2);"></div>
       <span class="topbar-stats" id="topbarStats">0 commandes — 0,00 €</span>
 
       <!-- Toggles -->

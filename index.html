@@ -2799,13 +2799,13 @@ function updateConfirmModalStatus(order) {
 
   if (status === 'payee') {
     content = `
-      <div class="status-icon pulse" style="background: linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%); box-shadow: 0 12px 32px rgba(245, 158, 11, 0.4);">
-        <span style="font-size: 3rem; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));">⏳</span>
+      <div class="status-icon pulse" style="background: linear-gradient(135deg, #34D399 0%, #10B981 100%); box-shadow: 0 12px 32px rgba(16, 185, 129, 0.4);">
+        <span style="font-size: 3rem; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));">✅</span>
       </div>
-      <div style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); border-radius: 16px; padding: 18px 20px; margin-bottom: 16px; border: 2px solid #F59E0B;">
-        <h2 style="font-size: 1.3rem; font-weight: 700; color: #F59E0B; margin: 0 0 8px; font-family: 'Inter', system-ui, sans-serif; letter-spacing: -0.01em;">Validation en cours<span class="dots"></span></h2>
-        <p style="font-size: 0.95rem; color: #92400E; margin: 0; line-height: 1.5;">Le restaurant va confirmer votre commande dans quelques instants.</p>
-        <p style="font-size: 0.85rem; color: #92400E; margin: 8px 0 0; font-weight: 600;">📱 Cette page se mettra à jour automatiquement</p>
+      <div style="background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%); border-radius: 16px; padding: 18px 20px; margin-bottom: 16px; border: 2px solid #10B981;">
+        <h2 style="font-size: 1.3rem; font-weight: 700; color: #047857; margin: 0 0 8px; font-family: 'Inter', system-ui, sans-serif; letter-spacing: -0.01em;">Paiement confirmé !</h2>
+        <p style="font-size: 0.95rem; color: #065F46; margin: 0; line-height: 1.5;">Votre commande est en attente de validation par le restaurant.</p>
+        <p style="font-size: 0.85rem; color: #065F46; margin: 8px 0 0; font-weight: 600;">📱 Vous recevrez un email de confirmation dès acceptation</p>
       </div>
     `;
   } else if (status === 'acceptee') {

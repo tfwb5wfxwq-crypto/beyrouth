@@ -228,6 +228,30 @@ h1.blue { color: var(--blue); }
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spinner {
+  display: inline-block;
+  animation: spin 2s linear infinite;
+}
+.live-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #F59E0B;
+  font-weight: 600;
+  margin-top: 8px;
+}
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background: #F59E0B;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
 </style>
 </head>
 <body>
@@ -357,9 +381,16 @@ function updateDisplay(order) {
 
     banner.innerHTML = `
       <div class="status-banner waiting">
-        <div class="status-banner-icon">⏳</div>
+        <div class="status-banner-icon spinner">⏳</div>
         <div class="status-banner-title">Validation en cours...</div>
-        <div class="status-banner-text">Le restaurant examine votre commande.<br>Vous recevrez un email dès validation.</div>
+        <div class="status-banner-text">
+          Le restaurant examine votre commande.<br>
+          Vous recevrez un email dès validation.
+        </div>
+        <div class="live-indicator">
+          <div class="live-dot"></div>
+          <span>Cette page se met à jour automatiquement</span>
+        </div>
       </div>
     `;
 

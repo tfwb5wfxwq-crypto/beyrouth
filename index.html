@@ -1866,8 +1866,25 @@ function openPaymentModal(paymentOrderId, objectSecret, orderNum, total, email, 
   document.body.appendChild(paymentSection);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  // Auto-sélectionner CB par défaut
-  setTimeout(() => selectPaymentMethod('bank_card'), 300);
+  // Auto-sélectionner CB par défaut - Attendre que PayGreen soit chargé
+  waitForPayGreenSDK(() => selectPaymentMethod('bank_card'));
+}
+
+// Fonction helper: Attendre que PayGreen SDK soit chargé
+function waitForPayGreenSDK(callback, maxAttempts = 20) {
+  let attempts = 0;
+  const checkInterval = setInterval(() => {
+    attempts++;
+    if (window.paygreenjs && typeof window.paygreenjs.init === 'function') {
+      console.log('✅ PayGreen SDK chargé après', attempts * 100, 'ms');
+      clearInterval(checkInterval);
+      callback();
+    } else if (attempts >= maxAttempts) {
+      console.error('❌ PayGreen SDK timeout après', maxAttempts * 100, 'ms');
+      clearInterval(checkInterval);
+      showToast('Erreur de chargement du système de paiement, rechargez la page', 'error');
+    }
+  }, 100);
 }
 
 function toggleRestoCards(event) {

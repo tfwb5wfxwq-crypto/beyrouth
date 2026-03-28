@@ -2224,7 +2224,16 @@ function getActionButtons(order) {
       }
       break;
     case 'recuperee':
-      buttons = `<span style="color:#888;font-size:.85rem">✓ Terminée</span>`;
+      buttons = `
+        <span style="color:#888;font-size:.85rem">✓ Terminée</span>
+        <button
+          id="resend-${order.id}"
+          class="order-action btn-secondary"
+          onclick="resendInvoice(${order.id}, '${escapeHtml(order.client_email || 'client')}')"
+          style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); margin-left: 8px;">
+          📧 Renvoyer facture
+        </button>
+      `;
       break;
     default:
       buttons = '';
@@ -2385,6 +2394,63 @@ async function remindOrder(orderId) {
   } catch (err) {
     console.error('❌ Erreur envoi email:', err);
     showToast('❌ Erreur lors de l\'envoi de l\'email', 'error');
+  }
+}
+
+// Système de double-clic pour renvoyer facture (sécurité anti-inadvertance)
+let resendInvoiceConfirm = null;
+
+async function resendInvoice(orderId, clientEmail) {
+  const btn = document.getElementById(`resend-${orderId}`);
+  if (!btn) return;
+
+  // Premier clic : Demander confirmation
+  if (resendInvoiceConfirm !== orderId) {
+    resendInvoiceConfirm = orderId;
+    btn.style.background = 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)';
+    btn.textContent = '⚠️ Confirmer l\'envoi ?';
+
+    // Réinitialiser après 3 secondes
+    setTimeout(() => {
+      if (resendInvoiceConfirm === orderId) {
+        resendInvoiceConfirm = null;
+        btn.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
+        btn.textContent = '📧 Renvoyer facture';
+      }
+    }, 3000);
+    return;
+  }
+
+  // Deuxième clic : Envoyer
+  resendInvoiceConfirm = null;
+  btn.disabled = true;
+  btn.textContent = '⏳ Envoi...';
+
+  try {
+    const adminToken = localStorage.getItem('adminToken');
+    const { data, error } = await sb.functions.invoke('send-order-completed', {
+      headers: {
+        Authorization: `Bearer ${adminToken}`
+      },
+      body: { orderId: orderId }
+    });
+
+    if (error) throw error;
+
+    showToast(`✅ Facture renvoyée à ${clientEmail}`, 'success');
+
+    // Réinitialiser bouton
+    btn.disabled = false;
+    btn.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
+    btn.textContent = '📧 Renvoyer facture';
+  } catch (err) {
+    console.error('❌ Erreur renvoi facture:', err);
+    showToast('❌ Erreur lors du renvoi de la facture', 'error');
+
+    // Réinitialiser bouton
+    btn.disabled = false;
+    btn.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
+    btn.textContent = '📧 Renvoyer facture';
   }
 }
 

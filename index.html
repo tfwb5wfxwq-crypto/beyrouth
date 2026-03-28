@@ -770,15 +770,14 @@ const DEMO_ITEMS = [
 ];
 
 // ===== HORAIRES =====
-// ⚠️ Restaurant fermé week-end MAIS click & collect 7j/7 (commande week-end → retrait lundi)
+// ⚠️ Restaurant fermé week-end (affiche "Fermé" samedi/dimanche)
+// Client peut QUAND MÊME commander le week-end pour retrait lundi (sélection horaires fonctionne toujours)
 const BUSINESS_HOURS = [
-  [0, 11, 30, 20, 30],  // Dimanche: 11h30 - 20h30 (commande → retrait lundi, CB uniquement)
   [1, 11, 30, 20, 30],  // Lundi: 11h30 - 20h30 (dernière commande)
   [2, 11, 30, 20, 30],  // Mardi: 11h30 - 20h30 (dernière commande)
   [3, 11, 30, 20, 30],  // Mercredi: 11h30 - 20h30 (dernière commande)
   [4, 11, 30, 20, 30],  // Jeudi: 11h30 - 20h30 (dernière commande)
   [5, 11, 30, 20, 30],  // Vendredi: 11h30 - 20h30 (dernière commande)
-  [6, 11, 30, 20, 30],  // Samedi: 11h30 - 20h30 (commande → retrait lundi, CB uniquement)
 ];
 const JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 

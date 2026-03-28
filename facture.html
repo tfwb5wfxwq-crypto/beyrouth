@@ -35,7 +35,6 @@
       width: 180px;
       height: auto;
       margin-bottom: 15px;
-      filter: brightness(0) invert(1);
     }
     .header h1 {
       font-size: 24px;
@@ -65,11 +64,9 @@
     }
     .download-btn:hover {
       background: #c49843;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(212, 168, 83, 0.4);
     }
     .download-btn:active {
-      transform: translateY(0);
+      opacity: 0.9;
     }
     #invoice-content {
       padding: 40px;
@@ -118,7 +115,7 @@
 <body>
   <div class="container">
     <div class="header" id="header">
-      <img src="img/logo-email-final.png" alt="A Beyrouth">
+      <img src="/img/logo-email-final.png" alt="A Beyrouth">
       <h1>Votre facture</h1>
     </div>
 

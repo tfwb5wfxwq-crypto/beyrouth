@@ -97,10 +97,10 @@ function generateInvoiceHTML(order: any): string {
   const itemsHtml = order.items.map((item: any) => {
     let html = `
       <tr>
-        <td style="padding:8px 0; border-bottom:1px solid #eee;">${item.nom}</td>
-        <td style="padding:8px 0; border-bottom:1px solid #eee; text-align:center;">${item.quantite}</td>
-        <td style="padding:8px 0; border-bottom:1px solid #eee; text-align:right;">${item.prix.toFixed(2)}€</td>
-        <td style="padding:8px 0; border-bottom:1px solid #eee; text-align:right;">${(item.prix * item.quantite).toFixed(2)}€</td>
+        <td style="padding:14px 12px; border-bottom:1px solid #eee;">${item.nom}</td>
+        <td style="padding:14px 12px; border-bottom:1px solid #eee; text-align:center;">${item.quantite}</td>
+        <td style="padding:14px 12px; border-bottom:1px solid #eee; text-align:right;">${item.prix.toFixed(2)}€</td>
+        <td style="padding:14px 12px; border-bottom:1px solid #eee; text-align:right; font-weight:500;">${(item.prix * item.quantite).toFixed(2)}€</td>
       </tr>
     `
 
@@ -109,10 +109,10 @@ function generateInvoiceHTML(order: any): string {
       item.supplements.forEach((supp: any) => {
         html += `
           <tr>
-            <td style="padding:4px 0 4px 20px; border-bottom:1px solid #eee; font-size:13px; color:#666;">+ ${supp.nom}</td>
-            <td style="padding:4px 0; border-bottom:1px solid #eee;"></td>
-            <td style="padding:4px 0; border-bottom:1px solid #eee; text-align:right; font-size:13px;">${supp.prix.toFixed(2)}€</td>
-            <td style="padding:4px 0; border-bottom:1px solid #eee; text-align:right; font-size:13px;">${supp.prix.toFixed(2)}€</td>
+            <td style="padding:10px 12px 10px 32px; border-bottom:1px solid #eee; font-size:14px; color:#888;">+ ${supp.nom}</td>
+            <td style="padding:10px 12px; border-bottom:1px solid #eee;"></td>
+            <td style="padding:10px 12px; border-bottom:1px solid #eee; text-align:right; font-size:14px; color:#888;">${supp.prix.toFixed(2)}€</td>
+            <td style="padding:10px 12px; border-bottom:1px solid #eee; text-align:right; font-size:14px; color:#888;">${supp.prix.toFixed(2)}€</td>
           </tr>
         `
       })
@@ -171,63 +171,58 @@ function generateInvoiceHTML(order: any): string {
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 30px 0;
+      margin: 40px 0;
     }
     th {
       text-align: left;
-      padding: 12px 0;
-      border-bottom: 2px solid #333;
-      font-size: 14px;
-      font-weight: 700;
+      padding: 16px 12px;
+      border-bottom: 2px solid #1a1a1a;
+      font-size: 13px;
+      font-weight: 600;
       text-transform: uppercase;
-      color: #666;
+      letter-spacing: 0.5px;
+      color: #1a1a1a;
+      background: #fafafa;
     }
     th.center { text-align: center; }
     th.right { text-align: right; }
     td {
       font-size: 15px;
+      padding: 14px 12px;
     }
     .totals {
-      margin-top: 40px;
-      background: #fafafa;
-      border-radius: 8px;
-      padding: 20px;
-      max-width: 400px;
+      margin-top: 50px;
+      max-width: 350px;
       margin-left: auto;
     }
     .totals-line {
       display: flex;
       justify-content: space-between;
-      padding: 10px 0;
+      padding: 12px 0;
       font-size: 15px;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    .totals-line:last-child {
-      border-bottom: none;
     }
     .totals-label {
       color: #666;
-      font-weight: 500;
+      font-weight: 400;
     }
     .totals-value {
-      font-weight: 600;
+      font-weight: 500;
       color: #1a1a1a;
+      font-variant-numeric: tabular-nums;
     }
     .total-ttc {
-      background: #D4A853;
-      color: white;
-      margin: 15px -20px -20px -20px;
-      padding: 15px 20px;
-      border-radius: 0 0 8px 8px;
+      border-top: 3px solid #1a1a1a;
+      margin-top: 15px;
+      padding-top: 15px;
     }
     .total-ttc .totals-label {
-      color: white;
-      font-size: 16px;
+      color: #1a1a1a;
+      font-size: 17px;
       font-weight: 700;
     }
     .total-ttc .totals-value {
-      color: white;
-      font-size: 20px;
+      color: #D4A853;
+      font-size: 24px;
       font-weight: 700;
     }
     .footer {

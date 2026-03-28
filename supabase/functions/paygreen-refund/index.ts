@@ -20,6 +20,46 @@ serve(async (req) => {
   }
 
   try {
+    // 🔒 SÉCURITÉ: Validation token admin
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Non autorisé - token admin requis' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const adminToken = authHeader.replace('Bearer ', '')
+
+    // Importer createClient pour valider le token
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    // Vérifier que le token existe en BDD et n'est pas expiré
+    const { data: session, error: sessionError } = await supabase
+      .from('admin_sessions')
+      .select('*')
+      .eq('token', adminToken)
+      .gt('expires_at', new Date().toISOString())
+      .single()
+
+    if (sessionError || !session) {
+      console.error('❌ Token invalide ou expiré')
+      return new Response(
+        JSON.stringify({ error: 'Token invalide ou expiré' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // ✅ Token valide → Update last_activity
+    await supabase
+      .from('admin_sessions')
+      .update({ last_activity: new Date().toISOString() })
+      .eq('token', adminToken)
+
     const { transactionId, amount } = await req.json()
 
     // Validation params

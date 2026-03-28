@@ -1,4 +1,4 @@
-// Edge Function: Toggle menu item disponibilité (sécurisé avec code admin)
+// Edge Function: Toggle menu item disponibilité (sécurisé avec token admin)
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -7,27 +7,52 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Code admin depuis Supabase Secrets (obligatoire)
-const ADMIN_CODE = Deno.env.get('ADMIN_CODE')
-if (!ADMIN_CODE) {
-  throw new Error('ADMIN_CODE not configured in Supabase secrets')
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { code_admin, item_id, disponible } = await req.json()
-
-    // Vérification du code admin
-    if (!code_admin || code_admin !== ADMIN_CODE) {
+    // 🔒 SÉCURITÉ: Validation token admin
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return new Response(
-        JSON.stringify({ error: 'Code admin invalide' }),
+        JSON.stringify({ error: 'Non autorisé - token admin requis' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const adminToken = authHeader.replace('Bearer ', '')
+
+    // Connexion Supabase avec service_role_key (bypass RLS)
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    // Vérifier que le token existe en BDD et n'est pas expiré
+    const { data: session, error: sessionError } = await supabase
+      .from('admin_sessions')
+      .select('*')
+      .eq('token', adminToken)
+      .gt('expires_at', new Date().toISOString())
+      .single()
+
+    if (sessionError || !session) {
+      console.error('❌ Token invalide ou expiré:', adminToken.substring(0, 8) + '...')
+      return new Response(
+        JSON.stringify({ error: 'Token invalide ou expiré' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    // ✅ Token valide → Update last_activity
+    await supabase
+      .from('admin_sessions')
+      .update({ last_activity: new Date().toISOString() })
+      .eq('token', adminToken)
+
+    const { item_id, disponible } = await req.json()
 
     // Vérification des paramètres
     if (!item_id || disponible === undefined) {
@@ -36,12 +61,6 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-
-    // Connexion Supabase avec service_role_key (bypass RLS)
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
 
     // UPDATE sécurisé
     const { data, error } = await supabase

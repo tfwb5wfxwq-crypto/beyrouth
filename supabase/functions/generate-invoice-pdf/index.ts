@@ -128,6 +128,44 @@ function generateInvoiceHTML(order: any): string {
   <meta charset="utf-8">
   <title>Facture ${order.numero}</title>
   <style>
+    @media (max-width: 768px) {
+      body {
+        margin: 20px;
+      }
+      .invoice-header {
+        flex-direction: column;
+        text-align: left;
+      }
+      .invoice-title {
+        font-size: 24px;
+      }
+      .invoice-number {
+        font-size: 16px;
+      }
+      div[style*="display: flex"] {
+        flex-direction: column !important;
+      }
+      .client-info {
+        text-align: left !important;
+        margin-top: 20px;
+      }
+      table {
+        font-size: 14px;
+      }
+      th, td {
+        padding: 10px 6px !important;
+      }
+      th {
+        font-size: 11px;
+      }
+      .totals {
+        max-width: 100%;
+        margin-right: 0;
+      }
+      .total-ttc .totals-value {
+        font-size: 20px;
+      }
+    }
     @media print {
       body { margin: 0; }
       .no-print { display: none; }

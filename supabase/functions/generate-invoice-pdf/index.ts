@@ -7,22 +7,34 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// 🔒 Fonction d'échappement XSS
+function escapeHtml(text: string | null | undefined): string {
+  if (!text) return '';
+  return text
+    .toString()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Support GET (lien direct depuis email) et POST (appel depuis frontend)
+    // Support GET avec token sécurisé (lien direct depuis email) et POST (appel depuis frontend)
     let orderId = null
-    let orderNumero = null
+    let invoiceToken = null
 
     if (req.method === 'GET') {
       const url = new URL(req.url)
-      orderNumero = url.searchParams.get('numero')
-      if (!orderNumero) {
+      invoiceToken = url.searchParams.get('token')
+      if (!invoiceToken) {
         return new Response(
-          JSON.stringify({ error: 'Paramètre numero requis' }),
+          JSON.stringify({ error: 'Token manquant' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
@@ -43,12 +55,12 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Récupérer la commande (par ID ou numéro)
+    // Récupérer la commande (par ID ou token)
     let query = supabase.from('orders').select('*')
     if (orderId) {
       query = query.eq('id', orderId)
     } else {
-      query = query.eq('numero', orderNumero)
+      query = query.eq('invoice_token', invoiceToken)
     }
 
     const { data: order, error: orderError } = await query.single()
@@ -93,11 +105,11 @@ function generateInvoiceHTML(order: any): string {
   const totalHT = totalTTC / 1.10
   const tva = totalTTC - totalHT
 
-  // Items HTML
+  // Items HTML (avec échappement XSS)
   const itemsHtml = order.items.map((item: any) => {
     let html = `
       <tr>
-        <td style="padding:14px 12px; border-bottom:1px solid #eee;">${item.nom}</td>
+        <td style="padding:14px 12px; border-bottom:1px solid #eee;">${escapeHtml(item.nom)}</td>
         <td style="padding:14px 12px; border-bottom:1px solid #eee; text-align:center;">${item.quantite}</td>
         <td style="padding:14px 12px; border-bottom:1px solid #eee; text-align:right;">${item.prix.toFixed(2)}€</td>
         <td style="padding:14px 12px; border-bottom:1px solid #eee; text-align:right; font-weight:500;">${(item.prix * item.quantite).toFixed(2)}€</td>
@@ -109,7 +121,7 @@ function generateInvoiceHTML(order: any): string {
       item.supplements.forEach((supp: any) => {
         html += `
           <tr>
-            <td style="padding:10px 12px 10px 32px; border-bottom:1px solid #eee; font-size:14px; color:#888;">+ ${supp.nom}</td>
+            <td style="padding:10px 12px 10px 32px; border-bottom:1px solid #eee; font-size:14px; color:#888;">+ ${escapeHtml(supp.nom)}</td>
             <td style="padding:10px 12px; border-bottom:1px solid #eee;"></td>
             <td style="padding:10px 12px; border-bottom:1px solid #eee; text-align:right; font-size:14px; color:#888;">${supp.prix.toFixed(2)}€</td>
             <td style="padding:10px 12px; border-bottom:1px solid #eee; text-align:right; font-size:14px; color:#888;">${supp.prix.toFixed(2)}€</td>
@@ -299,12 +311,12 @@ function generateInvoiceHTML(order: any): string {
 
     <div class="client-info" style="text-align: right;">
       <div class="section-title">Client</div>
-      ${order.invoice_company ? `<div class="info-line"><strong>${order.invoice_company}</strong></div>` : ''}
-      <div class="info-line"><strong>${order.client_prenom}</strong></div>
-      <div class="info-line">${order.client_email}</div>
-      ${order.client_telephone ? `<div class="info-line">${order.client_telephone}</div>` : ''}
-      ${order.invoice_siret ? `<div class="info-line" style="margin-top:10px;">SIRET : ${order.invoice_siret}</div>` : ''}
-      ${order.invoice_address ? `<div class="info-line">${order.invoice_address}</div>` : ''}
+      ${order.invoice_company ? `<div class="info-line"><strong>${escapeHtml(order.invoice_company)}</strong></div>` : ''}
+      <div class="info-line"><strong>${escapeHtml(order.client_prenom)}</strong></div>
+      <div class="info-line">${escapeHtml(order.client_email)}</div>
+      ${order.client_telephone ? `<div class="info-line">${escapeHtml(order.client_telephone)}</div>` : ''}
+      ${order.invoice_siret ? `<div class="info-line" style="margin-top:10px;">SIRET : ${escapeHtml(order.invoice_siret)}</div>` : ''}
+      ${order.invoice_address ? `<div class="info-line">${escapeHtml(order.invoice_address)}</div>` : ''}
     </div>
   </div>
 
@@ -340,7 +352,7 @@ function generateInvoiceHTML(order: any): string {
   ${order.note ? `
   <div style="margin-top:40px; padding:15px; background:#f8f9ff; border-left:4px solid #667eea; border-radius:4px;">
     <div style="font-size:14px; font-weight:600; color:#667eea; margin-bottom:5px;">Note :</div>
-    <div style="font-size:14px; color:#666;">${order.note}</div>
+    <div style="font-size:14px; color:#666;">${escapeHtml(order.note)}</div>
   </div>
   ` : ''}
 

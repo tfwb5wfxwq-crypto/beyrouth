@@ -1,0 +1,4 @@
+/*
+  Permissions-Policy: payment=(self)
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff

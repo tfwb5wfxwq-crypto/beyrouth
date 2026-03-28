@@ -576,13 +576,12 @@ button{cursor:pointer;font-family:inherit;border:none}
     gap:12px;
   }
   .topbar h1{font-size:1.1rem}
-  .topbar img{height:32px!important}
-  #currentTime{font-size:.9rem!important}
+  .topbar a img:first-child{height:22px!important} /* Logo olives */
+  .topbar a img:last-child{height:18px!important} /* Logo text */
+  #currentTime{display:none!important} /* Masquer l'heure sur tablette */
   .topbar-right{
-    flex-wrap:wrap;
-    gap:8px;
-    width:100%;
-    justify-content:space-between;
+    flex-wrap:nowrap;
+    gap:6px;
   }
   .topbar-stats{
     font-size:.75rem;
@@ -593,8 +592,12 @@ button{cursor:pointer;font-family:inherit;border:none}
     font-size:.8rem;
   }
   .toggle-label{
-    font-size:.8rem;
-    padding:6px 10px;
+    font-size:.75rem;
+    padding:5px 8px;
+  }
+  .topbar-logout{
+    padding:6px 10px!important;
+    font-size:1.2rem!important;
   }
 
   /* Tabs compact */

@@ -12,136 +12,162 @@
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #f5f5f5;
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
+      padding: 20px;
     }
-    .loader-container {
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 30px;
       text-align: center;
-      padding: 40px 20px;
+      color: white;
     }
-    .logo {
-      width: 200px;
+    .header img {
+      width: 180px;
       height: auto;
-      margin-bottom: 30px;
+      margin-bottom: 15px;
       filter: brightness(0) invert(1);
     }
-    h1 {
-      font-size: 28px;
-      margin-bottom: 15px;
-      font-weight: 700;
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin: 0;
     }
-    p {
+    .download-section {
+      padding: 30px;
+      text-align: center;
+      background: #fafafa;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .download-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 16px 40px;
+      border-radius: 8px;
       font-size: 16px;
-      opacity: 0.9;
-      margin-bottom: 30px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .download-btn:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+    }
+    .download-btn:active {
+      transform: translateY(0);
+    }
+    #invoice-content {
+      padding: 40px;
+      display: none;
     }
     .spinner {
       width: 50px;
       height: 50px;
-      border: 4px solid rgba(255, 255, 255, 0.3);
-      border-top-color: #fff;
+      border: 4px solid rgba(102, 126, 234, 0.2);
+      border-top-color: #667eea;
       border-radius: 50%;
       animation: spin 1s linear infinite;
-      margin: 0 auto;
+      margin: 40px auto;
     }
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
     .error {
-      background: rgba(239, 68, 68, 0.2);
+      background: #fee;
       border: 2px solid #ef4444;
-      border-radius: 12px;
-      padding: 20px;
-      margin-top: 20px;
-      max-width: 400px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .error h2 {
-      font-size: 20px;
-      margin-bottom: 10px;
-    }
-    .retry-btn {
-      background: #fff;
-      color: #667eea;
-      border: none;
-      padding: 12px 24px;
       border-radius: 8px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 15px;
-      transition: transform 0.2s;
+      padding: 20px;
+      margin: 20px;
+      color: #991b1b;
+      text-align: center;
     }
-    .retry-btn:hover {
-      transform: scale(1.05);
-    }
-    #invoice-frame {
-      display: none;
-      width: 100%;
-      height: 100vh;
-      border: none;
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .container {
+        box-shadow: none;
+        border-radius: 0;
+      }
+      .header, .download-section {
+        display: none;
+      }
+      #invoice-content {
+        display: block !important;
+        padding: 0;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="loader-container" id="loader">
-    <img src="img/logo-email-final.png" alt="A Beyrouth" class="logo">
-    <h1>Chargement de votre facture</h1>
-    <p>Veuillez patienter...</p>
-    <div class="spinner"></div>
-    <div id="error" class="error" style="display: none;">
-      <h2>⚠️ Erreur</h2>
-      <p id="error-message">Une erreur est survenue.</p>
-      <button class="retry-btn" onclick="location.reload()">Réessayer</button>
+  <div class="container">
+    <div class="header" id="header">
+      <img src="img/logo-email-final.png" alt="A Beyrouth">
+      <h1>Votre facture</h1>
     </div>
+
+    <div class="download-section" id="download-section">
+      <button class="download-btn" onclick="window.print()">
+        <span style="font-size: 20px;">📄</span>
+        Télécharger / Imprimer en PDF
+      </button>
+      <p style="margin-top: 15px; color: #666; font-size: 14px;">
+        Utilisez "Enregistrer en PDF" dans la boîte de dialogue d'impression
+      </p>
+    </div>
+
+    <div class="spinner" id="spinner"></div>
+    <div id="error" class="error" style="display: none;"></div>
+    <div id="invoice-content"></div>
   </div>
 
-  <iframe id="invoice-frame"></iframe>
-
   <script>
-    // Récupérer le numéro de commande depuis l'URL
     const urlParams = new URLSearchParams(window.location.search);
     const numero = urlParams.get('numero');
 
     if (!numero) {
-      document.getElementById('error-message').textContent = 'Numéro de commande manquant.';
+      document.getElementById('error').textContent = '⚠️ Numéro de commande manquant';
       document.getElementById('error').style.display = 'block';
-      document.querySelector('.spinner').style.display = 'none';
+      document.getElementById('spinner').style.display = 'none';
     } else {
-      // Charger directement le HTML de la facture dans l'iframe
-      const iframe = document.getElementById('invoice-frame');
-      const url = `https://xbuftfwcyontgqbbrrjt.supabase.co/functions/v1/generate-invoice-pdf?numero=${encodeURIComponent(numero)}`;
+      // Charger la facture
+      fetch(`https://xbuftfwcyontgqbbrrjt.supabase.co/functions/v1/generate-invoice-pdf?numero=${encodeURIComponent(numero)}`)
+        .then(response => {
+          if (!response.ok) throw new Error(`Erreur ${response.status}`);
+          return response.text();
+        })
+        .then(html => {
+          // Extraire juste le contenu body du HTML
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          const body = doc.body.innerHTML;
 
-      iframe.onload = function() {
-        // Masquer le loader et afficher l'iframe
-        document.getElementById('loader').style.display = 'none';
-        iframe.style.display = 'block';
-
-        // Déclencher automatiquement l'impression après 500ms
-        setTimeout(() => {
-          window.print();
-        }, 500);
-      };
-
-      iframe.onerror = function() {
-        document.getElementById('error-message').textContent = 'Impossible de charger la facture.';
-        document.getElementById('error').style.display = 'block';
-        document.querySelector('.spinner').style.display = 'none';
-      };
-
-      iframe.src = url;
+          // Injecter dans notre page
+          document.getElementById('invoice-content').innerHTML = body;
+          document.getElementById('invoice-content').style.display = 'block';
+          document.getElementById('spinner').style.display = 'none';
+        })
+        .catch(error => {
+          document.getElementById('error').textContent = `⚠️ Erreur : ${error.message}`;
+          document.getElementById('error').style.display = 'block';
+          document.getElementById('spinner').style.display = 'none';
+        });
     }
-
-    // Gérer l'impression
-    window.onafterprint = function() {
-      // Optionnel : fermer la page après impression
-      // window.close();
-    };
   </script>
 </body>
 </html>

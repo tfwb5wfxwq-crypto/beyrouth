@@ -93,9 +93,26 @@ serve(async (req) => {
       </div>
 
       <!-- Numéro -->
-      <div style="background:#fafafa;padding:16px 20px;border-radius:6px;">
+      <div style="background:#fafafa;padding:16px 20px;border-radius:6px;margin-bottom:20px;">
         <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">Commande</div>
         <div style="font-size:22px;font-weight:700;font-family:'Courier New',monospace;color:#1a1a1a;">${order.numero}</div>
+      </div>
+
+      <!-- Adresse -->
+      <div style="padding:16px 0;border-top:1px solid #e0e0e0;">
+        <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">📍 Retrait</div>
+        <div style="font-size:14px;color:#1a1a1a;line-height:1.5;margin-bottom:12px;">
+          <strong>A Beyrouth</strong> · 4 Esp. Gal de Gaulle<br>
+          92400 Courbevoie (La Défense)<br>
+          <span style="font-size:12px;color:#888;">Sortie 4 du métro La Défense</span>
+        </div>
+        <a href="https://www.google.com/maps/search/A+Beyrouth+4+Esplanade+du+General+de+Gaulle+92400+Courbevoie" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#E65100;color:#fff;text-decoration:none;padding:9px 20px;border-radius:7px;font-weight:600;font-size:13px;box-shadow:0 2px 4px rgba(230,81,0,0.25);">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          Ouvrir dans Google Maps
+        </a>
       </div>
 
     </div>

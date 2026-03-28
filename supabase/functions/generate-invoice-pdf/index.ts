@@ -107,24 +107,30 @@ function generateInvoiceHTML(order: any): string {
 
   // Items HTML (avec échappement XSS)
   const itemsHtml = order.items.map((item: any) => {
+    // Fallback qty vs quantite (compatibilité anciennes commandes)
+    const quantite = item.quantite || item.qty || 1
+    const prix = item.prix || 0
+    const totalItem = prix * quantite
+
     let html = `
       <tr>
         <td style="padding:14px 12px; border-bottom:1px solid #eee;">${escapeHtml(item.nom)}</td>
-        <td style="padding:14px 12px; border-bottom:1px solid #eee; text-align:center;">${item.quantite}</td>
-        <td style="padding:14px 12px; border-bottom:1px solid #eee; text-align:right;">${item.prix.toFixed(2)}€</td>
-        <td style="padding:14px 12px; border-bottom:1px solid #eee; text-align:right; font-weight:500;">${(item.prix * item.quantite).toFixed(2)}€</td>
+        <td style="padding:14px 12px; border-bottom:1px solid #eee; text-align:center;">${quantite}</td>
+        <td style="padding:14px 12px; border-bottom:1px solid #eee; text-align:right;">${prix.toFixed(2)}€</td>
+        <td style="padding:14px 12px; border-bottom:1px solid #eee; text-align:right; font-weight:500;">${totalItem.toFixed(2)}€</td>
       </tr>
     `
 
     // Suppléments
     if (item.supplements && item.supplements.length > 0) {
       item.supplements.forEach((supp: any) => {
+        const suppPrix = supp.prix || 0
         html += `
           <tr>
             <td style="padding:10px 12px 10px 32px; border-bottom:1px solid #eee; font-size:14px; color:#888;">+ ${escapeHtml(supp.nom)}</td>
             <td style="padding:10px 12px; border-bottom:1px solid #eee;"></td>
-            <td style="padding:10px 12px; border-bottom:1px solid #eee; text-align:right; font-size:14px; color:#888;">${supp.prix.toFixed(2)}€</td>
-            <td style="padding:10px 12px; border-bottom:1px solid #eee; text-align:right; font-size:14px; color:#888;">${supp.prix.toFixed(2)}€</td>
+            <td style="padding:10px 12px; border-bottom:1px solid #eee; text-align:right; font-size:14px; color:#888;">${suppPrix.toFixed(2)}€</td>
+            <td style="padding:10px 12px; border-bottom:1px solid #eee; text-align:right; font-size:14px; color:#888;">${suppPrix.toFixed(2)}€</td>
           </tr>
         `
       })

@@ -2287,7 +2287,7 @@ function getActionButtons(order) {
       break;
     case 'acceptee':
       // Acceptées → Récupérée ou actions secondaires
-      buttons = `<button class="order-action btn-done" onclick="updateStatus(${order.id},'recuperee')" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">Récupérée</button>`;
+      buttons = `<button class="order-action btn-done" onclick="updateStatus(${order.id},'recuperee')" style="background: #d1fae5; color: #065f46;">Récupérée</button>`;
 
       // Bouton Relancer si en retard
       if (isLate) {
@@ -2295,8 +2295,8 @@ function getActionButtons(order) {
       }
 
       // Boutons secondaires (archiver, annuler)
-      buttons += `<button class="order-action btn-secondary" onclick="archiveOrder(${order.id})" style="background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);">Archiver</button>`;
-      buttons += `<button class="order-action btn-cancel" onclick="cancelOrder(${order.id})" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">Annuler</button>`;
+      buttons += `<button class="order-action btn-secondary" onclick="archiveOrder(${order.id})" style="background: #e5e7eb; color: #374151;">Archiver</button>`;
+      buttons += `<button class="order-action btn-cancel" onclick="cancelOrder(${order.id})" style="background: #fecaca; color: #991b1b;">Annuler</button>`;
       break;
     // Support ancien format (rétro-compatibilité)
     case 'en_preparation':

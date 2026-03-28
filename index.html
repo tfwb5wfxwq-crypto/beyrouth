@@ -2853,11 +2853,8 @@ function updateConfirmModalStatus(order) {
     if (status === 'payee') {
       emailMsg.innerHTML = '<strong>✉️ Paiement confirmé</strong><br><span style="font-size:0.9rem;color:#1565C0;font-weight:600;margin-top:4px;display:block;">Vous recevrez un email dès que le restaurant aura validé votre commande</span>';
       if (emailSection) emailSection.style.display = 'block';
-    } else if (status === 'acceptee' || status === 'prete') {
-      emailMsg.innerHTML = '<strong>✉️ Ticket de caisse envoyé par mail</strong>';
-      if (emailSection) emailSection.style.display = 'block';
-    } else if (status === 'recuperee') {
-      // Cacher toute la section email car plus pertinent (commande déjà récupérée)
+    } else {
+      // Masquer la section email pour les autres statuts (acceptee, prete, recuperee)
       if (emailSection) emailSection.style.display = 'none';
     }
   }

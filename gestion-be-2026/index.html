@@ -775,9 +775,10 @@ button{cursor:pointer;font-family:inherit;border:none}
     <!-- Terminées Tab -->
     <div class="tab-content" id="tab-completed" style="display:none">
       <h2 style="margin-bottom:16px;color:var(--bordeaux)">Commandes terminées</h2>
+      <p style="margin-bottom:12px;color:#666;font-size:0.9rem;">📅 Reset automatique chaque lundi</p>
       <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="history-filter active" data-period="week" onclick="loadCompleted('week')">Semaine</button>
-        <button class="history-filter" data-period="month" onclick="loadCompleted('month')">Mois</button>
+        <button class="history-filter active" data-period="week" onclick="loadCompleted('week')">Cette semaine</button>
+        <button class="history-filter" data-period="month" onclick="loadCompleted('month')">30 derniers jours</button>
         <button class="history-filter" data-period="year" onclick="loadCompleted('year')">Année</button>
         <button class="history-filter" data-period="all" onclick="loadCompleted('all')">Tout</button>
       </div>
@@ -3187,9 +3188,49 @@ function renderCompletedGroup(dateKey, orders, isOpen) {
   `;
 }
 
+// ===== AUTO-ARCHIVAGE HEBDOMADAIRE =====
+// Archive automatiquement les commandes terminées de la semaine précédente
+async function autoArchiveOldWeeks() {
+  try {
+    // Calculer le lundi 00h00 de cette semaine
+    const now = new Date();
+    const mondayThisWeek = new Date(now);
+    const dayOfWeek = mondayThisWeek.getDay(); // 0=dimanche, 1=lundi, ...
+    const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    mondayThisWeek.setDate(mondayThisWeek.getDate() - daysSinceMonday);
+    mondayThisWeek.setHours(0, 0, 0, 0);
+
+    // Archiver toutes les commandes terminées AVANT ce lundi
+    const { data, error } = await sb
+      .from('orders')
+      .update({
+        archived: true,
+        auto_archived_at: new Date().toISOString()
+      })
+      .in('statut', ['recuperee', 'cancelled'])
+      .eq('archived', false)
+      .lt('created_at', mondayThisWeek.toISOString());
+
+    if (error) {
+      console.error('❌ Erreur auto-archivage:', error);
+      return;
+    }
+
+    // Log silencieux (pas de toast pour ne pas déranger Paco)
+    if (data && data.length > 0) {
+      console.log(`✅ Auto-archivage: ${data.length} commandes archivées`);
+    }
+  } catch (err) {
+    console.error('❌ Erreur autoArchiveOldWeeks:', err);
+  }
+}
+
 async function loadCompleted(period) {
   const list = document.getElementById('completedList');
   list.innerHTML = '<div class="no-orders">Chargement...</div>';
+
+  // ✨ Auto-archiver les semaines précédentes (chaque lundi automatiquement)
+  await autoArchiveOldWeeks();
 
   currentCompletedPeriod = period;
 
@@ -3209,8 +3250,13 @@ async function loadCompleted(period) {
   let startDate;
 
   if (period === 'week') {
+    // ✨ NOUVEAU: Semaine en cours (depuis dernier lundi 00h00)
+    // Reset automatique chaque lundi → commandes propres
     startDate = new Date(now);
-    startDate.setDate(now.getDate() - 7);
+    const dayOfWeek = startDate.getDay(); // 0=dimanche, 1=lundi, ...
+    const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Si dimanche, remonter à lundi précédent
+    startDate.setDate(startDate.getDate() - daysSinceMonday);
+    startDate.setHours(0, 0, 0, 0); // Lundi 00h00
   } else if (period === 'month') {
     startDate = new Date(now);
     startDate.setDate(now.getDate() - 30);

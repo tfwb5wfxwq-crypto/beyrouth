@@ -102,18 +102,28 @@ serve(async (req) => {
     // 2. Déterminer le mode de paiement et rembourser
     let refundSuccess = false
     let refundError = null
+    const debugLogs: string[] = [] // Logs pour debug
 
     if (order.paygreen_transaction_id) {
       // REMBOURSEMENT PAYGREEN
-      console.log('💳 Remboursement PayGreen:', order.paygreen_transaction_id)
+      debugLogs.push('💳 Remboursement PayGreen: ' + order.paygreen_transaction_id)
 
       try {
         // Étape 1: Obtenir JWT token PayGreen
         const PAYGREEN_SECRET_KEY = Deno.env.get('PAYGREEN_SECRET_KEY')
         const PAYGREEN_SHOP_ID = Deno.env.get('PAYGREEN_SHOP_ID')
 
+        debugLogs.push(`🔑 SECRET_KEY: ${PAYGREEN_SECRET_KEY ? PAYGREEN_SECRET_KEY.substring(0, 10) + '...' : 'UNDEFINED'}`)
+        debugLogs.push(`🏪 SHOP_ID: ${PAYGREEN_SHOP_ID || 'UNDEFINED'}`)
+        debugLogs.push(`💳 Payment Order ID: ${order.paygreen_transaction_id}`)
+
+        console.log(debugLogs.join('\n'))
+
+        const authUrl = `https://api.paygreen.fr/auth/authentication/${PAYGREEN_SHOP_ID}/secret-key`
+        debugLogs.push(`🔗 Auth URL: ${authUrl}`)
+
         const authResponse = await fetchWithTimeout(
-          `https://api.paygreen.fr/auth/authentication/${PAYGREEN_SHOP_ID}/secret-key`,
+          authUrl,
           {
             method: 'POST',
             headers: {
@@ -125,7 +135,11 @@ serve(async (req) => {
           10000
         )
 
+        debugLogs.push(`📊 Auth Status: ${authResponse.status}`)
+
         if (!authResponse.ok) {
+          debugLogs.push(`❌ Auth échouée`)
+          console.log(debugLogs.join('\n'))
           throw new Error(`Auth PayGreen échouée: ${authResponse.status}`)
         }
 
@@ -133,50 +147,23 @@ serve(async (req) => {
         const jwtToken = authData.data?.token || authData.token
 
         if (!jwtToken) {
+          debugLogs.push(`❌ JWT non reçu`)
+          console.log(debugLogs.join('\n'))
           throw new Error('JWT token non reçu de PayGreen')
         }
 
-        // Étape 2: Récupérer les transactions du payment order (car l'API ne peut rembourser que des transactions, pas des payment orders)
-        console.log(`🔍 Récupération transactions pour payment order: ${order.paygreen_transaction_id}`)
-        const transactionsResponse = await fetchWithTimeout(
-          `https://api.paygreen.fr/payment/payment-orders/${order.paygreen_transaction_id}/transactions`,
-          {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${jwtToken}`,
-              'Accept': 'application/json'
-            }
-          },
-          10000
-        )
+        debugLogs.push(`✅ JWT reçu: ${jwtToken.substring(0, 20)}...`)
 
-        if (!transactionsResponse.ok) {
-          const errorText = await transactionsResponse.text()
-          throw new Error(`Récupération transactions échouée (${transactionsResponse.status}): ${errorText}`)
-        }
+        debugLogs.push(`💳 Tentative remboursement PayGreen: ${order.paygreen_transaction_id}`)
 
-        const transactionsData = await transactionsResponse.json()
-        const transactions = transactionsData.data || transactionsData
+        // Étape 2: Refund direct (simplifié - comme fonction de test qui marche)
+        const refundUrl = `https://api.paygreen.fr/payment/payment-orders/${order.paygreen_transaction_id}/refund`
+        debugLogs.push(`🔄 Refund URL: ${refundUrl}`)
 
-        if (!transactions || transactions.length === 0) {
-          throw new Error('Aucune transaction trouvée pour ce payment order')
-        }
+        console.log(debugLogs.join('\n'))
 
-        // Trouver la transaction réussie (status: SUCCESSED ou CAPTURED)
-        const successfulTransaction = transactions.find((t: any) =>
-          t.result?.status === 'SUCCESSED' || t.result?.status === 'CAPTURED' || t.status === 'SUCCESSED'
-        )
-
-        if (!successfulTransaction) {
-          throw new Error('Aucune transaction réussie trouvée pour ce paiement')
-        }
-
-        const transactionId = successfulTransaction.id
-        console.log(`✅ Transaction trouvée: ${transactionId}`)
-
-        // Étape 3: Créer le remboursement sur la transaction (et non sur le payment order)
         const refundResponse = await fetchWithTimeout(
-          `https://api.paygreen.fr/payment/transactions/${transactionId}/refunds`,
+          refundUrl,
           {
             method: 'POST',
             headers: {
@@ -184,18 +171,22 @@ serve(async (req) => {
               'Content-Type': 'application/json',
               'Accept': 'application/json'
             },
-            body: JSON.stringify({
-              amount: Math.round(order.total * 100), // Convertir euros → centimes
-              reason: 'customer_request'
-            })
+            body: JSON.stringify({}) // Body vide = refund complet (comme test qui marche)
           },
           10000
         )
 
+        debugLogs.push(`📊 Refund Status: ${refundResponse.status}`)
+
         if (!refundResponse.ok) {
           const errorText = await refundResponse.text()
-          throw new Error(`Remboursement échoué (${refundResponse.status}): ${errorText}`)
+          debugLogs.push(`❌ Refund échoué: ${errorText}`)
+          console.log(debugLogs.join('\n'))
+          throw new Error(`Refund échoué (${refundResponse.status}): ${errorText}`)
         }
+
+        debugLogs.push('✅ Remboursement réussi')
+        console.log(debugLogs.join('\n'))
 
         const refundData = await refundResponse.json()
         const refund = refundData.data || refundData
@@ -366,7 +357,8 @@ serve(async (req) => {
       JSON.stringify({
         success: refundSuccess,
         message: refundSuccess ? 'Commande annulée et remboursement initié' : 'Commande annulée mais erreur remboursement',
-        refundError
+        refundError,
+        debugLogs  // Logs détaillés pour debug (visible dans l'admin)
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )

@@ -177,12 +177,10 @@ serve(async (req) => {
 
     const autoAcceptEnabled = autoAcceptSetting?.value === 'true'
 
-    const isOpen = isOpenNow()
     console.log(`🤖 Auto-accept: ${autoAcceptEnabled ? 'ACTIVÉ' : 'DÉSACTIVÉ'}`)
-    console.log(`🕐 Restaurant: ${isOpen ? 'OUVERT' : 'FERMÉ'}`)
 
-    // Si AUTO-ACCEPT activé ET restaurant OUVERT : passer directement en "acceptee"
-    if (newStatus === 'payee' && !wasAlreadyPaid && autoAcceptEnabled && isOpen && data && data[0]) {
+    // Si AUTO-ACCEPT activé : passer directement en "acceptee" (H24 7j/7)
+    if (newStatus === 'payee' && !wasAlreadyPaid && autoAcceptEnabled && data && data[0]) {
       const orderId = data[0].id
       console.log(`🤖 Auto-accept activé, passage automatique en "acceptee" pour ${orderId}`)
 
@@ -198,6 +196,9 @@ serve(async (req) => {
         // Envoyer email d'acceptation
         try {
           const { data: emailResult, error: emailInvokeError } = await supabase.functions.invoke('send-order-confirmation', {
+            headers: {
+              Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+            },
             body: { orderId: data[0].id }
           })
 
@@ -211,15 +212,33 @@ serve(async (req) => {
         } catch (emailError) {
           console.error('❌ Exception envoi email acceptation:', emailError)
         }
+
+        // 📱 Envoyer notification Telegram
+        try {
+          await supabase.functions.invoke('send-telegram-notification', {
+            body: {
+              orderNumber: data[0].numero,
+              pickupTime: data[0].heure_retrait || 'Dès que possible',
+              total: data[0].total.toFixed(2),
+              paymentMethod: 'paygreen',
+              items: data[0].items || []
+            }
+          })
+          console.log(`📱 Notification Telegram envoyée pour ${data[0].numero}`)
+        } catch (telegramError) {
+          console.error('❌ Erreur notification Telegram:', telegramError)
+        }
       }
     }
-    // Si AUTO-ACCEPT désactivé OU restaurant FERMÉ : envoyer email de paiement (en attente validation)
+    // Si AUTO-ACCEPT désactivé : envoyer email de paiement (en attente validation)
     else if (newStatus === 'payee' && !wasAlreadyPaid && data && data[0]) {
       const orderId = data[0].id
-      const reason = !autoAcceptEnabled ? 'Auto-accept désactivé' : 'Restaurant fermé'
-      console.log(`⏸️ ${reason} → en attente validation manuelle`)
+      console.log(`⏸️ Auto-accept désactivé → en attente validation manuelle`)
       try {
         const { data: emailResult, error: emailInvokeError } = await supabase.functions.invoke('send-payment-confirmation', {
+          headers: {
+            Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+          },
           body: { orderId: data[0].id }
         })
 
@@ -232,6 +251,22 @@ serve(async (req) => {
         }
       } catch (emailError) {
         console.error('❌ Exception envoi email paiement:', emailError)
+      }
+
+      // 📱 Envoyer notification Telegram
+      try {
+        await supabase.functions.invoke('send-telegram-notification', {
+          body: {
+            orderNumber: data[0].numero,
+            pickupTime: data[0].heure_retrait || 'Dès que possible',
+            total: data[0].total.toFixed(2),
+            paymentMethod: 'paygreen',
+            items: data[0].items || []
+          }
+        })
+        console.log(`📱 Notification Telegram envoyée pour ${data[0].numero}`)
+      } catch (telegramError) {
+        console.error('❌ Erreur notification Telegram:', telegramError)
       }
     }
 

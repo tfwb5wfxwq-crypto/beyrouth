@@ -393,6 +393,22 @@ serve(async (req) => {
         } catch (emailError) {
           console.error('Erreur envoi email acceptation:', emailError)
         }
+
+        // 📱 Envoyer notification Telegram
+        try {
+          await supabase.functions.invoke('send-telegram-notification', {
+            body: {
+              orderNumber: updatedOrder[0].numero,
+              pickupTime: updatedOrder[0].heure_retrait || 'Dès que possible',
+              total: updatedOrder[0].total.toFixed(2),
+              paymentMethod: 'edenred',
+              items: updatedOrder[0].items || []
+            }
+          })
+          console.log(`📱 Notification Telegram envoyée pour ${orderNum}`)
+        } catch (telegramError) {
+          console.error('❌ Erreur notification Telegram:', telegramError)
+        }
       }
     }
     // Si AUTO-ACCEPT désactivé OU restaurant FERMÉ : envoyer email de paiement (en attente validation)
@@ -411,6 +427,22 @@ serve(async (req) => {
         }
       } catch (emailError) {
         console.error('Erreur appel send-payment-confirmation:', emailError)
+      }
+
+      // 📱 Envoyer notification Telegram
+      try {
+        await supabase.functions.invoke('send-telegram-notification', {
+          body: {
+            orderNumber: updatedOrder[0].numero,
+            pickupTime: updatedOrder[0].heure_retrait || 'Dès que possible',
+            total: updatedOrder[0].total.toFixed(2),
+            paymentMethod: 'edenred',
+            items: updatedOrder[0].items || []
+          }
+        })
+        console.log(`📱 Notification Telegram envoyée pour ${orderNum}`)
+      } catch (telegramError) {
+        console.error('❌ Erreur notification Telegram:', telegramError)
       }
     }
 

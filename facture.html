@@ -163,15 +163,15 @@
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const numero = urlParams.get('numero');
+    const token = urlParams.get('token');
 
-    if (!numero) {
-      document.getElementById('error').textContent = '⚠️ Numéro de commande manquant';
+    if (!token) {
+      document.getElementById('error').textContent = '⚠️ Lien invalide ou expiré';
       document.getElementById('error').style.display = 'block';
       document.getElementById('spinner').style.display = 'none';
     } else {
-      // Charger la facture
-      fetch(`https://xbuftfwcyontgqbbrrjt.supabase.co/functions/v1/generate-invoice-pdf?numero=${encodeURIComponent(numero)}`)
+      // Charger la facture via token sécurisé
+      fetch(`https://xbuftfwcyontgqbbrrjt.supabase.co/functions/v1/generate-invoice-pdf?token=${encodeURIComponent(token)}`)
         .then(response => {
           if (!response.ok) throw new Error(`Erreur ${response.status}`);
           return response.text();

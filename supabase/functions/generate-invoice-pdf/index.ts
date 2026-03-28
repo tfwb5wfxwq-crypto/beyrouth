@@ -176,12 +176,12 @@ function generateInvoiceHTML(order: any): string {
     th {
       text-align: left;
       padding: 16px 12px;
-      border-bottom: 2px solid #1a1a1a;
+      border-bottom: 2px solid #000;
       font-size: 13px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: #1a1a1a;
+      color: #000;
       background: #fafafa;
     }
     th.center { text-align: center; }
@@ -207,16 +207,16 @@ function generateInvoiceHTML(order: any): string {
     }
     .totals-value {
       font-weight: 500;
-      color: #1a1a1a;
+      color: #000;
       font-variant-numeric: tabular-nums;
     }
     .total-ttc {
-      border-top: 3px solid #1a1a1a;
+      border-top: 3px solid #000;
       margin-top: 15px;
       padding-top: 15px;
     }
     .total-ttc .totals-label {
-      color: #1a1a1a;
+      color: #000;
       font-size: 17px;
       font-weight: 700;
     }
@@ -233,28 +233,9 @@ function generateInvoiceHTML(order: any): string {
       color: #888;
       text-align: center;
     }
-    .print-btn {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 12px 24px;
-      background: #667eea;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-    }
-    .print-btn:hover {
-      background: #5568d3;
-    }
   </style>
 </head>
 <body>
-  <button class="print-btn no-print" onclick="window.print()">🖨️ Imprimer / Télécharger PDF</button>
-
   <div class="invoice-header">
     <div>
       <div class="invoice-title">FACTURE</div>

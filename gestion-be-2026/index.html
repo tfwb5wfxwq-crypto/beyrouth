@@ -576,9 +576,10 @@ button{cursor:pointer;font-family:inherit;border:none}
     gap:12px;
   }
   .topbar h1{font-size:1.1rem}
-  .topbar a img:first-child{height:20px!important} /* Logo olives */
-  .topbar a img:last-child{height:16px!important} /* Logo text */
-  #currentTime{font-size:.75rem!important}
+  .topbar a img:first-child{height:26px!important} /* Logo olives */
+  .topbar a img:last-child{height:22px!important} /* Logo text */
+  .topbar-right #currentTime{display:none!important} /* Masquer dans topbar */
+  #clockBar{display:block!important} /* Afficher barre heure 2ème ligne */
   .topbar-right{
     flex-wrap:nowrap;
     gap:5px;
@@ -668,10 +669,16 @@ button{cursor:pointer;font-family:inherit;border:none}
     margin-top:12px;
   }
   .order-action{
-    padding:7px 10px;
-    font-size:.75rem;
-    min-width:60px;
-    gap:4px;
+    padding:6px 8px;
+    font-size:.7rem;
+    min-width:auto;
+    white-space:nowrap;
+  }
+  .order-actions{
+    flex-wrap:nowrap!important;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    gap:4px!important;
   }
 
   /* Client card compact */
@@ -717,12 +724,11 @@ button{cursor:pointer;font-family:inherit;border:none}
   <div class="topbar">
     <div style="display:flex;align-items:center;">
       <a href="https://beyrouth.express" target="_blank" style="display:flex;align-items:center;gap:6px;text-decoration:none;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-        <img src="../img/logo-olives.svg" alt="Falafels" style="height:26px;filter:drop-shadow(0 0 6px rgba(212,175,55,0.15));">
-        <img src="../img/logo-text.svg" alt="Beyrouth Express" style="height:20px;filter:drop-shadow(0 0 6px rgba(212,175,55,0.15));">
+        <img src="../img/logo-olives.svg" alt="Falafels" style="height:28px;filter:drop-shadow(0 0 6px rgba(212,175,55,0.15));">
+        <img src="../img/logo-text.svg" alt="Beyrouth Express" style="height:22px;filter:drop-shadow(0 0 6px rgba(212,175,55,0.15));">
       </a>
     </div>
     <div class="topbar-right">
-      <div id="currentTime" style="font-size:0.85rem;font-weight:600;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:0.3px;text-shadow:0 2px 4px rgba(0,0,0,0.2);"></div>
       <span class="topbar-stats" id="topbarStats">0 commandes — 0,00 €</span>
 
       <!-- Toggles -->
@@ -745,6 +751,11 @@ button{cursor:pointer;font-family:inherit;border:none}
         🚪
       </button>
     </div>
+  </div>
+
+  <!-- Barre heure (2ème ligne sur tablette) -->
+  <div id="clockBar" style="background:rgba(0,0,0,0.2);padding:4px 20px;text-align:center;display:none;">
+    <div id="currentTime" style="font-size:0.85rem;font-weight:600;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:0.3px;"></div>
   </div>
 
   <div class="tabs">
@@ -2276,16 +2287,16 @@ function getActionButtons(order) {
       break;
     case 'acceptee':
       // Acceptées → Récupérée ou actions secondaires
-      buttons = `<button class="order-action btn-done" onclick="updateStatus(${order.id},'recuperee')">📦 Récup</button>`;
+      buttons = `<button class="order-action btn-done" onclick="updateStatus(${order.id},'recuperee')">Récupérée</button>`;
 
       // Bouton Relancer si en retard
       if (isLate) {
-        buttons += `<button class="order-action btn-remind" onclick="remindOrder(${order.id})" style="background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);">📧 Relance</button>`;
+        buttons += `<button class="order-action btn-remind" onclick="remindOrder(${order.id})" style="background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);">Relancer</button>`;
       }
 
       // Boutons secondaires (archiver, annuler)
-      buttons += `<button class="order-action btn-secondary" onclick="archiveOrder(${order.id})">🗑️</button>`;
-      buttons += `<button class="order-action btn-cancel" onclick="cancelOrder(${order.id})">✕</button>`;
+      buttons += `<button class="order-action btn-secondary" onclick="archiveOrder(${order.id})">Archiver</button>`;
+      buttons += `<button class="order-action btn-cancel" onclick="cancelOrder(${order.id})">Annuler</button>`;
       break;
     // Support ancien format (rétro-compatibilité)
     case 'en_preparation':

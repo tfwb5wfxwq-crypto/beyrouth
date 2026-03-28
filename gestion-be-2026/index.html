@@ -1567,7 +1567,72 @@ async function checkSession() {
     document.getElementById('dashboard').style.display = 'none';
   }
 }
+
+// 🔄 REFRESH AUTOMATIQUE DU TOKEN (pour tablette restaurant)
+async function refreshToken() {
+  const adminCode = localStorage.getItem('adminCode');
+  if (!adminCode) {
+    console.log('⚠️ Pas de code admin stocké, impossible de rafraîchir');
+    return false;
+  }
+
+  try {
+    console.log('🔄 Rafraîchissement du token en cours...');
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-auth`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      },
+      body: JSON.stringify({ code: adminCode })
+    });
+
+    const data = await response.json();
+
+    if (data.success && data.token) {
+      localStorage.setItem('adminToken', data.token);
+      localStorage.setItem('adminTokenExpiry', Date.now() + data.expiresIn * 1000);
+      console.log('✅ Token rafraîchi automatiquement - Nouvelle expiration:', new Date(Date.now() + data.expiresIn * 1000).toLocaleString('fr-FR'));
+      return true;
+    } else {
+      console.error('❌ Erreur refresh:', data.error);
+    }
+  } catch (error) {
+    console.error('❌ Erreur refresh token:', error);
+  }
+  return false;
+}
+
+// Vérifier et rafraîchir le token si nécessaire
+async function checkAndRefreshToken() {
+  const token = localStorage.getItem('adminToken');
+  const expiry = localStorage.getItem('adminTokenExpiry');
+  const adminCode = localStorage.getItem('adminCode');
+
+  if (!token || !expiry || !adminCode) return;
+
+  const expiryTime = parseInt(expiry);
+  const now = Date.now();
+  const twoDaysInMs = 2 * 24 * 60 * 60 * 1000;
+  const remainingTime = expiryTime - now;
+
+  // Si le token expire dans moins de 2 jours, le rafraîchir
+  if (remainingTime < twoDaysInMs) {
+    const remainingDays = Math.floor(remainingTime / (24 * 60 * 60 * 1000));
+    const remainingHours = Math.floor((remainingTime % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+    console.log(`⚠️ Token expire dans ${remainingDays}j ${remainingHours}h - Rafraîchissement automatique...`);
+    await refreshToken();
+  } else {
+    const remainingDays = Math.floor(remainingTime / (24 * 60 * 60 * 1000));
+    console.log(`✅ Token valide encore ${remainingDays} jours`);
+  }
+}
+
 checkSession();
+
+// 🚀 REFRESH AUTOMATIQUE: au démarrage + toutes les 6h
+checkAndRefreshToken();
+setInterval(checkAndRefreshToken, 6 * 60 * 60 * 1000); // Toutes les 6 heures
 
 document.getElementById('loginCode').addEventListener('keydown', e => {
   if (e.key === 'Enter') doLogin();

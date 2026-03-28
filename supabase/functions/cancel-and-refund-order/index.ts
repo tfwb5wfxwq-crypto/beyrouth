@@ -136,9 +136,47 @@ serve(async (req) => {
           throw new Error('JWT token non reçu de PayGreen')
         }
 
-        // Étape 2: Créer le remboursement
+        // Étape 2: Récupérer les transactions du payment order (car l'API ne peut rembourser que des transactions, pas des payment orders)
+        console.log(`🔍 Récupération transactions pour payment order: ${order.paygreen_transaction_id}`)
+        const transactionsResponse = await fetchWithTimeout(
+          `https://api.paygreen.fr/payment/payment-orders/${order.paygreen_transaction_id}/transactions`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${jwtToken}`,
+              'Accept': 'application/json'
+            }
+          },
+          10000
+        )
+
+        if (!transactionsResponse.ok) {
+          const errorText = await transactionsResponse.text()
+          throw new Error(`Récupération transactions échouée (${transactionsResponse.status}): ${errorText}`)
+        }
+
+        const transactionsData = await transactionsResponse.json()
+        const transactions = transactionsData.data || transactionsData
+
+        if (!transactions || transactions.length === 0) {
+          throw new Error('Aucune transaction trouvée pour ce payment order')
+        }
+
+        // Trouver la transaction réussie (status: SUCCESSED ou CAPTURED)
+        const successfulTransaction = transactions.find((t: any) =>
+          t.result?.status === 'SUCCESSED' || t.result?.status === 'CAPTURED' || t.status === 'SUCCESSED'
+        )
+
+        if (!successfulTransaction) {
+          throw new Error('Aucune transaction réussie trouvée pour ce paiement')
+        }
+
+        const transactionId = successfulTransaction.id
+        console.log(`✅ Transaction trouvée: ${transactionId}`)
+
+        // Étape 3: Créer le remboursement sur la transaction (et non sur le payment order)
         const refundResponse = await fetchWithTimeout(
-          `https://api.paygreen.fr/payment/payment-orders/${order.paygreen_transaction_id}/refunds`,
+          `https://api.paygreen.fr/payment/transactions/${transactionId}/refunds`,
           {
             method: 'POST',
             headers: {
@@ -147,7 +185,7 @@ serve(async (req) => {
               'Accept': 'application/json'
             },
             body: JSON.stringify({
-              amount: order.total, // En centimes
+              amount: Math.round(order.total * 100), // Convertir euros → centimes
               reason: 'customer_request'
             })
           },
@@ -254,15 +292,9 @@ serve(async (req) => {
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5;">
   <div style="max-width: 600px; margin: 0 auto; background: #fff;">
 
-    <!-- Header -->
-    <div style="padding: 32px 24px; border-bottom: 1px solid #e0e0e0; text-align: center;">
-      <div style="background: #1a1a1a; border-radius: 12px; padding: 20px; display: inline-block; margin-bottom: 12px;">
-        <div style="display: inline-flex; align-items: center; gap: 12px;">
-          <img src="https://beyrouth.express/img/logo-olives.svg" alt="Falafels" style="height: 50px;">
-          <img src="https://beyrouth.express/img/logo-text.svg" alt="Beyrouth Express" style="height: 45px;">
-        </div>
-      </div>
-      <div style="font-size: 13px; color: #666; margin-top: 12px;">Restaurant Libanais La Défense</div>
+    <!-- Header avec fond noir -->
+    <div style="background: #000; padding: 40px 24px; text-align: center;">
+      <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width: 240px; height: auto; max-width: 100%;">
     </div>
 
     <!-- Contenu -->
@@ -288,7 +320,7 @@ serve(async (req) => {
       <div style="background: #f0fdf4; border: 1px solid #86efac; padding: 16px 20px; border-radius: 8px;">
         <div style="font-size: 14px; color: #166534; line-height: 1.6;">
           <strong>💳 Remboursement :</strong><br>
-          Votre paiement de <strong>${(order.total / 100).toFixed(2)}€</strong> sera remboursé sous 3 à 5 jours ouvrés.
+          Votre paiement de <strong>${order.total.toFixed(2)}€</strong> sera remboursé sous 3 à 5 jours ouvrés.
         </div>
       </div>
     </div>

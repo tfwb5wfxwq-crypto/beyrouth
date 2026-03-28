@@ -85,7 +85,7 @@ button{cursor:pointer;font-family:inherit;border:none}
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   background-clip:text;
 }
-.topbar-right{display:flex;align-items:center;gap:20px}
+.topbar-right{display:flex;align-items:center;gap:12px}
 .topbar-stats{
   font-size:.85rem;
   background:rgba(255,255,255,.1);
@@ -710,33 +710,33 @@ button{cursor:pointer;font-family:inherit;border:none}
 <!-- ===== DASHBOARD ===== -->
 <div class="dashboard" id="dashboard">
   <div class="topbar">
-    <div style="display:flex;align-items:center;gap:20px">
-      <a href="https://beyrouth.express" target="_blank" style="display:flex;align-items:center;gap:8px;text-decoration:none;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-        <img src="../img/logo-olives.svg" alt="Falafels" style="height:32px;filter:drop-shadow(0 0 6px rgba(212,175,55,0.15));">
-        <img src="../img/logo-text.svg" alt="Beyrouth Express" style="height:22px;filter:drop-shadow(0 0 6px rgba(212,175,55,0.15));">
+    <div style="display:flex;align-items:center;gap:12px">
+      <a href="https://beyrouth.express" target="_blank" style="display:flex;align-items:center;gap:6px;text-decoration:none;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        <img src="../img/logo-olives.svg" alt="Falafels" style="height:26px;filter:drop-shadow(0 0 6px rgba(212,175,55,0.15));">
+        <img src="../img/logo-text.svg" alt="Beyrouth Express" style="height:20px;filter:drop-shadow(0 0 6px rgba(212,175,55,0.15));">
       </a>
-      <div id="currentTime" style="font-size:1.1rem;font-weight:600;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:0.5px;text-shadow:0 2px 4px rgba(0,0,0,0.2);margin-left:12px;"></div>
+      <div id="currentTime" style="font-size:0.95rem;font-weight:600;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:0.3px;text-shadow:0 2px 4px rgba(0,0,0,0.2);margin-left:4px;"></div>
     </div>
     <div class="topbar-right">
       <span class="topbar-stats" id="topbarStats">0 commandes — 0,00 €</span>
 
       <!-- Toggles -->
-      <div style="display:flex;gap:12px;align-items:center">
-        <label class="toggle-label">
+      <div style="display:flex;gap:8px;align-items:center">
+        <label class="toggle-label" style="font-size:0.85rem;padding:6px 10px;">
           <input type="checkbox" id="toggleAutoAccept" onchange="toggleAutoAccept()">
-          <span>Auto-Accept</span>
+          <span>Auto</span>
         </label>
 
-        <button class="toggle-label" id="slotPauseBtn" onclick="openSlotPauseModal()" style="cursor:pointer;border:none">
+        <button class="toggle-label" id="slotPauseBtn" onclick="openSlotPauseModal()" style="cursor:pointer;border:none;font-size:0.85rem;padding:6px 10px;">
           <span id="slotPauseText">⏸️ Pause</span>
         </button>
       </div>
 
       <!-- Boutons sessions + déconnexion -->
-      <button class="topbar-logout" onclick="showActiveSessions()" style="background:rgba(212,168,83,0.2);border-color:rgba(212,168,83,0.3);padding:10px 14px;font-size:1.5rem;min-width:auto" title="Sessions actives">
+      <button class="topbar-logout" onclick="showActiveSessions()" style="background:rgba(212,168,83,0.2);border-color:rgba(212,168,83,0.3);padding:8px 12px;font-size:1.4rem;min-width:auto" title="Sessions actives">
         👥
       </button>
-      <button class="topbar-logout" onclick="doLogout()" style="padding:10px 14px;font-size:1.5rem;min-width:auto" title="Déconnexion">
+      <button class="topbar-logout" onclick="doLogout()" style="padding:8px 12px;font-size:1.4rem;min-width:auto" title="Déconnexion">
         🚪
       </button>
     </div>

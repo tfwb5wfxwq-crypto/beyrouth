@@ -729,7 +729,7 @@ button{cursor:pointer;font-family:inherit;border:none}
       </a>
     </div>
     <div class="topbar-right">
-      <span class="topbar-stats" id="topbarStats">0 commandes — 0,00 €</span>
+      <span class="topbar-stats" id="topbarStats">📦 0 • 💰 0,00 €</span>
 
       <!-- Toggles -->
       <div style="display:flex;gap:8px;align-items:center">
@@ -2287,7 +2287,7 @@ function getActionButtons(order) {
       break;
     case 'acceptee':
       // Acceptées → Récupérée ou actions secondaires
-      buttons = `<button class="order-action btn-done" onclick="updateStatus(${order.id},'recuperee')">Récupérée</button>`;
+      buttons = `<button class="order-action btn-done" onclick="updateStatus(${order.id},'recuperee')" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">Récupérée</button>`;
 
       // Bouton Relancer si en retard
       if (isLate) {
@@ -2295,8 +2295,8 @@ function getActionButtons(order) {
       }
 
       // Boutons secondaires (archiver, annuler)
-      buttons += `<button class="order-action btn-secondary" onclick="archiveOrder(${order.id})">Archiver</button>`;
-      buttons += `<button class="order-action btn-cancel" onclick="cancelOrder(${order.id})">Annuler</button>`;
+      buttons += `<button class="order-action btn-secondary" onclick="archiveOrder(${order.id})" style="background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);">Archiver</button>`;
+      buttons += `<button class="order-action btn-cancel" onclick="cancelOrder(${order.id})" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">Annuler</button>`;
       break;
     // Support ancien format (rétro-compatibilité)
     case 'en_preparation':
@@ -2850,13 +2850,13 @@ async function updateTopbarStats() {
     const total = data?.length || 0;
     const revenue = data?.reduce((s, o) => s + (o.total || 0), 0) || 0;
 
-    document.getElementById('topbarStats').textContent = `📊 Aujourd'hui : ${total} commande${total > 1 ? 's' : ''} — ${revenue.toFixed(2).replace('.', ',')} €`;
+    document.getElementById('topbarStats').textContent = `📦 ${total} • 💰 ${revenue.toFixed(2).replace('.', ',')} €`;
   } catch (err) {
     console.error('Erreur updateTopbarStats:', err);
     // Fallback: afficher les commandes en cours
     const total = orders.length;
     const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
-    document.getElementById('topbarStats').textContent = `${total} en cours — ${revenue.toFixed(2).replace('.', ',')} €`;
+    document.getElementById('topbarStats').textContent = `📦 ${total} • 💰 ${revenue.toFixed(2).replace('.', ',')} €`;
   }
 }
 

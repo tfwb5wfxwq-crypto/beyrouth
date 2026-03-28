@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Permissions-Policy" content="payment=(self)">
 
 <!-- SEO de base -->
 <title>Restaurant Libanais La Défense - A Beyrouth | Click & Collect</title>
@@ -2188,12 +2189,16 @@ function initPayGreen(method) {
 
     // Bouton payer : loader immédiat + timeout de sécurité
     document.getElementById('payBtn').onclick = () => {
+      console.log('🔵 PAYGREEN: Clic détecté sur le bouton payer');
+      console.log('🔵 PAYGREEN: isSubmittingPayment =', isSubmittingPayment);
+
       // 🔒 DOUBLE-SUBMIT FIX: Prevent multiple submissions
       if (isSubmittingPayment) {
         console.warn('⚠️ Paiement déjà en cours, double-submit bloqué');
         return;
       }
       setPaymentFlag(true);
+      console.log('🔵 PAYGREEN: Flag paiement activé, appel submitPayment()');
 
       const btn = document.getElementById('payBtn');
 

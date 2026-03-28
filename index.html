@@ -2036,6 +2036,17 @@ function selectPaymentMethod(method) {
   const paymentForm = document.getElementById('paymentForm');
   paymentForm.style.display = 'block';
 
+  // Afficher le spinner de chargement PayGreen
+  const container = document.getElementById('paygreen-container');
+  container.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:16px;">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style="animation:spin 1s linear infinite;">
+        <circle cx="24" cy="24" r="20" stroke="#D4A853" stroke-width="4" stroke-linecap="round" stroke-dasharray="90 40" opacity="0.8"/>
+      </svg>
+      <p style="color:#666;font-size:0.95rem;margin:0;">Chargement sécurisé...</p>
+    </div>
+  `;
+
   // Scroll automatique vers le formulaire (éviter de devoir scroller)
   setTimeout(() => {
     paymentForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -2155,6 +2166,14 @@ function initPayGreen(method) {
 
     // Variable pour le timeout de sécurité
     let paymentTimeout = null;
+
+    // Nettoyer le spinner de chargement après init (PayGreen injecte l'iframe automatiquement)
+    setTimeout(() => {
+      const container = document.getElementById('paygreen-container');
+      if (container && container.innerHTML.includes('Chargement sécurisé')) {
+        container.innerHTML = ''; // Nettoyer si le spinner est toujours là
+      }
+    }, 800);
 
     // Écouter les events (nouvelle syntaxe on() au lieu de attachEventListener)
     window.paygreenjs.on(window.paygreenjs.Events.FULL_PAYMENT_DONE, (event) => {

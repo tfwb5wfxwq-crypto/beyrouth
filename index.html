@@ -2835,6 +2835,14 @@ function updateConfirmModalStatus(order) {
       <p style="font-size: 1rem; color: #6B6B6B; margin: 0 0 8px; line-height: 1.6;">Merci pour votre commande</p>
       <p style="font-size: 0.85rem; color: #9CA3AF; margin: 0;">À très bientôt chez A Beyrouth 🧆</p>
     `;
+  } else {
+    // Cas par défaut : afficher spinner si statut inconnu ou en cours de chargement
+    content = `
+      <div style="text-align:center;padding:40px 20px;">
+        <div style="width:40px;height:40px;border:3px solid rgba(212,168,83,0.2);border-top-color:#D4A853;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px;"></div>
+        <p style="color:#888;font-size:0.9rem;">Chargement du statut...</p>
+      </div>
+    `;
   }
 
   statusCard.innerHTML = content;

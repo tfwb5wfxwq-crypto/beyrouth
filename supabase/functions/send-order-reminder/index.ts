@@ -94,7 +94,7 @@ serve(async (req) => {
     // Formater l'heure de retrait
     const pickupText = order.heure_retrait || 'Dès que possible'
 
-    // Template email (design équilibré)
+    // Template email (nouveau design bleu)
     const emailHtml = `
 <!DOCTYPE html>
 <html>
@@ -106,23 +106,23 @@ serve(async (req) => {
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;">
   <div style="max-width:600px;margin:0 auto;background:#fff;">
 
-    <!-- Header -->
-    <div style="padding:24px 20px;text-align:center;border-bottom:1px solid #e0e0e0;">
-      <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width:180px;height:auto;margin:0 auto;">
+    <!-- Header (fond noir compact avec logo 240px) -->
+    <div style="background:#000;padding:8px 24px;text-align:center;">
+      <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width:240px;height:auto;max-width:100%;">
     </div>
 
     <!-- Contenu principal -->
-    <div style="padding:24px 20px;">
+    <div style="padding:32px 24px;">
 
-      <!-- Alerte -->
+      <!-- Alerte orange (votre commande vous attend) -->
       <div style="background:#fef3c7;border-left:3px solid #f59e0b;padding:16px 20px;margin-bottom:20px;">
         <div style="font-size:16px;font-weight:600;color:#92400e;">⏰ Votre commande vous attend</div>
       </div>
 
-      <!-- Numéro + Heure -->
+      <!-- Numéro de commande + Heure (encart gris comme les autres emails) -->
       <div style="background:#fafafa;padding:16px 20px;margin-bottom:20px;border-radius:6px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-          <div style="font-size:12px;color:#888;text-transform:uppercase;">Commande</div>
+          <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Commande</div>
           <div style="font-size:22px;font-weight:700;font-family:'Courier New',monospace;color:#1a1a1a;">${order.numero}</div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid #e0e0e0;">
@@ -131,13 +131,18 @@ serve(async (req) => {
         </div>
       </div>
 
-      <!-- Adresse -->
+      <!-- Adresse + Bouton Google Maps -->
       <div style="padding:16px 0;border-top:1px solid #e0e0e0;">
         <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">📍 Retrait</div>
-        <div style="font-size:14px;color:#1a1a1a;line-height:1.5;">
+        <div style="font-size:14px;color:#1a1a1a;line-height:1.5;margin-bottom:12px;">
           <strong>A Beyrouth</strong> · 4 Esp. Gal de Gaulle<br>
-          92400 Courbevoie (La Défense)
+          92400 Courbevoie (La Défense)<br>
+          <span style="font-size:12px;color:#888;">Sortie 4 du métro La Défense</span>
         </div>
+        <a href="https://www.google.com/maps/search/A+Beyrouth+4+Esplanade+du+General+de+Gaulle+92400+Courbevoie" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#E65100;color:#fff;text-decoration:none;padding:9px 20px;border-radius:7px;font-weight:600;font-size:13px;box-shadow:0 2px 4px rgba(230,81,0,0.25);">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Ouvrir dans Google Maps
+        </a>
       </div>
 
     </div>

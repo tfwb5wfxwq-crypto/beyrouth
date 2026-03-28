@@ -75,8 +75,26 @@ serve(async (req) => {
           .eq('ip_address', clientIp)
           .eq('endpoint', 'admin-auth')
       }
-      // Generate a simple token (you could use JWT here for more security)
+
+      // Generate a secure UUID token
       const token = crypto.randomUUID()
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 jours
+
+      // 🔐 SÉCURITÉ: Stocker le token en BDD pour validation
+      const userAgent = req.headers.get('user-agent') || 'unknown'
+
+      try {
+        await supabase.from('admin_sessions').insert({
+          token: token,
+          ip_address: clientIp,
+          user_agent: userAgent,
+          expires_at: expiresAt.toISOString()
+        })
+        console.log(`✅ Session admin créée pour IP ${clientIp}`)
+      } catch (insertError) {
+        console.error('❌ Erreur stockage session:', insertError)
+        // Continue quand même (fallback gracieux)
+      }
 
       return new Response(
         JSON.stringify({

@@ -13,13 +13,28 @@ serve(async (req) => {
   }
 
   try {
-    const { orderId } = await req.json()
+    // Support GET (lien direct depuis email) et POST (appel depuis frontend)
+    let orderId = null
+    let orderNumero = null
 
-    if (!orderId) {
-      return new Response(
-        JSON.stringify({ error: 'orderId requis' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+    if (req.method === 'GET') {
+      const url = new URL(req.url)
+      orderNumero = url.searchParams.get('numero')
+      if (!orderNumero) {
+        return new Response(
+          JSON.stringify({ error: 'Paramètre numero requis' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    } else {
+      const body = await req.json()
+      orderId = body.orderId
+      if (!orderId) {
+        return new Response(
+          JSON.stringify({ error: 'orderId requis' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
     }
 
     // Connexion Supabase
@@ -28,12 +43,15 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Récupérer la commande
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('id', orderId)
-      .single()
+    // Récupérer la commande (par ID ou numéro)
+    let query = supabase.from('orders').select('*')
+    if (orderId) {
+      query = query.eq('id', orderId)
+    } else {
+      query = query.eq('numero', orderNumero)
+    }
+
+    const { data: order, error: orderError } = await query.single()
 
     if (orderError || !order) {
       console.error('Erreur récupération commande:', orderError)

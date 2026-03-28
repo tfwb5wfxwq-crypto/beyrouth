@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    // 🔒 FIX #4: Vérifier authentification admin (CRITICAL - sinon exploit trivial)
+    // 🔒 SÉCURITÉ: Validation token admin avec table admin_sessions
     const authHeader = req.headers.get('Authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       console.error('❌ Tentative accès update-order-status sans token')
@@ -25,31 +25,33 @@ serve(async (req) => {
 
     const adminToken = authHeader.replace('Bearer ', '')
 
-    // Créer client Supabase avec le token admin pour validation
-    const supabaseAuth = createClient(
+    // Connexion avec service_role_key (bypass RLS)
+    const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: authHeader }
-        }
-      }
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Vérifier que le token est valide en tentant une opération admin
-    const { data: adminCheck, error: authError } = await supabaseAuth
-      .from('settings')
-      .select('key')
-      .limit(1)
-      .maybeSingle()
+    // Vérifier que le token existe en BDD et n'est pas expiré
+    const { data: session, error: sessionError } = await supabase
+      .from('admin_sessions')
+      .select('*')
+      .eq('token', adminToken)
+      .gt('expires_at', new Date().toISOString())
+      .single()
 
-    if (authError) {
-      console.error('❌ Token admin invalide:', authError)
+    if (sessionError || !session) {
+      console.error('❌ Token invalide ou expiré:', adminToken.substring(0, 8) + '...')
       return new Response(
-        JSON.stringify({ error: 'Token admin invalide ou expiré' }),
+        JSON.stringify({ error: 'Token invalide ou expiré' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    // ✅ Token valide → Update last_activity
+    await supabase
+      .from('admin_sessions')
+      .update({ last_activity: new Date().toISOString() })
+      .eq('token', adminToken)
 
     const { orderId, newStatus } = await req.json()
 
@@ -59,12 +61,6 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-
-    // Connexion avec service_role_key (bypass RLS)
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
 
     // Update status
     const { data, error } = await supabase

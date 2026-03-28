@@ -35,7 +35,7 @@ serve(async (req) => {
   }
 
   try {
-    // 🔒 SÉCURITÉ : Vérifier authentification admin
+    // 🔒 SÉCURITÉ: Validation token admin avec table admin_sessions
     const authHeader = req.headers.get('Authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       console.error('❌ Tentative accès sans token')
@@ -47,31 +47,33 @@ serve(async (req) => {
 
     const adminToken = authHeader.replace('Bearer ', '')
 
-    // Créer client Supabase avec le token admin pour validation
-    const supabaseAuth = createClient(
+    // Connexion avec service_role_key (bypass RLS)
+    const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: authHeader }
-        }
-      }
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Vérifier que le token est valide en tentant une opération admin
-    const { data: adminCheck, error: authError } = await supabaseAuth
-      .from('settings')
-      .select('key')
-      .limit(1)
-      .maybeSingle()
+    // Vérifier que le token existe en BDD et n'est pas expiré
+    const { data: session, error: sessionError } = await supabase
+      .from('admin_sessions')
+      .select('*')
+      .eq('token', adminToken)
+      .gt('expires_at', new Date().toISOString())
+      .single()
 
-    if (authError) {
-      console.error('❌ Token admin invalide:', authError)
+    if (sessionError || !session) {
+      console.error('❌ Token invalide ou expiré:', adminToken.substring(0, 8) + '...')
       return new Response(
-        JSON.stringify({ error: 'Token admin invalide ou expiré' }),
+        JSON.stringify({ error: 'Token invalide ou expiré' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    // ✅ Token valide → Update last_activity
+    await supabase
+      .from('admin_sessions')
+      .update({ last_activity: new Date().toISOString() })
+      .eq('token', adminToken)
 
     const { orderId, reason } = await req.json()
 
@@ -82,10 +84,7 @@ serve(async (req) => {
       )
     }
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    // supabase client déjà créé dans le bloc de validation au-dessus
 
     // 1. Récupérer la commande
     const { data: order, error: fetchError } = await supabase
@@ -187,17 +186,44 @@ serve(async (req) => {
       // REMBOURSEMENT EDENRED
       console.log('🎫 Remboursement Edenred:', order.edenred_payment_id)
 
-      // TODO: Implémenter API Edenred refund quand disponible
-      // Pour l'instant, marquer comme à rembourser manuellement
-      console.warn('⚠️ Edenred refund API non disponible - remboursement manuel requis')
+      try {
+        // Appeler l'Edge Function edenred-refund
+        const refundResponse = await supabase.functions.invoke('edenred-refund', {
+          body: {
+            captureId: order.edenred_payment_id,
+            amount: order.total
+          }
+        })
 
-      await supabase.from('orders').update({
-        refund_requested_at: new Date().toISOString(),
-        refund_amount: order.total
-      }).eq('id', orderId)
+        if (refundResponse.error) {
+          throw new Error(refundResponse.error.message || 'Erreur remboursement Edenred')
+        }
 
-      refundSuccess = true // Considéré comme succès pour workflow
-      refundError = 'Remboursement Edenred à traiter manuellement'
+        const refundData = refundResponse.data
+
+        if (!refundData.success) {
+          throw new Error(refundData.error || 'Remboursement Edenred échoué')
+        }
+
+        await supabase.from('orders').update({
+          refund_transaction_id: refundData.captureId,
+          refund_completed_at: new Date().toISOString(),
+          refund_amount: order.total,
+          refund_error: null
+        }).eq('id', orderId)
+
+        console.log('✅ Remboursement Edenred OK:', refundData.captureId)
+        refundSuccess = true
+
+      } catch (error) {
+        console.error('❌ Erreur remboursement Edenred:', error.message)
+        refundError = error.message
+
+        await supabase.from('orders').update({
+          refund_requested_at: new Date().toISOString(),
+          refund_error: error.message
+        }).eq('id', orderId)
+      }
 
     } else {
       throw new Error('Aucune transaction de paiement trouvée')

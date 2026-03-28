@@ -732,7 +732,10 @@ button{cursor:pointer;font-family:inherit;border:none}
         </button>
       </div>
 
-      <!-- Bouton déconnexion -->
+      <!-- Boutons sessions + déconnexion -->
+      <button class="topbar-logout" onclick="showActiveSessions()" style="background:rgba(212,168,83,0.2);border-color:rgba(212,168,83,0.3)">
+        👥 Sessions
+      </button>
       <button class="topbar-logout" onclick="doLogout()">🚪 Déconnexion</button>
     </div>
   </div>
@@ -1639,6 +1642,85 @@ async function doLogout() {
   localStorage.removeItem('adminCode');
   // Recharger la page → checkSession() affichera le login
   window.location.reload();
+}
+
+// 👥 Afficher les sessions admin actives
+async function showActiveSessions() {
+  const adminToken = localStorage.getItem('adminToken');
+  if (!adminToken) {
+    showToast('❌ Non connecté', 'error');
+    return;
+  }
+
+  try {
+    const { data, error } = await sb.functions.invoke('admin-sessions', {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+
+    if (error) throw error;
+
+    const sessions = data.sessions || [];
+
+    // Créer le modal
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+    modal.innerHTML = `
+      <div class="modal-box" style="max-width:800px;max-height:80vh;overflow-y:auto;">
+        <div class="modal-title">👥 Sessions actives (${sessions.length})</div>
+
+        ${sessions.length === 0 ? `
+          <p style="text-align:center;color:#666;padding:40px 20px;">Aucune session active</p>
+        ` : `
+          <div style="margin-top:20px;">
+            ${sessions.map(s => `
+              <div style="background:${s.is_current ? 'linear-gradient(135deg, rgba(212,168,83,0.1), rgba(212,168,83,0.05))' : '#f8f9fa'};
+                          border:2px solid ${s.is_current ? '#D4A853' : '#e0e0e0'};
+                          border-radius:12px;
+                          padding:16px 20px;
+                          margin-bottom:12px;
+                          position:relative;">
+                ${s.is_current ? '<div style="position:absolute;top:12px;right:12px;background:#D4A853;color:#fff;padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:700;">VOUS</div>' : ''}
+
+                <div style="display:grid;grid-template-columns:120px 1fr;gap:12px;font-size:0.9rem;">
+                  <div style="color:#666;font-weight:600;">IP</div>
+                  <div style="font-family:'Courier New',monospace;color:#1a1a1a;">${escapeHtml(s.ip_address)}</div>
+
+                  <div style="color:#666;font-weight:600;">Appareil</div>
+                  <div style="color:#666;font-size:0.85rem;">${escapeHtml(s.user_agent).substring(0, 80)}${s.user_agent.length > 80 ? '...' : ''}</div>
+
+                  <div style="color:#666;font-weight:600;">Connecté depuis</div>
+                  <div style="color:#1a1a1a;">
+                    <strong>${escapeHtml(s.age)}</strong>
+                    <span style="color:#999;font-size:0.85rem;margin-left:8px;">(${escapeHtml(s.created_at)})</span>
+                  </div>
+
+                  <div style="color:#666;font-weight:600;">Dernière activité</div>
+                  <div style="color:#1a1a1a;">${escapeHtml(s.last_activity)}</div>
+
+                  <div style="color:#666;font-weight:600;">Expire dans</div>
+                  <div style="color:${s.expires_in.includes('j') ? '#22c55e' : '#f59e0b'};">
+                    <strong>${escapeHtml(s.expires_in)}</strong>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `}
+
+        <div class="modal-buttons" style="margin-top:24px;">
+          <button class="modal-btn modal-btn-primary" onclick="this.closest('.modal-overlay').remove()">Fermer</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+  } catch (err) {
+    console.error('Erreur chargement sessions:', err);
+    showToast('❌ Erreur chargement sessions', 'error');
+  }
 }
 
 async function showDashboard() {

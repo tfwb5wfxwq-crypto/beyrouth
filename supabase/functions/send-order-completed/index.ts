@@ -53,7 +53,7 @@ serve(async (req) => {
       .update({ last_activity: new Date().toISOString() })
       .eq('token', adminToken)
 
-    const { orderId } = await req.json()
+    const { orderId, emailOverride } = await req.json()
 
     if (!orderId) {
       return new Response(
@@ -91,8 +91,8 @@ serve(async (req) => {
       )
     }
 
-    // Liens externes
-    const invoicePdfUrl = `https://beyrouth.express/facture?numero=${encodeURIComponent(order.numero)}`
+    // Liens externes (utiliser le token sécurisé)
+    const invoicePdfUrl = `https://beyrouth.express/facture?token=${order.invoice_token}`
     const googleReviewUrl = 'https://maps.app.goo.gl/mKChLAAquBDL2C5c6'
     const instagramUrl = 'https://www.instagram.com/a_beyrouth/'
 
@@ -179,8 +179,9 @@ serve(async (req) => {
     `
 
     // Envoyer l'email via Brevo API
+    // emailOverride permet à Paco de renvoyer à une autre adresse (si client s'est trompé)
     const emailResult = await sendEmailViaBrevo({
-      to: order.client_email,
+      to: emailOverride || order.client_email,
       subject: `Merci pour votre visite ! 🧆 - A Beyrouth`,
       html: emailHtml,
       replyTo: 'contact@beyrouth.express',

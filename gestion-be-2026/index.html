@@ -2397,60 +2397,105 @@ async function remindOrder(orderId) {
   }
 }
 
-// Système de double-clic pour renvoyer facture (sécurité anti-inadvertance)
-let resendInvoiceConfirm = null;
+// Modal pour renvoyer facture (avec email modifiable)
+function resendInvoice(orderId, clientEmail) {
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
 
-async function resendInvoice(orderId, clientEmail) {
-  const btn = document.getElementById(`resend-${orderId}`);
-  if (!btn) return;
+  // Modal avec champ email modifiable
+  const modalHtml = `
+    <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);" id="resendModal" onclick="if(event.target.id==='resendModal') document.getElementById('resendModal').remove()">
+      <div style="background:#fff;border-radius:16px;padding:32px;max-width:500px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideIn 0.2s ease-out;" onclick="event.stopPropagation()">
+        <h3 style="margin:0 0 8px 0;font-size:1.4rem;color:#1a1a1a;">📧 Renvoyer la facture</h3>
+        <p style="color:#666;margin-bottom:24px;font-size:0.95rem;">
+          Commande <strong>${escapeHtml(order.numero)}</strong> · ${escapeHtml(order.client_prenom || 'Client')}
+        </p>
 
-  // Premier clic : Demander confirmation
-  if (resendInvoiceConfirm !== orderId) {
-    resendInvoiceConfirm = orderId;
-    btn.style.background = 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)';
-    btn.textContent = '⚠️ Confirmer l\'envoi ?';
+        <label style="display:block;margin-bottom:8px;font-weight:600;color:#1a1a1a;font-size:0.9rem;">Email destinataire :</label>
+        <input
+          type="email"
+          id="resendEmail"
+          value="${escapeHtml(clientEmail || '')}"
+          placeholder="client@exemple.com"
+          style="width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-family:inherit;font-size:0.95rem;margin-bottom:8px;"
+          oninput="validateResendEmail()"
+        >
+        <p id="resendEmailError" style="color:#dc2626;font-size:0.85rem;margin:0 0 16px 0;display:none;">⚠️ Email requis</p>
 
-    // Réinitialiser après 3 secondes
-    setTimeout(() => {
-      if (resendInvoiceConfirm === orderId) {
-        resendInvoiceConfirm = null;
-        btn.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
-        btn.textContent = '📧 Renvoyer facture';
+        <div style="display:flex;gap:12px;">
+          <button onclick="document.getElementById('resendModal').remove()" style="flex:1;padding:14px;background:#f5f5f5;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;color:#666;">Annuler</button>
+          <button id="resendConfirmBtn" onclick="confirmResendInvoice(${orderId})" style="flex:1;padding:14px;background:linear-gradient(135deg, #6366f1, #4f46e5);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(99,102,241,0.3);">📧 Envoyer</button>
+        </div>
+      </div>
+    </div>
+    <style>
+      @keyframes slideIn {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
       }
-    }, 3000);
+    </style>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  document.getElementById('resendEmail').focus();
+  validateResendEmail();
+}
+
+function validateResendEmail() {
+  const input = document.getElementById('resendEmail');
+  const error = document.getElementById('resendEmailError');
+  const btn = document.getElementById('resendConfirmBtn');
+
+  if (!input || !error || !btn) return;
+
+  const email = input.value.trim();
+  const isValid = email && email.includes('@');
+
+  if (!isValid) {
+    error.style.display = 'block';
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+  } else {
+    error.style.display = 'none';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+  }
+}
+
+async function confirmResendInvoice(orderId) {
+  const emailInput = document.getElementById('resendEmail');
+  const email = emailInput?.value.trim();
+
+  if (!email || !email.includes('@')) {
+    showToast('⚠️ Email invalide', 'warning');
     return;
   }
 
-  // Deuxième clic : Envoyer
-  resendInvoiceConfirm = null;
-  btn.disabled = true;
-  btn.textContent = '⏳ Envoi...';
+  // Fermer modal
+  document.getElementById('resendModal')?.remove();
+
+  showToast(`📧 Envoi de la facture à ${email}...`, 'info');
 
   try {
     const adminToken = localStorage.getItem('adminToken');
+
+    // IMPORTANT: On doit passer l'email custom à la Edge Function
+    // Modifier send-order-completed pour accepter emailOverride
     const { data, error } = await sb.functions.invoke('send-order-completed', {
       headers: {
         Authorization: `Bearer ${adminToken}`
       },
-      body: { orderId: orderId }
+      body: { orderId: orderId, emailOverride: email }
     });
 
     if (error) throw error;
 
-    showToast(`✅ Facture renvoyée à ${clientEmail}`, 'success');
-
-    // Réinitialiser bouton
-    btn.disabled = false;
-    btn.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
-    btn.textContent = '📧 Renvoyer facture';
+    showToast(`✅ Facture envoyée à ${email}`, 'success');
   } catch (err) {
     console.error('❌ Erreur renvoi facture:', err);
     showToast('❌ Erreur lors du renvoi de la facture', 'error');
-
-    // Réinitialiser bouton
-    btn.disabled = false;
-    btn.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
-    btn.textContent = '📧 Renvoyer facture';
   }
 }
 

@@ -188,33 +188,47 @@ function generateInvoiceHTML(order: any): string {
       font-size: 15px;
     }
     .totals {
-      margin-top: 30px;
-      text-align: right;
+      margin-top: 40px;
+      background: #fafafa;
+      border-radius: 8px;
+      padding: 20px;
+      max-width: 400px;
+      margin-left: auto;
     }
     .totals-line {
       display: flex;
-      justify-content: flex-end;
-      padding: 8px 0;
+      justify-content: space-between;
+      padding: 10px 0;
       font-size: 15px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .totals-line:last-child {
+      border-bottom: none;
     }
     .totals-label {
-      width: 150px;
-      text-align: right;
-      padding-right: 20px;
       color: #666;
+      font-weight: 500;
     }
     .totals-value {
-      width: 100px;
-      text-align: right;
       font-weight: 600;
+      color: #1a1a1a;
     }
     .total-ttc {
-      border-top: 2px solid #333;
-      padding-top: 12px;
-      margin-top: 12px;
-      font-size: 18px;
+      background: #D4A853;
+      color: white;
+      margin: 15px -20px -20px -20px;
+      padding: 15px 20px;
+      border-radius: 0 0 8px 8px;
+    }
+    .total-ttc .totals-label {
+      color: white;
+      font-size: 16px;
       font-weight: 700;
-      color: #667eea;
+    }
+    .total-ttc .totals-value {
+      color: white;
+      font-size: 20px;
+      font-weight: 700;
     }
     .footer {
       margin-top: 60px;
@@ -318,7 +332,6 @@ function generateInvoiceHTML(order: any): string {
 
   <div class="footer">
     <p style="margin:5px 0;"><strong>A Beyrouth</strong> - Restaurant libanais</p>
-    <p style="margin:5px 0;">PAPA (SARL) - Capital social : 350 000€</p>
     <p style="margin:5px 0;">4 Esplanade du Général de Gaulle, 92400 Courbevoie</p>
     <p style="margin:5px 0;">SIRET : 830 675 047 RCS Nanterre - TVA : FR93 830 675 047</p>
     <p style="margin:5px 0;">Métro : La Défense (lignes 1, A, T2)</p>

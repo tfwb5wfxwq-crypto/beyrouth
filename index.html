@@ -2231,13 +2231,13 @@ function initPayGreen(method) {
       btn.disabled = true;
       btn.style.cursor = 'wait';
 
-      // Timeout de sécurité (60 secondes pour 3DS Revolut/cartes - augmenté pour laisser le temps à la 3DS)
+      // Timeout de sécurité (120 secondes pour 3DS Revolut/cartes - le temps de trouver son téléphone et valider)
       paymentTimeout = setTimeout(() => {
         console.warn('Timeout paiement - aucune réponse de PayGreen');
         setPaymentFlag(false); // 🔒 Reset flag on timeout
         resetPayButton();
-        showToast('Délai dépassé, veuillez réessayer', 'error');
-      }, 60000);
+        showToast('Le paiement prend trop de temps. Si vous avez validé, vérifiez votre commande dans quelques minutes.', 'warning');
+      }, 120000);
 
       // Soumettre le paiement
       window.paygreenjs.submitPayment();

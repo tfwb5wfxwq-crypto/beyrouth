@@ -2257,7 +2257,8 @@ function showEmailDetails(orderId) {
         </div>
         ` : ''}
 
-        <!-- Bouton fermer -->
+        <!-- Boutons actions -->
+        <button onclick="resendEmailWithCorrection(${order.id})" style="width:100%;padding:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;margin-top:8px;box-shadow:0 4px 12px rgba(59,130,246,0.3);">📧 Renvoyer l'email</button>
         <button onclick="document.getElementById('emailModal').remove()" style="width:100%;padding:14px;background:#f5f5f5;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;color:#666;margin-top:8px;">Fermer</button>
       </div>
     </div>
@@ -2270,6 +2271,103 @@ function showEmailDetails(orderId) {
   `;
 
   document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+// Renvoyer email avec possibilité de corriger l'adresse
+async function resendEmailWithCorrection(orderId) {
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+
+  // Fermer la modal de détails
+  const emailModal = document.getElementById('emailModal');
+  if (emailModal) emailModal.remove();
+
+  const modalHtml = `
+    <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);" id="resendModal" onclick="if(event.target.id==='resendModal') document.getElementById('resendModal').remove()">
+      <div style="background:#fff;border-radius:16px;padding:32px;max-width:500px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideIn 0.2s ease-out;" onclick="event.stopPropagation()">
+        <h3 style="margin:0 0 8px 0;font-size:1.4rem;color:#1a1a1a;">📧 Renvoyer l'email</h3>
+        <p style="color:#666;margin-bottom:24px;font-size:0.9rem;">Commande ${escapeHtml(order.numero)}</p>
+
+        <!-- Email actuel -->
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:0.85rem;color:#888;margin-bottom:8px;font-weight:600;">Email actuel</label>
+          <div style="background:#f5f5f5;padding:12px 16px;border-radius:8px;font-size:0.95rem;color:#666;font-family:monospace;">${escapeHtml(order.client_email || 'Non renseigné')}</div>
+        </div>
+
+        <!-- Nouveau email -->
+        <div style="margin-bottom:24px;">
+          <label style="display:block;font-size:0.85rem;color:#888;margin-bottom:8px;font-weight:600;">Nouveau email (ou laisser identique)</label>
+          <input type="email" id="newEmailInput" value="${escapeHtml(order.client_email || '')}" style="width:100%;padding:12px 16px;border:2px solid #e0e0e0;border-radius:8px;font-size:0.95rem;font-family:inherit;" placeholder="client@example.com">
+        </div>
+
+        <!-- Boutons -->
+        <div style="display:flex;gap:12px;">
+          <button onclick="document.getElementById('resendModal').remove()" style="flex:1;padding:14px;background:#f5f5f5;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;color:#666;">Annuler</button>
+          <button onclick="confirmResendEmail(${order.id})" style="flex:1;padding:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(59,130,246,0.3);">Envoyer</button>
+        </div>
+      </div>
+    </div>
+    <style>
+      @keyframes slideIn {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+    </style>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  setTimeout(() => document.getElementById('newEmailInput').focus(), 100);
+}
+
+// Confirmer et envoyer l'email
+async function confirmResendEmail(orderId) {
+  const newEmail = document.getElementById('newEmailInput').value.trim();
+
+  // Validation email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!newEmail || !emailRegex.test(newEmail)) {
+    showToast('⚠️ Adresse email invalide', 'warning');
+    return;
+  }
+
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+
+  // Fermer la modal
+  document.getElementById('resendModal').remove();
+
+  showToast(`⏳ Envoi de l'email à ${newEmail}...`, 'info');
+
+  try {
+    const adminToken = localStorage.getItem('adminToken');
+
+    // Appeler Edge Function pour renvoyer l'email
+    const { data, error } = await sb.functions.invoke('resend-order-email', {
+      headers: {
+        Authorization: `Bearer ${adminToken}`
+      },
+      body: {
+        orderId: orderId,
+        newEmail: newEmail !== order.client_email ? newEmail : null
+      }
+    });
+
+    if (error) throw error;
+
+    // Mettre à jour localement si l'email a changé
+    if (newEmail !== order.client_email) {
+      const idx = orders.findIndex(o => o.id === orderId);
+      if (idx !== -1) {
+        orders[idx].client_email = newEmail;
+        debouncedRenderOrders();
+      }
+    }
+
+    showToast(`✅ Email envoyé à ${newEmail}`, 'success');
+  } catch (err) {
+    console.error('❌ Erreur renvoi email:', err);
+    showToast('❌ Erreur lors de l\'envoi: ' + err.message, 'error');
+  }
 }
 
 function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, statusLabel) {

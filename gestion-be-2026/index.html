@@ -2592,7 +2592,7 @@ function getActionButtons(order) {
     case 'payee':
       // Nouvelles commandes à accepter
       buttons = `<button class="order-action btn-accept" onclick="updateStatus(${order.id},'acceptee')">✓ Accepter</button>`;
-      buttons += `<button class="order-action btn-cancel" onclick="cancelOrder(${order.id})">✕ Annuler</button>`;
+      buttons += `<button class="order-action btn-cancel" onclick="cancelOrder(${order.id})">✕</button>`;
       break;
     case 'acceptee':
       // Acceptées → Récupérée ou actions secondaires
@@ -2605,7 +2605,7 @@ function getActionButtons(order) {
 
       // Boutons secondaires (archiver, annuler)
       buttons += `<button class="order-action btn-secondary" onclick="archiveOrder(${order.id})" style="background: #e5e7eb; color: #374151;">Archiver</button>`;
-      buttons += `<button class="order-action btn-cancel" onclick="cancelOrder(${order.id})" style="background: #fecaca; color: #991b1b;">Annuler</button>`;
+      buttons += `<button class="order-action btn-cancel" onclick="cancelOrder(${order.id})" style="background: #fecaca; color: #991b1b;">✕</button>`;
       break;
     // Support ancien format (rétro-compatibilité)
     case 'en_preparation':

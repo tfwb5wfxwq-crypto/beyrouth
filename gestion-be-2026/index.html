@@ -805,67 +805,83 @@ button{cursor:pointer;font-family:inherit;border:none}
 
     <!-- Archives Tab -->
     <div class="tab-content" id="tab-archives" style="display:none">
-      <h2 style="margin-bottom:16px;color:var(--bordeaux)">Gestion des archives</h2>
+      <h2 style="margin-bottom:16px;color:var(--bordeaux)">Archives</h2>
+      <p style="margin-bottom:20px;color:#666;font-size:0.9rem;">🗄️ Toutes les commandes de plus de 30 jours</p>
 
-      <!-- Stats archivage -->
-      <div class="stats-grid" style="margin-bottom:24px">
+      <!-- Stats simplifiées -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;">
         <div class="stat-card">
-          <div class="stat-value" id="archiveLevel1Count">0</div>
-          <div class="stat-label">📦 Masquées (30j)</div>
+          <div class="stat-value" id="archiveTotalCount">0</div>
+          <div class="stat-label">Total archives</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value" id="archiveLevel2Count">0</div>
-          <div class="stat-label">🗄️ Archivées (1an)</div>
+          <div class="stat-value" id="archiveRevenue">0 €</div>
+          <div class="stat-label">CA total</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value" id="archiveLevel3Count">0</div>
-          <div class="stat-label">🗑️ Éligibles purge (3ans)</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="archiveTotalSize">0 MB</div>
-          <div class="stat-label">Taille totale BDD</div>
+          <div class="stat-value" id="archiveOldest">-</div>
+          <div class="stat-label">Plus ancienne</div>
         </div>
       </div>
 
-      <!-- Actions -->
-      <div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
-        <button onclick="runArchivingNow()" style="padding:12px 24px;background:var(--bordeaux);color:#fff;border-radius:var(--radius);font-weight:600;font-size:.95rem;transition:all .3s">
-          ▶️ Exécuter archivage maintenant
-        </button>
-        <button onclick="loadArchiveLogs()" style="padding:12px 24px;background:#f0f0f0;color:var(--noir);border-radius:var(--radius);font-weight:600;font-size:.95rem;transition:all .3s">
-          📊 Voir logs d'archivage
-        </button>
-        <button onclick="computeAnalytics()" style="padding:12px 24px;background:var(--gold);color:#fff;border-radius:var(--radius);font-weight:600;font-size:.95rem;transition:all .3s">
-          📈 Recalculer analytics
+      <!-- Recherche avancée -->
+      <div style="background:#fff;padding:24px;border-radius:8px;margin-bottom:24px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--bordeaux);margin-bottom:16px;">🔍 Rechercher</h3>
+
+        <!-- Input recherche -->
+        <input type="text" id="archiveSearchInput" placeholder="Numéro, nom, email, téléphone..." style="width:100%;padding:14px 16px;border:2px solid #e0e0e0;border-radius:8px;font-size:1rem;margin-bottom:16px;">
+
+        <!-- Dates + Filtres rapides -->
+        <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+          <div style="flex:1;min-width:200px;display:flex;gap:8px;align-items:center;">
+            <span style="font-size:0.9rem;color:#666;white-space:nowrap;">📅 Du:</span>
+            <input type="date" id="archiveDateFrom" style="flex:1;padding:10px;border:2px solid #e0e0e0;border-radius:6px;font-size:0.9rem;">
+          </div>
+          <div style="flex:1;min-width:200px;display:flex;gap:8px;align-items:center;">
+            <span style="font-size:0.9rem;color:#666;white-space:nowrap;">au:</span>
+            <input type="date" id="archiveDateTo" style="flex:1;padding:10px;border:2px solid #e0e0e0;border-radius:6px;font-size:0.9rem;">
+          </div>
+        </div>
+
+        <!-- Filtres rapides dates -->
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+          <button onclick="setArchiveDateFilter('month')" style="padding:8px 16px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:6px;font-size:0.85rem;cursor:pointer;font-weight:500;">Dernier mois</button>
+          <button onclick="setArchiveDateFilter('3months')" style="padding:8px 16px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:6px;font-size:0.85rem;cursor:pointer;font-weight:500;">3 derniers mois</button>
+          <button onclick="setArchiveDateFilter('6months')" style="padding:8px 16px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:6px;font-size:0.85rem;cursor:pointer;font-weight:500;">6 derniers mois</button>
+          <button onclick="setArchiveDateFilter('year')" style="padding:8px 16px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:6px;font-size:0.85rem;cursor:pointer;font-weight:500;">Cette année</button>
+          <button onclick="setArchiveDateFilter('all')" style="padding:8px 16px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:6px;font-size:0.85rem;cursor:pointer;font-weight:500;">Tout</button>
+        </div>
+
+        <!-- Filtre statut -->
+        <div style="display:flex;gap:12px;margin-bottom:16px;align-items:center;flex-wrap:wrap;">
+          <span style="font-size:0.9rem;color:#666;font-weight:600;">📊 Statut:</span>
+          <select id="archiveStatusFilter" style="padding:10px 16px;border:2px solid #e0e0e0;border-radius:6px;font-size:0.9rem;min-width:150px;">
+            <option value="all">Toutes</option>
+            <option value="recuperee">✅ Récupérées</option>
+            <option value="cancelled">❌ Annulées</option>
+            <option value="not_recuperee">⚠️ Pas récupérées</option>
+          </select>
+        </div>
+
+        <!-- Bouton recherche -->
+        <button onclick="searchArchives()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--bordeaux),#8B1538);color:#fff;border:none;border-radius:8px;font-weight:600;font-size:1rem;cursor:pointer;box-shadow:0 4px 12px rgba(165,42,42,0.3);">
+          🔍 RECHERCHER
         </button>
       </div>
 
-      <!-- Recherche archives -->
-      <div style="background:#fff;padding:24px;border-radius:var(--radius);margin-bottom:24px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
-        <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--bordeaux);margin-bottom:16px;">🔍 Rechercher dans les archives</h3>
-        <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
-          <input type="text" id="archiveSearchInput" placeholder="Numéro commande, email client..." style="flex:1;min-width:200px;padding:12px 16px;border:2px solid #e0e0e0;border-radius:var(--radius);font-size:.95rem">
-          <input type="date" id="archiveDateFrom" style="padding:12px 16px;border:2px solid #e0e0e0;border-radius:var(--radius);font-size:.95rem">
-          <input type="date" id="archiveDateTo" style="padding:12px 16px;border:2px solid #e0e0e0;border-radius:var(--radius);font-size:.95rem">
-          <button onclick="searchArchives()" style="padding:12px 24px;background:var(--noir);color:#fff;border-radius:var(--radius);font-weight:600;font-size:.95rem">Rechercher</button>
-        </div>
-        <div style="font-size:.85rem;color:#888">
-          💡 Recherche dans toutes les commandes archivées (> 30 jours). Max 100 résultats.
-        </div>
-      </div>
-
-      <!-- Résultats recherche -->
+      <!-- Résultats -->
       <div id="archiveResults" style="display:none">
-        <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--bordeaux);margin-bottom:12px;">Résultats</h3>
-        <div class="orders-list grid-view" id="archiveResultsList">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--bordeaux);margin:0;">Résultats</h3>
+          <div id="archiveResultsCount" style="font-size:0.9rem;color:#666;"></div>
+        </div>
+        <div id="archiveResultsList">
           <div class="no-orders">Aucun résultat</div>
         </div>
-      </div>
-
-      <!-- Logs archivage -->
-      <div id="archiveLogsSection" style="display:none;margin-top:24px">
-        <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--bordeaux);margin-bottom:12px;">📋 Logs d'archivage</h3>
-        <div id="archiveLogsList" style="background:#fff;padding:16px;border-radius:var(--radius);box-shadow:0 2px 8px rgba(0,0,0,.06)"></div>
+        <!-- Pagination -->
+        <div id="archivePagination" style="display:none;text-align:center;margin-top:20px;">
+          <button onclick="loadMoreArchives()" style="padding:12px 32px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;">Charger 100 suivants</button>
+        </div>
       </div>
     </div>
 
@@ -4170,36 +4186,77 @@ async function runArchivingNow() {
   }
 }
 
-async function searchArchives() {
+// Variables globales pour pagination
+let archiveSearchOffset = 0;
+let archiveSearchHasMore = false;
+let archiveSearchLastQuery = null;
+
+// Filtres rapides de dates
+function setArchiveDateFilter(period) {
+  const now = new Date();
+  const dateFrom = document.getElementById('archiveDateFrom');
+  const dateTo = document.getElementById('archiveDateTo');
+
+  // Date fin = aujourd'hui
+  dateTo.value = now.toISOString().split('T')[0];
+
+  // Date début selon période
+  const startDate = new Date(now);
+  switch(period) {
+    case 'month':
+      startDate.setMonth(now.getMonth() - 1);
+      break;
+    case '3months':
+      startDate.setMonth(now.getMonth() - 3);
+      break;
+    case '6months':
+      startDate.setMonth(now.getMonth() - 6);
+      break;
+    case 'year':
+      startDate.setMonth(now.getMonth() - 12);
+      break;
+    case 'all':
+      dateFrom.value = '';
+      dateTo.value = '';
+      return;
+  }
+  dateFrom.value = startDate.toISOString().split('T')[0];
+}
+
+async function searchArchives(append = false) {
   const searchInput = document.getElementById('archiveSearchInput').value.trim();
   const dateFrom = document.getElementById('archiveDateFrom').value;
   const dateTo = document.getElementById('archiveDateTo').value;
-
-  if (!searchInput && !dateFrom && !dateTo) {
-    showToast('⚠️ Veuillez saisir un critère de recherche');
-    return;
-  }
+  const statusFilter = document.getElementById('archiveStatusFilter').value;
 
   const resultsList = document.getElementById('archiveResultsList');
   const resultsSection = document.getElementById('archiveResults');
+  const resultsCount = document.getElementById('archiveResultsCount');
+  const pagination = document.getElementById('archivePagination');
 
-  resultsList.innerHTML = '<div class="no-orders">Recherche en cours...</div>';
+  // Reset offset si nouvelle recherche
+  if (!append) {
+    archiveSearchOffset = 0;
+    resultsList.innerHTML = '<div class="no-orders">Recherche en cours...</div>';
+  }
+
   resultsSection.style.display = 'block';
 
   try {
+    // Construire la requête de base: commandes archivées (> 30j)
     let query = sb
       .from('orders')
-      .select('*')
+      .select('*', { count: 'exact' })
       .or('archived.eq.true,auto_archived_at.not.is.null')
       .order('created_at', {ascending: false})
-      .limit(100);
+      .range(archiveSearchOffset, archiveSearchOffset + 99); // 100 résultats
 
-    // Search by order number or email
+    // Recherche multi-critères (numéro, nom, email, téléphone)
     if (searchInput) {
-      query = query.or(`numero_commande.ilike.%${searchInput}%,client_email.ilike.%${searchInput}%`);
+      query = query.or(`numero.ilike.%${searchInput}%,client_prenom.ilike.%${searchInput}%,client_email.ilike.%${searchInput}%,client_telephone.ilike.%${searchInput}%`);
     }
 
-    // Date range
+    // Filtre dates
     if (dateFrom) {
       query = query.gte('created_at', dateFrom + 'T00:00:00');
     }
@@ -4207,38 +4264,96 @@ async function searchArchives() {
       query = query.lte('created_at', dateTo + 'T23:59:59');
     }
 
-    const {data, error} = await query;
+    // Filtre statut
+    if (statusFilter !== 'all') {
+      if (statusFilter === 'recuperee') {
+        query = query.eq('statut', 'recuperee');
+      } else if (statusFilter === 'cancelled') {
+        query = query.eq('statut', 'cancelled');
+      } else if (statusFilter === 'not_recuperee') {
+        // Pas récupérée = archived = true ET statut ≠ recuperee/cancelled
+        query = query.eq('archived', true).not('statut', 'in', '(recuperee,cancelled)');
+      }
+    }
+
+    // Sauvegarder la requête pour pagination
+    archiveSearchLastQuery = {searchInput, dateFrom, dateTo, statusFilter};
+
+    const {data, error, count} = await query;
 
     if (error) throw error;
 
     if (!data || data.length === 0) {
-      resultsList.innerHTML = '<div class="no-orders">Aucun résultat trouvé</div>';
+      if (!append) {
+        resultsList.innerHTML = '<div class="no-orders">Aucun résultat trouvé</div>';
+        resultsCount.textContent = '';
+        pagination.style.display = 'none';
+      } else {
+        showToast('✅ Toutes les archives ont été chargées', 'info');
+      }
+      archiveSearchHasMore = false;
       return;
     }
 
-    let html = '';
-    data.forEach(order => {
-      const date = new Date(order.created_at);
-      const dateStr = date.toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric'});
-      const timeStr = date.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
-      const statusEmoji = order.statut === 'recuperee' ? '📦' : order.statut === 'cancelled' ? '✕' : '⏳';
-      const statusLabel = order.statut === 'recuperee' ? 'Récupérée' : order.statut === 'cancelled' ? 'Annulée' : order.statut;
+    // Récupérer les items pour toutes les commandes (comme loadCompleted)
+    const orderIds = data.map(o => o.id);
+    const {data: allItems} = await sb.from('order_items').select('*').in('order_id', orderIds);
 
-      const archiveLevel = order.purge_eligible_at ? '🗑️ Éligible purge' :
-                          order.archived ? '🗄️ Archivée' :
-                          order.auto_archived_at ? '📦 Masquée' : '';
-
-      html += renderOrderCard(order, archiveLevel, dateStr, timeStr, statusEmoji, statusLabel);
+    const itemsByOrder = {};
+    (allItems || []).forEach(item => {
+      if (!itemsByOrder[item.order_id]) itemsByOrder[item.order_id] = [];
+      itemsByOrder[item.order_id].push(item);
     });
 
-    resultsList.innerHTML = html;
-    showToast(`✅ ${data.length} résultat(s) trouvé(s)`);
+    data.forEach(order => {
+      order.items = itemsByOrder[order.id] || order.items || [];
+    });
+
+    // Sauvegarder dans variable globale pour modal
+    if (!append) {
+      window.archiveResults = data;
+    } else {
+      window.archiveResults = [...(window.archiveResults || []), ...data];
+    }
+
+    // Générer HTML (cards cliquables comme "Terminés")
+    let html = '';
+    data.forEach(order => {
+      html += renderCompletedOrderLine(order); // Réutiliser la fonction des "Terminés"
+    });
+
+    // Afficher résultats
+    if (!append) {
+      resultsList.innerHTML = html;
+    } else {
+      resultsList.innerHTML += html;
+    }
+
+    // Mettre à jour compteur
+    const totalShown = archiveSearchOffset + data.length;
+    resultsCount.textContent = `${totalShown} résultat${totalShown > 1 ? 's' : ''}${count ? ` sur ${count} total` : ''}`;
+
+    // Pagination: afficher bouton si plus de résultats
+    archiveSearchHasMore = data.length === 100;
+    pagination.style.display = archiveSearchHasMore ? 'block' : 'none';
+
+    if (!append) {
+      showToast(`✅ ${data.length} résultat(s) trouvé(s)`, 'success');
+    }
 
   } catch (err) {
-    console.error('Error searching archives:', err);
+    console.error('❌ Erreur recherche archives:', err);
     resultsList.innerHTML = '<div class="no-orders">Erreur lors de la recherche</div>';
-    showToast('❌ Erreur lors de la recherche');
+    resultsCount.textContent = '';
+    pagination.style.display = 'none';
+    showToast('❌ Erreur lors de la recherche', 'error');
   }
+}
+
+// Charger plus de résultats (pagination)
+async function loadMoreArchives() {
+  archiveSearchOffset += 100;
+  await searchArchives(true); // append = true
 }
 
 async function loadArchiveLogs() {

@@ -3558,6 +3558,15 @@ async function showCompletedOrderDetails(orderId) {
   const { data: orderItems } = await sb.from('order_items').select('*').eq('order_id', orderId);
   const items = orderItems || order.items || [];
 
+  // 🐛 DEBUG
+  console.log('🔍 DEBUG showCompletedOrderDetails:');
+  console.log('  orderId:', orderId);
+  console.log('  order:', order);
+  console.log('  orderItems from DB:', orderItems);
+  console.log('  order.items:', order.items);
+  console.log('  items final:', items);
+  console.log('  items.length:', items.length);
+
   // Config couleur selon statut
   const isRecuperee = order.statut === 'recuperee';
   const isCancelled = order.statut === 'cancelled';
@@ -3922,6 +3931,13 @@ async function loadCompleted() {
     const orderIds = completedOrders.map(o => o.id);
     const {data: allItems} = await sb.from('order_items').select('*').in('order_id', orderIds);
 
+    // 🐛 DEBUG
+    console.log('🔍 DEBUG loadCompleted:');
+    console.log('  completedOrders.length:', completedOrders.length);
+    console.log('  orderIds:', orderIds);
+    console.log('  allItems from order_items:', allItems);
+    console.log('  allItems length:', (allItems || []).length);
+
     // Grouper les items par order_id
     const itemsByOrder = {};
     (allItems || []).forEach(item => {
@@ -3929,9 +3945,12 @@ async function loadCompleted() {
       itemsByOrder[item.order_id].push(item);
     });
 
+    console.log('  itemsByOrder:', itemsByOrder);
+
     // Attacher les items aux commandes
     completedOrders.forEach(order => {
       order.items = itemsByOrder[order.id] || order.items || [];
+      console.log(`  Order ${order.numero}: ${order.items.length} items`);
     });
   }
 

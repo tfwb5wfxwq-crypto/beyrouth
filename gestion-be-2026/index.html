@@ -3673,7 +3673,7 @@ async function showCompletedOrderDetails(orderId) {
 
         <!-- Actions -->
         <div style="display:flex;flex-direction:column;gap:10px;margin-top:24px;">
-          ${order.client_email ? `<button onclick="resendCompletedOrderEmail(${order.id})" style="padding:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(59,130,246,0.3);">📧 Renvoyer l'email</button>` : ''}
+          ${order.client_email ? `<button onclick="resendCompletedOrderEmail(${order.id})" style="padding:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(59,130,246,0.3);">📧 Renvoyer le ticket</button>` : ''}
 
           ${canRefund ? `<button onclick="cancelAndRefundCompletedOrder(${order.id})" style="padding:14px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(220,38,38,0.3);">💳 Annuler & Rembourser</button>` : ''}
 
@@ -3778,28 +3778,29 @@ function renderCompletedOrderLine(order) {
   // Statut paiement
   const isRefunded = order.refund_completed_at; // Remboursé si refund_completed_at existe
 
-  // Config couleurs et labels
+  // Config couleurs et labels (couleurs douces/pastels)
   let statusBg, statusColor, statusIcon, statusText;
   if (isRecuperee) {
     statusBg = '#d1fae5';
-    statusColor = '#065f46';
+    statusColor = '#047857'; // Vert plus doux
     statusIcon = '✅';
     statusText = 'Récupérée';
   } else if (isCancelled) {
-    statusBg = '#fee2e2';
-    statusColor = '#991b1b';
+    statusBg = '#fecaca';
+    statusColor = '#dc2626'; // Rouge plus doux
     statusIcon = '❌';
     statusText = 'Annulée';
   } else if (isNotRecuperee) {
     statusBg = '#fef3c7';
-    statusColor = '#92400e';
+    statusColor = '#d97706'; // Orange plus doux
     statusIcon = '⚠️';
     statusText = 'Pas récupérée';
   }
 
-  const paymentBadge = isRefunded
-    ? '<span style="background:#fef3c7;color:#92400e;padding:3px 8px;border-radius:4px;font-size:0.7rem;font-weight:600;">💸 Remboursé</span>'
-    : '<span style="background:#f0fdf4;color:#166534;padding:3px 8px;border-radius:4px;font-size:0.7rem;font-weight:600;">💳 Payé</span>';
+  // Badge paiement : uniquement si récupérée (sinon redondant avec "Annulée")
+  const paymentBadge = isRecuperee
+    ? '<span style="background:#f0fdf4;color:#166534;padding:3px 8px;border-radius:4px;font-size:0.7rem;font-weight:600;">💳 Payé</span>'
+    : '';
 
   return `
     <div onclick="showCompletedOrderDetails(${order.id})" style="

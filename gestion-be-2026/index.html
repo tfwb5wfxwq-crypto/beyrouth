@@ -271,12 +271,12 @@ button{cursor:pointer;font-family:inherit;border:none}
   font-size:.8rem;border-bottom:1px solid #f5f5f5;
 }
 .order-total-line{font-weight:700;font-size:1rem;color:var(--bordeaux);padding-top:8px}
-.order-actions{display:flex;gap:6px;flex-wrap:wrap;width:100%}
+.order-actions{display:flex;gap:8px;flex-wrap:nowrap;width:100%}
 .order-action{
-  padding:8px 12px;border-radius:var(--radius);font-weight:600;
-  font-size:.8rem;transition:all .3s;min-height:36px;white-space:nowrap;
+  padding:8px 14px;border-radius:var(--radius);font-weight:600;
+  font-size:.85rem;transition:all .3s;min-height:36px;white-space:nowrap;
   display:inline-flex;align-items:center;justify-content:center;
-  flex:0 1 auto;min-width:80px;max-width:fit-content;
+  flex:0 0 auto;
 }
 .btn-accept{
   background:linear-gradient(135deg, #1a1a1a, #2d2d2d);
@@ -723,9 +723,8 @@ button{cursor:pointer;font-family:inherit;border:none}
 <div class="dashboard" id="dashboard">
   <div class="topbar">
     <div style="display:flex;align-items:center;">
-      <a href="https://beyrouth.express" target="_blank" style="display:flex;align-items:center;gap:12px;text-decoration:none;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-        <img src="../img/logo-admin.svg" alt="Falafels" style="height:42px;filter:drop-shadow(0 0 8px rgba(212,175,55,0.2));">
-        <img src="../img/logo-text-admin.svg" alt="Beyrouth Express" style="height:36px;filter:drop-shadow(0 0 8px rgba(248,175,47,0.3));">
+      <a href="https://beyrouth.express" target="_blank" style="display:flex;align-items:center;text-decoration:none;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        <img src="../img/logo-admin.svg" alt="Beyrouth Express" style="height:46px;filter:drop-shadow(0 0 8px rgba(212,175,55,0.25));">
       </a>
     </div>
     <div class="topbar-right">

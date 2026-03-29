@@ -263,7 +263,6 @@ serve(async (req) => {
       .from('orders')
       .update({
         statut: 'cancelled',
-        archived: true,
         note: reason,
         updated_at: new Date().toISOString()
       })

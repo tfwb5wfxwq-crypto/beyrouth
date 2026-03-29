@@ -2671,9 +2671,7 @@ async function confirmCancelOrder(orderId) {
     const idx = orders.findIndex(o => o.id === orderId);
     if (idx !== -1) {
       orders[idx].statut = 'cancelled';
-      orders[idx].archived = true;
-      // Retirer de la liste
-      orders.splice(idx, 1);
+      // La commande reste visible dans "Terminées" jusqu'à archivage automatique
       debouncedRenderOrders();
       updateTopbarStats();
     }

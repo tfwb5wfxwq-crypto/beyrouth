@@ -3967,11 +3967,13 @@ async function markAsRecuperee(orderId) {
   showToast('✅ Mise à jour...', 'info');
 
   try {
+    const now = new Date().toISOString();
     const { error } = await sb.from('orders')
       .update({
         statut: 'recuperee',
         archived: false, // Retirer le flag archived
-        updated_at: new Date().toISOString()
+        recuperee_at: now, // 🆕 Sauvegarder l'heure exacte de récupération
+        updated_at: now
       })
       .eq('id', orderId);
 
@@ -4010,7 +4012,15 @@ function renderCompletedOrderLine(order) {
     statusBg = '#d1fae5';
     statusColor = '#047857'; // Vert plus doux
     statusIcon = '✅';
-    statusText = 'Récupérée';
+    // Afficher l'heure de récupération si disponible
+    if (order.recuperee_at) {
+      const recupereeDate = new Date(order.recuperee_at);
+      const hours = String(recupereeDate.getHours()).padStart(2, '0');
+      const minutes = String(recupereeDate.getMinutes()).padStart(2, '0');
+      statusText = `Récupérée à ${hours}h${minutes}`;
+    } else {
+      statusText = 'Récupérée';
+    }
   } else if (isCancelled) {
     statusBg = '#fecaca';
     statusColor = '#dc2626'; // Rouge plus doux

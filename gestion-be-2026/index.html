@@ -3763,22 +3763,74 @@ async function cancelAndRefundCompletedOrder(orderId) {
   }
 }
 
-// Render une ligne compacte pour commande terminée
+// Render une carte compacte pour commande terminée
 function renderCompletedOrderLine(order) {
   const date = new Date(order.created_at);
   const timeStr = date.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
-  const statusClass = order.statut === 'recuperee' ? 'recuperee' : 'cancelled';
-  const statusEmoji = order.statut === 'recuperee' ? '✓' : '✕';
   const prenom = escapeHtml(order.client_prenom || 'Client');
   const total = parseFloat(order.total || 0).toFixed(2).replace('.', ',');
 
+  // Statut principal
+  const isRecuperee = order.statut === 'recuperee';
+  const isCancelled = order.statut === 'cancelled';
+  const isNotRecuperee = !isRecuperee && !isCancelled; // Archivée sans être récupérée
+
+  // Statut paiement
+  const isRefunded = order.refund_completed_at; // Remboursé si refund_completed_at existe
+
+  // Config couleurs et labels
+  let statusBg, statusColor, statusIcon, statusText;
+  if (isRecuperee) {
+    statusBg = '#d1fae5';
+    statusColor = '#065f46';
+    statusIcon = '✅';
+    statusText = 'Récupérée';
+  } else if (isCancelled) {
+    statusBg = '#fee2e2';
+    statusColor = '#991b1b';
+    statusIcon = '❌';
+    statusText = 'Annulée';
+  } else if (isNotRecuperee) {
+    statusBg = '#fef3c7';
+    statusColor = '#92400e';
+    statusIcon = '⚠️';
+    statusText = 'Pas récupérée';
+  }
+
+  const paymentBadge = isRefunded
+    ? '<span style="background:#fef3c7;color:#92400e;padding:3px 8px;border-radius:4px;font-size:0.7rem;font-weight:600;">💸 Remboursé</span>'
+    : '<span style="background:#f0fdf4;color:#166534;padding:3px 8px;border-radius:4px;font-size:0.7rem;font-weight:600;">💳 Payé</span>';
+
   return `
-    <div class="completed-order-line ${statusClass}" onclick="showCompletedOrderDetails(${order.id})" style="cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='#f8f8f8'" onmouseout="this.style.background=''">
-      <span class="completed-order-time">${timeStr}</span>
-      <span class="completed-order-num">${escapeHtml(order.numero)}</span>
-      <span class="completed-order-client">${prenom}</span>
-      <span class="completed-order-amount">${total} €</span>
-      <span class="completed-order-status">${statusEmoji}</span>
+    <div onclick="showCompletedOrderDetails(${order.id})" style="
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:8px;
+      padding:12px 16px;
+      margin-bottom:8px;
+      cursor:pointer;
+      transition:all 0.2s;
+      box-shadow:0 1px 2px rgba(0,0,0,0.05);
+    " onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 1px 2px rgba(0,0,0,0.05)';this.style.transform='translateY(0)'">
+
+      <!-- Ligne 1: Heure + Numéro + Client -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="color:#9ca3af;font-size:0.85rem;font-weight:600;">${timeStr}</span>
+          <span style="font-family:'Courier New',monospace;font-weight:700;font-size:0.95rem;color:#1f2937;">${escapeHtml(order.numero)}</span>
+          <span style="color:#6b7280;font-size:0.9rem;">${prenom}</span>
+        </div>
+        <span style="font-weight:700;font-size:1.05rem;color:#1f2937;">${total} €</span>
+      </div>
+
+      <!-- Ligne 2: Statuts -->
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:${statusBg};color:${statusColor};padding:4px 10px;border-radius:6px;font-size:0.75rem;font-weight:700;display:inline-flex;align-items:center;gap:4px;">
+          ${statusIcon} ${statusText}
+        </span>
+        ${paymentBadge}
+      </div>
+
     </div>
   `;
 }
@@ -3864,6 +3916,24 @@ async function loadCompleted() {
   }
 
   completedOrders = data || [];
+
+  // Récupérer les items pour toutes les commandes
+  if (completedOrders.length > 0) {
+    const orderIds = completedOrders.map(o => o.id);
+    const {data: allItems} = await sb.from('order_items').select('*').in('order_id', orderIds);
+
+    // Grouper les items par order_id
+    const itemsByOrder = {};
+    (allItems || []).forEach(item => {
+      if (!itemsByOrder[item.order_id]) itemsByOrder[item.order_id] = [];
+      itemsByOrder[item.order_id].push(item);
+    });
+
+    // Attacher les items aux commandes
+    completedOrders.forEach(order => {
+      order.items = itemsByOrder[order.id] || order.items || [];
+    });
+  }
 
   if (!completedOrders.length) {
     list.innerHTML = '<div class="no-orders">Aucune commande terminée pour cette période</div>';

@@ -3641,13 +3641,11 @@ async function showCompletedOrderDetails(orderId) {
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
               <span style="font-size:0.85rem;color:#666;">📧</span>
               <a href="mailto:${escapeHtml(order.client_email || '')}" style="color:#3b82f6;text-decoration:none;font-size:0.9rem;">${escapeHtml(order.client_email || 'Non renseigné')}</a>
-              ${order.client_email ? `<button onclick="navigator.clipboard.writeText('${escapeHtml(order.client_email)}'); showToast('📋 Email copié', 'success')" style="padding:4px 8px;background:#e0e0e0;border:none;border-radius:4px;font-size:0.75rem;cursor:pointer;">Copier</button>` : ''}
             </div>
             ${order.client_telephone ? `
             <div style="display:flex;align-items:center;gap:8px;">
               <span style="font-size:0.85rem;color:#666;">📱</span>
               <a href="tel:${escapeHtml(order.client_telephone)}" style="color:#3b82f6;text-decoration:none;font-size:0.9rem;">${escapeHtml(order.client_telephone)}</a>
-              <button onclick="navigator.clipboard.writeText('${escapeHtml(order.client_telephone)}'); showToast('📋 Téléphone copié', 'success')" style="padding:4px 8px;background:#e0e0e0;border:none;border-radius:4px;font-size:0.75rem;cursor:pointer;">Copier</button>
             </div>
             ` : ''}
           </div>

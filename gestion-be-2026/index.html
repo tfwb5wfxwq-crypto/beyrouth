@@ -2155,21 +2155,32 @@ function renderOrders() {
   badge.textContent = alertCount;
 }
 
-// Badge statut email (discret)
+// Badge statut email (visible et clair)
 function getEmailStatusBadge(order) {
   if (!order.email_status || order.email_status === 'pending') return '';
 
   const statusConfig = {
-    sent: { emoji: '📧', color: '#999', text: 'Envoyé' },
-    delivered: { emoji: '✅', color: '#22c55e', text: 'Livré' },
-    opened: { emoji: '👁️', color: '#3b82f6', text: 'Lu' },
-    error: { emoji: '❌', color: '#ef4444', text: 'Erreur' }
+    sent: { emoji: '📧', color: '#999', bg: '#f5f5f5', text: 'Envoyé' },
+    delivered: { emoji: '✅', color: '#22c55e', bg: '#f0fdf4', text: 'Livré' },
+    opened: { emoji: '👁️', color: '#3b82f6', bg: '#eff6ff', text: 'Lu' },
+    error: { emoji: '❌', color: '#ef4444', bg: '#fef2f2', text: 'Erreur' }
   };
 
   const config = statusConfig[order.email_status];
   if (!config) return '';
 
-  return `<div id="email-status-${order.id}" style="font-size:0.65rem;color:${config.color};margin-top:2px;font-weight:600;" title="${config.text}">${config.emoji}</div>`;
+  return `<div id="email-status-${order.id}" style="
+    font-size:0.7rem;
+    color:${config.color};
+    background:${config.bg};
+    padding:3px 8px;
+    border-radius:4px;
+    margin-top:4px;
+    font-weight:600;
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+  ">${config.emoji} Email: ${config.text}</div>`;
 }
 
 function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, statusLabel) {
@@ -2225,7 +2236,7 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
             const mins = Math.floor((now - reminderTime) / 60000);
             return `<div id="reminder-${order.id}" style="font-size:0.65rem;color:#f97316;margin-top:2px;font-weight:600;">📧 Relancé il y a ${mins} min</div>`;
           })() : ''}
-          ${!isHistory && order.email_status ? getEmailStatusBadge(order) : ''}
+          ${order.email_status ? getEmailStatusBadge(order) : ''}
         </div>
 
         <div style="flex:1;min-width:200px;font-size:0.8rem;color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">

@@ -2930,19 +2930,48 @@ async function cancelOrder(orderId) {
   const order = orders.find(o => o.id === orderId);
   if (!order) return;
 
-  // Modal personnalisé pour raison d'annulation
+  // Modal avec raisons prédéfinies + champ libre
   const modalHtml = `
     <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);" id="cancelModal" onclick="if(event.target.id==='cancelModal') document.getElementById('cancelModal').remove()">
-      <div style="background:#fff;border-radius:16px;padding:32px;max-width:500px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideIn 0.2s ease-out;" onclick="event.stopPropagation()">
+      <div style="background:#fff;border-radius:16px;padding:32px;max-width:500px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideIn 0.2s ease-out;" onclick="event.stopPropagation()">
         <h3 style="margin:0 0 8px 0;font-size:1.4rem;color:#1a1a1a;">⚠️ Annuler la commande ${escapeHtml(order.numero)} ?</h3>
-        <p style="color:#666;margin-bottom:24px;font-size:0.95rem;">Cette action est <strong>irréversible</strong>. Le client sera <strong>remboursé automatiquement</strong>.</p>
+        <p style="color:#666;margin-bottom:20px;font-size:0.95rem;">Cette action est <strong>irréversible</strong>. Le client sera <strong>remboursé automatiquement</strong>.</p>
 
-        <label style="display:block;margin-bottom:8px;font-weight:600;color:#1a1a1a;font-size:0.9rem;">Raison de l'annulation (envoyée au client) :</label>
-        <textarea id="cancelReason" style="width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-family:inherit;font-size:0.95rem;resize:vertical;min-height:80px;margin-bottom:24px;" placeholder="Ex: Rupture de stock, fermeture exceptionnelle..."></textarea>
+        <label style="display:block;margin-bottom:12px;font-weight:600;color:#1a1a1a;font-size:0.9rem;">Raison de l'annulation :</label>
+
+        <!-- Raisons prédéfinies -->
+        <div style="margin-bottom:20px;">
+          <label onclick="this.querySelector('input').checked=true;document.getElementById('cancelCustomReason').style.display='none';" style="display:block;margin-bottom:10px;cursor:pointer;padding:12px;background:#f5f5f5;border-radius:8px;border:2px solid transparent;transition:all 0.2s;" class="cancel-reason-option">
+            <input type="radio" name="cancel-reason" value="Client a annulé sa commande" style="margin-right:8px;">
+            <span style="font-weight:500;">Client a annulé sa commande</span>
+          </label>
+
+          <label onclick="this.querySelector('input').checked=true;document.getElementById('cancelCustomReason').style.display='none';" style="display:block;margin-bottom:10px;cursor:pointer;padding:12px;background:#f5f5f5;border-radius:8px;border:2px solid transparent;transition:all 0.2s;" class="cancel-reason-option">
+            <input type="radio" name="cancel-reason" value="Ingrédient ou plat indisponible" style="margin-right:8px;">
+            <span style="font-weight:500;">Ingrédient ou plat indisponible</span>
+          </label>
+
+          <label onclick="this.querySelector('input').checked=true;document.getElementById('cancelCustomReason').style.display='none';" style="display:block;margin-bottom:10px;cursor:pointer;padding:12px;background:#f5f5f5;border-radius:8px;border:2px solid transparent;transition:all 0.2s;" class="cancel-reason-option">
+            <input type="radio" name="cancel-reason" value="Erreur sur la commande" style="margin-right:8px;">
+            <span style="font-weight:500;">Erreur sur la commande</span>
+          </label>
+
+          <label onclick="this.querySelector('input').checked=true;document.getElementById('cancelCustomReason').style.display='none';" style="display:block;margin-bottom:10px;cursor:pointer;padding:12px;background:#f5f5f5;border-radius:8px;border:2px solid transparent;transition:all 0.2s;" class="cancel-reason-option">
+            <input type="radio" name="cancel-reason" value="Fermeture exceptionnelle" style="margin-right:8px;">
+            <span style="font-weight:500;">Fermeture exceptionnelle</span>
+          </label>
+
+          <label onclick="this.querySelector('input').checked=true;document.getElementById('cancelCustomReason').style.display='block';setTimeout(()=>document.getElementById('cancelCustomReason').focus(),100);" style="display:block;margin-bottom:10px;cursor:pointer;padding:12px;background:#f5f5f5;border-radius:8px;border:2px solid transparent;transition:all 0.2s;" class="cancel-reason-option">
+            <input type="radio" name="cancel-reason" value="other" style="margin-right:8px;">
+            <span style="font-weight:500;">Autre raison (préciser)</span>
+          </label>
+
+          <textarea id="cancelCustomReason" placeholder="Précisez la raison..." style="display:none;width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;resize:vertical;min-height:70px;font-family:inherit;font-size:0.95rem;margin-top:8px;"></textarea>
+        </div>
 
         <div style="display:flex;gap:12px;">
           <button onclick="document.getElementById('cancelModal').remove()" style="flex:1;padding:14px;background:#f5f5f5;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;color:#666;">Annuler</button>
-          <button onclick="confirmCancelOrder(${orderId})" style="flex:1;padding:14px;background:linear-gradient(135deg, #dc2626, #b91c1c);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(220,38,38,0.3);">Confirmer le remboursement</button>
+          <button onclick="confirmCancelOrder(${orderId})" style="flex:1;padding:14px;background:linear-gradient(135deg, #dc2626, #b91c1c);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(220,38,38,0.3);">Confirmer l'annulation</button>
         </div>
       </div>
     </div>
@@ -2955,15 +2984,27 @@ async function cancelOrder(orderId) {
   `;
 
   document.body.insertAdjacentHTML('beforeend', modalHtml);
-  setTimeout(() => document.getElementById('cancelReason').focus(), 100);
 }
 
 async function confirmCancelOrder(orderId) {
-  const reason = document.getElementById('cancelReason').value.trim();
+  // Récupérer la raison sélectionnée
+  const selectedReason = document.querySelector('input[name="cancel-reason"]:checked');
 
-  if (!reason) {
-    showToast('⚠️ Veuillez indiquer une raison', 'warning');
+  if (!selectedReason) {
+    showToast('⚠️ Veuillez sélectionner une raison', 'warning');
     return;
+  }
+
+  let reason = selectedReason.value;
+
+  // Si "Autre", récupérer le texte personnalisé
+  if (reason === 'other') {
+    const customReason = document.getElementById('cancelCustomReason').value.trim();
+    if (!customReason) {
+      showToast('⚠️ Veuillez préciser la raison', 'warning');
+      return;
+    }
+    reason = customReason;
   }
 
   const order = orders.find(o => o.id === orderId);
@@ -3383,8 +3424,11 @@ async function confirmCancel(orderId, cancellationReason = '') {
   if (!order) return;
 
   try {
-    // 1. Mettre en statut "cancelled" pour garder l'historique
-    await sb.from('orders').update({statut: 'cancelled'}).eq('id', orderId);
+    // 1. Mettre en statut "cancelled" + sauvegarder la raison
+    await sb.from('orders').update({
+      statut: 'cancelled',
+      note: cancellationReason || null // Sauvegarder la raison d'annulation
+    }).eq('id', orderId);
 
     // 2. Envoyer email d'annulation avec la raison
     try {

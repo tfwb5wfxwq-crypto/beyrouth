@@ -3554,9 +3554,9 @@ async function showCompletedOrderDetails(orderId) {
     order = data;
   }
 
-  // Récupérer les items
+  // Récupérer les items (fallback sur order.items si order_items vide)
   const { data: orderItems } = await sb.from('order_items').select('*').eq('order_id', orderId);
-  const items = orderItems || order.items || [];
+  const items = (orderItems?.length > 0) ? orderItems : (order.items || []);
 
   // 🐛 DEBUG
   console.log('🔍 DEBUG showCompletedOrderDetails:');

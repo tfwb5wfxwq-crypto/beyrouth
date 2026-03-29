@@ -3567,12 +3567,28 @@ async function showCompletedOrderDetails(orderId) {
   console.log('  items final:', items);
   console.log('  items.length:', items.length);
 
-  // Config couleur selon statut
+  // Config couleur selon statut (3 cas possibles)
   const isRecuperee = order.statut === 'recuperee';
   const isCancelled = order.statut === 'cancelled';
-  const statusColor = isRecuperee ? '#22c55e' : '#ef4444';
-  const statusEmoji = isRecuperee ? '✓' : '✕';
-  const statusText = isRecuperee ? 'Récupérée' : 'Annulée';
+  const isNotRecuperee = order.archived === true && !isRecuperee && !isCancelled; // Client pas venu
+
+  let statusColor, statusEmoji, statusText, statusBg;
+  if (isRecuperee) {
+    statusColor = '#047857';
+    statusBg = '#d1fae5';
+    statusEmoji = '✅';
+    statusText = 'Récupérée';
+  } else if (isCancelled) {
+    statusColor = '#dc2626';
+    statusBg = '#fecaca';
+    statusEmoji = '❌';
+    statusText = 'Annulée';
+  } else if (isNotRecuperee) {
+    statusColor = '#d97706';
+    statusBg = '#fef3c7';
+    statusEmoji = '⚠️';
+    statusText = 'Pas récupérée';
+  }
 
   // Calcul âge de la commande (pour bouton annuler/rembourser)
   const orderAge = Math.floor((Date.now() - new Date(order.created_at)) / (1000 * 60 * 60 * 24)); // jours
@@ -3680,11 +3696,21 @@ async function showCompletedOrderDetails(orderId) {
           </div>
         </div>
 
-        <!-- Actions -->
+        <!-- Actions (selon statut) -->
         <div style="display:flex;flex-direction:column;gap:10px;margin-top:24px;">
+          ${isNotRecuperee ? `
+          <!-- Actions pour commandes PAS RÉCUPÉRÉES (client pas venu) -->
+          ${order.client_email ? `<button onclick="remindClient(${order.id})" style="padding:14px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(245,158,11,0.3);">📧 Relancer le client</button>` : ''}
+          <button onclick="markAsRecuperee(${order.id})" style="padding:14px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(16,185,129,0.3);">✅ Marquer comme récupérée</button>
+          <button onclick="cancelAndRefundCompletedOrder(${order.id})" style="padding:14px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(220,38,38,0.3);">💳 Annuler & Rembourser</button>
+          ` : isRecuperee ? `
+          <!-- Actions pour commandes RÉCUPÉRÉES -->
           ${order.client_email ? `<button onclick="resendCompletedOrderEmail(${order.id})" style="padding:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(59,130,246,0.3);">📧 Renvoyer le ticket</button>` : ''}
-
           ${canRefund ? `<button onclick="cancelAndRefundCompletedOrder(${order.id})" style="padding:14px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(220,38,38,0.3);">💳 Annuler & Rembourser</button>` : ''}
+          ` : isCancelled ? `
+          <!-- Actions pour commandes ANNULÉES -->
+          ${order.client_email ? `<button onclick="resendCompletedOrderEmail(${order.id})" style="padding:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(59,130,246,0.3);">📧 Renvoyer le ticket</button>` : ''}
+          ` : ''}
 
           <button onclick="document.getElementById('completedModal').remove()" style="padding:14px;background:#f5f5f5;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;color:#666;">Fermer</button>
         </div>
@@ -3772,6 +3798,66 @@ async function cancelAndRefundCompletedOrder(orderId) {
   }
 }
 
+// Relancer le client (email de rappel pour commande pas récupérée)
+async function remindClient(orderId) {
+  if (!confirm('Envoyer un email de relance au client pour lui rappeler sa commande ?')) return;
+
+  showToast('📧 Envoi en cours...', 'info');
+
+  try {
+    const { data, error } = await sb.functions.invoke('send-order-reminder', {
+      body: { orderId },
+      headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
+    });
+
+    if (error) throw new Error(error.message);
+    if (!data.success) throw new Error(data.error || 'Erreur envoi email');
+
+    showToast(`✅ Email de relance envoyé à ${data.email}`, 'success');
+
+    // Mettre à jour reminder_sent_at dans la base
+    await sb.from('orders')
+      .update({ reminder_sent_at: new Date().toISOString() })
+      .eq('id', orderId);
+
+    await loadCompleted();
+    document.getElementById('completedModal')?.remove();
+
+  } catch (error) {
+    console.error('Erreur remind client:', error);
+    showToast('❌ Erreur : ' + error.message, 'error');
+  }
+}
+
+// Marquer une commande comme récupérée (si finalement client est venu)
+async function markAsRecuperee(orderId) {
+  if (!confirm('Marquer cette commande comme récupérée ?\n\nCela signifie que le client est finalement venu chercher sa commande.')) return;
+
+  showToast('✅ Mise à jour...', 'info');
+
+  try {
+    const { error } = await sb.from('orders')
+      .update({
+        statut: 'recuperee',
+        archived: false, // Retirer le flag archived
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', orderId);
+
+    if (error) throw new Error(error.message);
+
+    showToast('✅ Commande marquée comme récupérée', 'success');
+
+    // Recharger la liste
+    await loadCompleted();
+    document.getElementById('completedModal')?.remove();
+
+  } catch (error) {
+    console.error('Erreur mark as recuperee:', error);
+    showToast('❌ Erreur : ' + error.message, 'error');
+  }
+}
+
 // Render une carte compacte pour commande terminée
 function renderCompletedOrderLine(order) {
   const date = new Date(order.created_at);
@@ -3782,7 +3868,7 @@ function renderCompletedOrderLine(order) {
   // Statut principal
   const isRecuperee = order.statut === 'recuperee';
   const isCancelled = order.statut === 'cancelled';
-  const isNotRecuperee = !isRecuperee && !isCancelled; // Archivée sans être récupérée
+  const isNotRecuperee = order.archived === true && !isRecuperee && !isCancelled; // Archivée (client pas venu) sans être récupérée/annulée
 
   // Statut paiement
   const isRefunded = order.refund_completed_at; // Remboursé si refund_completed_at existe
@@ -3910,10 +3996,11 @@ async function loadCompleted() {
   const startDate = new Date(now);
   startDate.setDate(now.getDate() - 30); // 30 jours glissant
 
+  // Charger toutes les commandes terminées OU archivées (client pas venu)
+  // = Récupérées (recuperee) + Annulées (cancelled) + Pas récupérées (archived = true)
   const {data, error} = await sb.from('orders')
     .select('*')
-    .in('statut', ['recuperee', 'cancelled'])
-    .eq('archived', false)
+    .or('statut.eq.recuperee,statut.eq.cancelled,archived.eq.true')
     .gte('created_at', startDate.toISOString())
     .order('created_at', {ascending: false})
     .limit(500);

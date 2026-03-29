@@ -794,6 +794,12 @@ button{cursor:pointer;font-family:inherit;border:none}
     <div class="tab-content" id="tab-completed" style="display:none">
       <h2 style="margin-bottom:16px;color:var(--bordeaux)">Commandes terminées</h2>
       <p style="margin-bottom:12px;color:#666;font-size:0.9rem;">📅 30 derniers jours • Les commandes plus anciennes sont archivées automatiquement</p>
+
+      <!-- Recherche rapide -->
+      <div style="margin-bottom:20px;">
+        <input type="text" id="completedSearchInput" placeholder="🔍 Rechercher par numéro ou nom..." style="width:100%;padding:12px 16px;border:2px solid #e0e0e0;border-radius:8px;font-size:0.95rem;transition:border-color 0.2s;" oninput="filterCompletedOrders(this.value)" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='#e0e0e0'">
+      </div>
+
       <div id="completedList">
         <div class="no-orders">Chargement...</div>
       </div>
@@ -4111,6 +4117,10 @@ async function loadCompleted() {
   const list = document.getElementById('completedList');
   list.innerHTML = '<div class="no-orders">Chargement...</div>';
 
+  // Réinitialiser la recherche
+  const searchInput = document.getElementById('completedSearchInput');
+  if (searchInput) searchInput.value = '';
+
   // ✨ Auto-archiver les commandes > 30 jours
   await autoArchiveOld30Days();
 
@@ -4189,6 +4199,74 @@ async function loadCompleted() {
   sortedGroupKeys.forEach((dateKey, index) => {
     const isOpen = index === 0 || completedGroupsState[dateKey]; // Premier groupe ouvert par défaut
     html += renderCompletedGroup(dateKey, groups[dateKey], isOpen);
+  });
+
+  list.innerHTML = html;
+}
+
+// Filtrer les commandes terminées (recherche temps réel)
+function filterCompletedOrders(query) {
+  const list = document.getElementById('completedList');
+
+  if (!completedOrders || completedOrders.length === 0) {
+    return;
+  }
+
+  // Si recherche vide, afficher tout
+  if (!query || query.trim() === '') {
+    // Réutiliser la logique de groupage de loadCompleted()
+    const groups = {};
+    completedOrders.forEach(order => {
+      const date = new Date(order.created_at);
+      const dateKey = date.toISOString().split('T')[0];
+      if (!groups[dateKey]) groups[dateKey] = [];
+      groups[dateKey].push(order);
+    });
+
+    const sortedGroupKeys = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+    let html = '';
+    sortedGroupKeys.forEach((dateKey, index) => {
+      const isOpen = index === 0 || completedGroupsState[dateKey];
+      html += renderCompletedGroup(dateKey, groups[dateKey], isOpen);
+    });
+    list.innerHTML = html;
+    return;
+  }
+
+  // Recherche (case-insensitive)
+  const searchTerm = query.toLowerCase().trim();
+  const filtered = completedOrders.filter(order => {
+    return (
+      (order.numero && order.numero.toLowerCase().includes(searchTerm)) ||
+      (order.client_prenom && order.client_prenom.toLowerCase().includes(searchTerm)) ||
+      (order.client_nom && order.client_nom.toLowerCase().includes(searchTerm)) ||
+      (order.client_email && order.client_email.toLowerCase().includes(searchTerm)) ||
+      (order.client_telephone && order.client_telephone.includes(searchTerm))
+    );
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="no-orders">Aucun résultat pour "${escapeHtml(query)}"</div>`;
+    return;
+  }
+
+  // Grouper les résultats filtrés par date
+  const groups = {};
+  filtered.forEach(order => {
+    const date = new Date(order.created_at);
+    const dateKey = date.toISOString().split('T')[0];
+    if (!groups[dateKey]) groups[dateKey] = [];
+    groups[dateKey].push(order);
+  });
+
+  const sortedGroupKeys = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+  let html = `<div style="padding:12px 16px;background:#f0f7ff;border-radius:6px;margin-bottom:16px;font-size:0.9rem;color:#1e40af;">
+    <strong>${filtered.length}</strong> résultat${filtered.length > 1 ? 's' : ''} pour "<strong>${escapeHtml(query)}</strong>"
+  </div>`;
+
+  sortedGroupKeys.forEach(dateKey => {
+    // Toujours ouvrir les groupes quand on filtre
+    html += renderCompletedGroup(dateKey, groups[dateKey], true);
   });
 
   list.innerHTML = html;

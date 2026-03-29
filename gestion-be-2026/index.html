@@ -2421,6 +2421,21 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
 
         <span class="order-num" style="min-width:80px;flex-shrink:0;">${escapeHtml(order.numero)}</span>
 
+        ${(() => {
+          // Icône email cliquable avec statut visuel
+          if (!order.email_status || order.email_status === 'pending') {
+            return `<span onclick="showEmailDetails(${order.id})" style="cursor:pointer;font-size:1.2rem;opacity:0.3;" title="Email pas encore envoyé">📧</span>`;
+          }
+          const emailIcons = {
+            sent: { icon: '📧', color: '#999', title: 'Email envoyé' },
+            delivered: { icon: '✅', color: '#22c55e', title: 'Email livré' },
+            opened: { icon: '👁️', color: '#3b82f6', title: 'Email ouvert' },
+            error: { icon: '❌', color: '#ef4444', title: 'Erreur email' }
+          };
+          const config = emailIcons[order.email_status] || emailIcons.sent;
+          return `<span onclick="showEmailDetails(${order.id})" style="cursor:pointer;font-size:1.2rem;filter:drop-shadow(0 0 2px ${config.color});" title="${config.title}">${config.icon}</span>`;
+        })()}
+
         <div style="min-width:120px;flex-shrink:0;">
           <div style="font-size:0.85rem;font-weight:600;color:#1a1a1a;">${escapeHtml(order.client_prenom) || 'Client'}</div>
           <div style="font-size:0.7rem;color:#888;">${escapeHtml(order.client_telephone) || ''}</div>
@@ -2431,7 +2446,6 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
             const mins = Math.floor((now - reminderTime) / 60000);
             return `<div id="reminder-${order.id}" style="font-size:0.65rem;color:#f97316;margin-top:2px;font-weight:600;">📧 Relancé il y a ${mins} min</div>`;
           })() : ''}
-          ${order.email_status ? getEmailStatusBadge(order) : ''}
         </div>
 
         <div style="flex:1;min-width:200px;font-size:0.8rem;color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">

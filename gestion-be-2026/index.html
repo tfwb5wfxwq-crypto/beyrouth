@@ -2155,7 +2155,7 @@ function renderOrders() {
   badge.textContent = alertCount;
 }
 
-// Badge statut email (visible et clair)
+// Badge statut email (visible et clair + cliquable)
 function getEmailStatusBadge(order) {
   if (!order.email_status || order.email_status === 'pending') return '';
 
@@ -2169,7 +2169,7 @@ function getEmailStatusBadge(order) {
   const config = statusConfig[order.email_status];
   if (!config) return '';
 
-  return `<div id="email-status-${order.id}" style="
+  return `<div id="email-status-${order.id}" onclick="showEmailDetails(${order.id})" style="
     font-size:0.7rem;
     color:${config.color};
     background:${config.bg};
@@ -2180,7 +2180,96 @@ function getEmailStatusBadge(order) {
     display:inline-flex;
     align-items:center;
     gap:4px;
-  ">${config.emoji} Email: ${config.text}</div>`;
+    cursor:pointer;
+    transition:all 0.2s;
+  " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">${config.emoji} Email: ${config.text}</div>`;
+}
+
+// Afficher les détails complets de l'email
+function showEmailDetails(orderId) {
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+
+  const statusConfig = {
+    sent: { emoji: '📧', text: 'Envoyé', color: '#999' },
+    delivered: { emoji: '✅', text: 'Livré', color: '#22c55e' },
+    opened: { emoji: '👁️', text: 'Lu par le client', color: '#3b82f6' },
+    error: { emoji: '❌', text: 'Erreur d\'envoi', color: '#ef4444' }
+  };
+
+  const config = statusConfig[order.email_status] || { emoji: '📧', text: 'Inconnu', color: '#999' };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return 'N/A';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  };
+
+  const modalHtml = `
+    <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);" id="emailModal" onclick="if(event.target.id==='emailModal') document.getElementById('emailModal').remove()">
+      <div style="background:#fff;border-radius:16px;padding:32px;max-width:500px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideIn 0.2s ease-out;" onclick="event.stopPropagation()">
+        <h3 style="margin:0 0 8px 0;font-size:1.4rem;color:#1a1a1a;">📧 Détails Email</h3>
+        <p style="color:#666;margin-bottom:24px;font-size:0.9rem;">Commande ${escapeHtml(order.numero)}</p>
+
+        <!-- Email destinataire -->
+        <div style="margin-bottom:20px;">
+          <div style="font-size:0.85rem;color:#888;margin-bottom:4px;font-weight:600;">Destinataire</div>
+          <div style="font-size:1rem;color:#1a1a1a;font-weight:600;">${escapeHtml(order.client_email || 'Non renseigné')}</div>
+        </div>
+
+        <!-- Statut -->
+        <div style="margin-bottom:20px;">
+          <div style="font-size:0.85rem;color:#888;margin-bottom:8px;font-weight:600;">Statut</div>
+          <div style="background:${config.color}15;border-left:3px solid ${config.color};padding:12px 16px;border-radius:6px;">
+            <div style="font-size:1rem;color:${config.color};font-weight:600;">${config.emoji} ${config.text}</div>
+          </div>
+        </div>
+
+        <!-- Timestamps -->
+        ${order.confirmation_email_sent_at ? `
+        <div style="margin-bottom:16px;">
+          <div style="font-size:0.85rem;color:#888;margin-bottom:4px;font-weight:600;">📤 Envoyé le</div>
+          <div style="font-size:0.95rem;color:#1a1a1a;">${formatDate(order.confirmation_email_sent_at)}</div>
+        </div>
+        ` : ''}
+
+        ${order.email_delivered_at ? `
+        <div style="margin-bottom:16px;">
+          <div style="font-size:0.85rem;color:#888;margin-bottom:4px;font-weight:600;">✅ Livré le</div>
+          <div style="font-size:0.95rem;color:#1a1a1a;">${formatDate(order.email_delivered_at)}</div>
+        </div>
+        ` : ''}
+
+        ${order.email_opened_at ? `
+        <div style="margin-bottom:16px;">
+          <div style="font-size:0.85rem;color:#888;margin-bottom:4px;font-weight:600;">👁️ Ouvert le</div>
+          <div style="font-size:0.95rem;color:#1a1a1a;">${formatDate(order.email_opened_at)}</div>
+        </div>
+        ` : ''}
+
+        <!-- Erreur détaillée -->
+        ${order.email_error ? `
+        <div style="margin-bottom:20px;">
+          <div style="font-size:0.85rem;color:#888;margin-bottom:8px;font-weight:600;">⚠️ Détail de l'erreur</div>
+          <div style="background:#fef2f2;border-left:3px solid #ef4444;padding:12px 16px;border-radius:6px;">
+            <div style="font-size:0.9rem;color:#991b1b;font-family:monospace;white-space:pre-wrap;">${escapeHtml(order.email_error)}</div>
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- Bouton fermer -->
+        <button onclick="document.getElementById('emailModal').remove()" style="width:100%;padding:14px;background:#f5f5f5;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;color:#666;margin-top:8px;">Fermer</button>
+      </div>
+    </div>
+    <style>
+      @keyframes slideIn {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+    </style>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
 }
 
 function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, statusLabel) {

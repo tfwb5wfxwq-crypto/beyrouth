@@ -578,8 +578,6 @@ button{cursor:pointer;font-family:inherit;border:none}
   .topbar h1{font-size:1.1rem}
   .topbar a img:first-child{height:32px!important} /* Logo falafels */
   .topbar a img:last-child{height:26px!important} /* Logo texte */
-  .topbar-right #currentTime{display:none!important} /* Masquer dans topbar */
-  #clockBar{display:block!important} /* Afficher barre heure 2ème ligne */
   .topbar-right{
     flex-wrap:nowrap;
     gap:5px;
@@ -601,10 +599,10 @@ button{cursor:pointer;font-family:inherit;border:none}
     font-size:1.2rem!important;
   }
 
-  /* Tabs compact (ajuster top pour inclure clockBar) */
+  /* Tabs compact */
   .tabs{
     padding:0 16px;
-    top:92px; /* topbar + clockBar */
+    top:60px; /* topbar height */
     overflow-x:auto;
     -webkit-overflow-scrolling:touch;
     scrollbar-width:none;
@@ -734,6 +732,9 @@ button{cursor:pointer;font-family:inherit;border:none}
     <div class="topbar-right">
       <span class="topbar-stats" id="topbarStats">📦 0 • 💰 0,00 €</span>
 
+      <!-- Horloge -->
+      <div id="currentTime" style="font-size:0.85rem;font-weight:600;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:0.3px;padding:6px 12px;background:rgba(255,255,255,0.05);border-radius:6px;"></div>
+
       <!-- Toggles -->
       <div style="display:flex;gap:8px;align-items:center">
         <label class="toggle-label" style="font-size:0.85rem;padding:6px 10px;">
@@ -757,11 +758,6 @@ button{cursor:pointer;font-family:inherit;border:none}
         🚪
       </button>
     </div>
-  </div>
-
-  <!-- Barre heure (2ème ligne sur tablette) -->
-  <div id="clockBar" style="background:rgba(0,0,0,0.2);padding:4px 20px;text-align:center;display:none;">
-    <div id="currentTime" style="font-size:0.85rem;font-weight:600;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:0.3px;"></div>
   </div>
 
   <div class="tabs">
@@ -3821,8 +3817,36 @@ async function cancelAndRefundCompletedOrder(orderId) {
         <h3 style="margin:0 0 8px 0;font-size:1.4rem;color:#1a1a1a;">⚠️ Annuler et rembourser ${escapeHtml(order.numero)} ?</h3>
         <p style="color:#666;margin-bottom:24px;font-size:0.95rem;">Cette action va :<br>• Marquer la commande comme annulée<br>• Lancer le remboursement automatique<br>• Envoyer un email au client</p>
 
-        <label style="display:block;margin-bottom:8px;font-weight:600;color:#1a1a1a;font-size:0.9rem;">Raison de l'annulation/remboursement :</label>
-        <textarea id="refundReason" style="width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-family:inherit;font-size:0.95rem;resize:vertical;min-height:80px;margin-bottom:24px;" placeholder="Ex: Client insatisfait, commande non conforme..."></textarea>
+        <label style="display:block;margin-bottom:12px;font-weight:600;color:#1a1a1a;font-size:0.9rem;">Raison de l'annulation/remboursement :</label>
+
+        <div style="margin-bottom:24px;">
+          <label onclick="this.querySelector('input').checked=true;document.getElementById('refundCustomReason').style.display='none';" style="display:block;margin-bottom:10px;cursor:pointer;padding:12px;background:#f5f5f5;border-radius:8px;border:2px solid transparent;transition:all 0.2s;" class="refund-reason-option">
+            <input type="radio" name="refund-reason" value="Client insatisfait / commande non conforme" style="margin-right:8px;">
+            <span style="font-weight:500;">Client insatisfait / commande non conforme</span>
+          </label>
+
+          <label onclick="this.querySelector('input').checked=true;document.getElementById('refundCustomReason').style.display='none';" style="display:block;margin-bottom:10px;cursor:pointer;padding:12px;background:#f5f5f5;border-radius:8px;border:2px solid transparent;transition:all 0.2s;" class="refund-reason-option">
+            <input type="radio" name="refund-reason" value="Erreur sur la commande" style="margin-right:8px;">
+            <span style="font-weight:500;">Erreur sur la commande</span>
+          </label>
+
+          <label onclick="this.querySelector('input').checked=true;document.getElementById('refundCustomReason').style.display='none';" style="display:block;margin-bottom:10px;cursor:pointer;padding:12px;background:#f5f5f5;border-radius:8px;border:2px solid transparent;transition:all 0.2s;" class="refund-reason-option">
+            <input type="radio" name="refund-reason" value="Client n'est pas venu récupérer" style="margin-right:8px;">
+            <span style="font-weight:500;">Client n'est pas venu récupérer</span>
+          </label>
+
+          <label onclick="this.querySelector('input').checked=true;document.getElementById('refundCustomReason').style.display='none';" style="display:block;margin-bottom:10px;cursor:pointer;padding:12px;background:#f5f5f5;border-radius:8px;border:2px solid transparent;transition:all 0.2s;" class="refund-reason-option">
+            <input type="radio" name="refund-reason" value="Demande du client" style="margin-right:8px;">
+            <span style="font-weight:500;">Demande du client</span>
+          </label>
+
+          <label onclick="this.querySelector('input').checked=true;document.getElementById('refundCustomReason').style.display='block';setTimeout(()=>document.getElementById('refundCustomReason').focus(),100);" style="display:block;margin-bottom:10px;cursor:pointer;padding:12px;background:#f5f5f5;border-radius:8px;border:2px solid transparent;transition:all 0.2s;" class="refund-reason-option">
+            <input type="radio" name="refund-reason" value="other" style="margin-right:8px;">
+            <span style="font-weight:500;">Autre raison (préciser)</span>
+          </label>
+
+          <textarea id="refundCustomReason" placeholder="Précisez la raison..." style="display:none;width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;resize:vertical;min-height:70px;font-family:inherit;font-size:0.95rem;margin-top:8px;"></textarea>
+        </div>
 
         <div style="display:flex;gap:12px;">
           <button onclick="document.getElementById('refundModal').remove()" style="flex:1;padding:14px;background:#f5f5f5;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;color:#666;">Annuler</button>
@@ -3830,19 +3854,41 @@ async function cancelAndRefundCompletedOrder(orderId) {
         </div>
       </div>
     </div>
+    <style>
+      @keyframes slideIn {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      .refund-reason-option:has(input:checked) {
+        background:#fef3c7!important;
+        border-color:#f59e0b!important;
+      }
+    </style>
   `;
 
   document.body.insertAdjacentHTML('beforeend', modalHtml);
-  setTimeout(() => document.getElementById('refundReason').focus(), 100);
 }
 
 // Confirmer l'annulation et le remboursement (après modal)
 async function confirmCancelAndRefundCompleted(orderId) {
-  const reason = document.getElementById('refundReason').value.trim();
+  // Récupérer la raison sélectionnée
+  const selectedReason = document.querySelector('input[name="refund-reason"]:checked');
 
-  if (!reason) {
-    showToast('⚠️ Veuillez indiquer une raison', 'warning');
+  if (!selectedReason) {
+    showToast('⚠️ Veuillez sélectionner une raison', 'warning');
     return;
+  }
+
+  let reason = selectedReason.value;
+
+  // Si "Autre", récupérer le texte personnalisé
+  if (reason === 'other') {
+    const customReason = document.getElementById('refundCustomReason').value.trim();
+    if (!customReason) {
+      showToast('⚠️ Veuillez préciser la raison', 'warning');
+      return;
+    }
+    reason = customReason;
   }
 
   // Fermer le modal de demande de raison
@@ -4151,40 +4197,9 @@ async function loadCompleted() {
 // ========== ARCHIVES MANAGEMENT ==========
 
 async function loadArchiveStats() {
-  try {
-    // Level 1: Soft archived (> 30 days)
-    const {count: level1Count, error: e1} = await sb
-      .from('orders')
-      .select('*', {count: 'exact', head: true})
-      .not('auto_archived_at', 'is', null)
-      .eq('archived', false);
-
-    // Level 2: Fully archived (> 1 year)
-    const {count: level2Count, error: e2} = await sb
-      .from('orders')
-      .select('*', {count: 'exact', head: true})
-      .eq('archived', true)
-      .is('purge_eligible_at', null);
-
-    // Level 3: Purge eligible (> 3 years)
-    const {count: level3Count, error: e3} = await sb
-      .from('orders')
-      .select('*', {count: 'exact', head: true})
-      .not('purge_eligible_at', 'is', null);
-
-    document.getElementById('archiveLevel1Count').textContent = level1Count || 0;
-    document.getElementById('archiveLevel2Count').textContent = level2Count || 0;
-    document.getElementById('archiveLevel3Count').textContent = level3Count || 0;
-
-    // Database size (simplified estimation)
-    const totalArchived = (level1Count || 0) + (level2Count || 0) + (level3Count || 0);
-    const sizeEstimate = (totalArchived * 2).toFixed(1); // ~2KB per order
-    document.getElementById('archiveTotalSize').textContent = sizeEstimate + ' KB';
-
-  } catch (err) {
-    console.error('Error loading archive stats:', err);
-    showToast('❌ Erreur chargement stats archives');
-  }
+  // Stats cards removed - Archives tab is now just a search tool
+  // Function kept to avoid breaking calls, but does nothing
+  return;
 }
 
 async function runArchivingNow() {

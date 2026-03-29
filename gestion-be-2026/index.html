@@ -3696,17 +3696,15 @@ async function showCompletedOrderDetails(orderId) {
           </div>
         </div>
 
-        <!-- Actions (selon statut) -->
+        <!-- Actions principales (selon statut) -->
         <div style="display:flex;flex-direction:column;gap:10px;margin-top:24px;">
           ${isNotRecuperee ? `
           <!-- Actions pour commandes PAS RÉCUPÉRÉES (client pas venu) -->
           ${order.client_email ? `<button onclick="remindClient(${order.id})" style="padding:14px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(245,158,11,0.3);">📧 Relancer le client</button>` : ''}
           <button onclick="markAsRecuperee(${order.id})" style="padding:14px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(16,185,129,0.3);">✅ Marquer comme récupérée</button>
-          <button onclick="cancelAndRefundCompletedOrder(${order.id})" style="padding:14px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(220,38,38,0.3);">💳 Annuler & Rembourser</button>
           ` : isRecuperee ? `
           <!-- Actions pour commandes RÉCUPÉRÉES -->
           ${order.client_email ? `<button onclick="resendCompletedOrderEmail(${order.id})" style="padding:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(59,130,246,0.3);">📧 Renvoyer le ticket</button>` : ''}
-          ${canRefund ? `<button onclick="cancelAndRefundCompletedOrder(${order.id})" style="padding:14px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(220,38,38,0.3);">💳 Annuler & Rembourser</button>` : ''}
           ` : isCancelled ? `
           <!-- Actions pour commandes ANNULÉES -->
           ${order.client_email ? `<button onclick="resendCompletedOrderEmail(${order.id})" style="padding:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(59,130,246,0.3);">📧 Renvoyer le ticket</button>` : ''}
@@ -3714,6 +3712,13 @@ async function showCompletedOrderDetails(orderId) {
 
           <button onclick="document.getElementById('completedModal').remove()" style="padding:14px;background:#f5f5f5;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;color:#666;">Fermer</button>
         </div>
+
+        <!-- Action remboursement (discrète, séparée) -->
+        ${(isNotRecuperee || (isRecuperee && canRefund)) ? `
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid #f0f0f0;">
+          <button onclick="cancelAndRefundCompletedOrder(${order.id})" style="width:100%;padding:10px;background:#fff;color:#dc2626;border:1px solid #fecaca;border-radius:6px;font-weight:500;cursor:pointer;font-size:0.85rem;transition:all 0.2s;">⚠️ Annuler & Rembourser</button>
+        </div>
+        ` : ''}
 
         <!-- Infos supplémentaires -->
         <div style="margin-top:20px;padding-top:20px;border-top:1px solid #e0e0e0;">
@@ -3759,23 +3764,51 @@ async function resendCompletedOrderEmail(orderId) {
   }
 }
 
-// Annuler et rembourser une commande terminée
+// Annuler et rembourser une commande terminée (modal custom comme "En cours")
 async function cancelAndRefundCompletedOrder(orderId) {
-  const reason = prompt('Raison de l\'annulation/remboursement :');
-  if (!reason || !reason.trim()) {
-    showToast('❌ Annulation requise', 'error');
+  // Récupérer la commande pour afficher son numéro
+  const order = completedOrders.find(o => o.id === orderId);
+  if (!order) return;
+
+  // Modal personnalisé pour raison d'annulation/remboursement
+  const modalHtml = `
+    <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);" id="refundModal" onclick="if(event.target.id==='refundModal') document.getElementById('refundModal').remove()">
+      <div style="background:#fff;border-radius:16px;padding:32px;max-width:500px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideIn 0.2s ease-out;" onclick="event.stopPropagation()">
+        <h3 style="margin:0 0 8px 0;font-size:1.4rem;color:#1a1a1a;">⚠️ Annuler et rembourser ${escapeHtml(order.numero)} ?</h3>
+        <p style="color:#666;margin-bottom:24px;font-size:0.95rem;">Cette action va :<br>• Marquer la commande comme annulée<br>• Lancer le remboursement automatique<br>• Envoyer un email au client</p>
+
+        <label style="display:block;margin-bottom:8px;font-weight:600;color:#1a1a1a;font-size:0.9rem;">Raison de l'annulation/remboursement :</label>
+        <textarea id="refundReason" style="width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-family:inherit;font-size:0.95rem;resize:vertical;min-height:80px;margin-bottom:24px;" placeholder="Ex: Client insatisfait, commande non conforme..."></textarea>
+
+        <div style="display:flex;gap:12px;">
+          <button onclick="document.getElementById('refundModal').remove()" style="flex:1;padding:14px;background:#f5f5f5;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;color:#666;">Annuler</button>
+          <button onclick="confirmCancelAndRefundCompleted(${orderId})" style="flex:1;padding:14px;background:linear-gradient(135deg, #dc2626, #b91c1c);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(220,38,38,0.3);">Confirmer le remboursement</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  setTimeout(() => document.getElementById('refundReason').focus(), 100);
+}
+
+// Confirmer l'annulation et le remboursement (après modal)
+async function confirmCancelAndRefundCompleted(orderId) {
+  const reason = document.getElementById('refundReason').value.trim();
+
+  if (!reason) {
+    showToast('⚠️ Veuillez indiquer une raison', 'warning');
     return;
   }
 
-  if (!confirm(`⚠️ Confirmer l'annulation et le remboursement ?\n\nCette action va :\n• Marquer la commande comme annulée\n• Lancer le remboursement automatique\n• Envoyer un email au client`)) {
-    return;
-  }
+  // Fermer le modal de demande de raison
+  document.getElementById('refundModal').remove();
 
   showToast('🔄 Annulation et remboursement en cours...', 'info');
 
   try {
     const { data, error } = await sb.functions.invoke('cancel-and-refund-order', {
-      body: { orderId, reason: reason.trim() },
+      body: { orderId, reason: reason },
       headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
     });
 

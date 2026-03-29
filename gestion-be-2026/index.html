@@ -797,13 +797,7 @@ button{cursor:pointer;font-family:inherit;border:none}
     <!-- Terminées Tab -->
     <div class="tab-content" id="tab-completed" style="display:none">
       <h2 style="margin-bottom:16px;color:var(--bordeaux)">Commandes terminées</h2>
-      <p style="margin-bottom:12px;color:#666;font-size:0.9rem;">📅 Reset automatique chaque lundi</p>
-      <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="history-filter active" data-period="week" onclick="loadCompleted('week')">Cette semaine</button>
-        <button class="history-filter" data-period="month" onclick="loadCompleted('month')">30 derniers jours</button>
-        <button class="history-filter" data-period="year" onclick="loadCompleted('year')">Année</button>
-        <button class="history-filter" data-period="all" onclick="loadCompleted('all')">Tout</button>
-      </div>
+      <p style="margin-bottom:12px;color:#666;font-size:0.9rem;">📅 30 derniers jours • Les commandes plus anciennes sont archivées automatiquement</p>
       <div id="completedList">
         <div class="no-orders">Chargement...</div>
       </div>
@@ -1916,7 +1910,7 @@ function switchTab(tab) {
   }
 
   if (tab === 'stats') updateStats();
-  if (tab === 'completed') loadCompleted('week');
+  if (tab === 'completed') loadCompleted();
   if (tab === 'clients') loadClients();
   if (tab === 'archives') loadArchiveStats();
 }
@@ -3500,7 +3494,6 @@ async function refundEdenredTransaction(captureId, amount) {
 // ===== COMPLETED ORDERS =====
 // Global pour stocker l'état des groupes (ouverts/fermés)
 let completedGroupsState = {};
-let currentCompletedPeriod = 'week';
 
 // Toggle groupe collapsed/expanded
 function toggleCompletedGroup(groupKey) {
@@ -3513,7 +3506,7 @@ function toggleCompletedGroup(groupKey) {
 }
 
 // Formater le label de date selon la période
-function formatGroupDate(dateKey, period) {
+function formatGroupDate(dateKey) {
   const now = new Date();
   const date = new Date(dateKey);
 
@@ -3546,6 +3539,232 @@ function formatGroupDate(dateKey, period) {
   return dayName.charAt(0).toUpperCase() + dayName.slice(1) + ' ' + dateStr;
 }
 
+// Afficher les détails d'une commande terminée (modal cliquable)
+async function showCompletedOrderDetails(orderId) {
+  // Chercher la commande dans completedOrders
+  let order = completedOrders.find(o => o.id === orderId);
+
+  // Si pas trouvé, recharger depuis Supabase
+  if (!order) {
+    const { data, error } = await sb.from('orders').select('*').eq('id', orderId).single();
+    if (error || !data) {
+      showToast('❌ Commande introuvable', 'error');
+      return;
+    }
+    order = data;
+  }
+
+  // Récupérer les items
+  const { data: orderItems } = await sb.from('order_items').select('*').eq('order_id', orderId);
+  const items = orderItems || order.items || [];
+
+  // Config couleur selon statut
+  const isRecuperee = order.statut === 'recuperee';
+  const isCancelled = order.statut === 'cancelled';
+  const statusColor = isRecuperee ? '#22c55e' : '#ef4444';
+  const statusEmoji = isRecuperee ? '✓' : '✕';
+  const statusText = isRecuperee ? 'Récupérée' : 'Annulée';
+
+  // Calcul âge de la commande (pour bouton annuler/rembourser)
+  const orderAge = Math.floor((Date.now() - new Date(order.created_at)) / (1000 * 60 * 60 * 24)); // jours
+  const canRefund = isRecuperee && orderAge <= 7; // Remboursement possible si < 7 jours et récupérée
+
+  // Email status
+  const emailStatusConfig = {
+    sent: { emoji: '📧', text: 'Envoyé', color: '#999' },
+    delivered: { emoji: '✅', text: 'Livré', color: '#22c55e' },
+    opened: { emoji: '👁️', text: 'Lu', color: '#3b82f6' },
+    error: { emoji: '❌', text: 'Erreur', color: '#ef4444' }
+  };
+  const emailConfig = emailStatusConfig[order.email_status] || { emoji: '📧', text: 'Non envoyé', color: '#999' };
+
+  // Items HTML
+  const itemsHtml = items.map(item => {
+    const qty = item.quantite || item.qty || 1;
+    const prix = item.prix || 0;
+    return `
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;">
+        <div style="font-size:0.9rem;color:#1a1a1a;">${qty}x ${escapeHtml(item.nom)}</div>
+        <div style="font-size:0.9rem;font-weight:600;color:#1a1a1a;">${(prix * qty).toFixed(2).replace('.', ',')} €</div>
+      </div>
+    `;
+  }).join('');
+
+  // Format date
+  const formatDate = (dateStr) => {
+    if (!dateStr) return 'N/A';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  };
+
+  const modalHtml = `
+    <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);" id="completedModal" onclick="if(event.target.id==='completedModal') document.getElementById('completedModal').remove()">
+      <div style="background:#fff;border-radius:16px;padding:32px;max-width:600px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideIn 0.2s ease-out;" onclick="event.stopPropagation()">
+
+        <!-- Header -->
+        <div style="margin-bottom:24px;">
+          <h3 style="margin:0 0 8px 0;font-size:1.5rem;color:#1a1a1a;">Commande ${escapeHtml(order.numero)}</h3>
+          <div style="background:${statusColor}15;border-left:3px solid ${statusColor};padding:12px 16px;border-radius:6px;">
+            <div style="font-size:1.1rem;color:${statusColor};font-weight:600;">${statusEmoji} ${statusText}</div>
+          </div>
+        </div>
+
+        ${isCancelled && order.note ? `
+        <!-- Raison annulation -->
+        <div style="margin-bottom:24px;">
+          <div style="font-size:0.85rem;color:#888;margin-bottom:8px;font-weight:600;">⚠️ Raison de l'annulation</div>
+          <div style="background:#fef2f2;border-left:3px solid #ef4444;padding:12px 16px;border-radius:6px;">
+            <div style="font-size:0.9rem;color:#991b1b;">${escapeHtml(order.note)}</div>
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- Détails commande -->
+        <div style="margin-bottom:24px;">
+          <div style="font-size:0.85rem;color:#888;margin-bottom:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">📦 Détails</div>
+          <div style="background:#fafafa;padding:16px;border-radius:8px;">
+            ${itemsHtml}
+            <div style="display:flex;justify-content:space-between;padding-top:12px;margin-top:8px;border-top:2px solid #e0e0e0;">
+              <div style="font-size:1.1rem;font-weight:700;color:#1a1a1a;">Total</div>
+              <div style="font-size:1.2rem;font-weight:700;color:${statusColor};">${order.total.toFixed(2).replace('.', ',')} €</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Infos client -->
+        <div style="margin-bottom:24px;">
+          <div style="font-size:0.85rem;color:#888;margin-bottom:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">👤 Client</div>
+          <div style="background:#fafafa;padding:16px;border-radius:8px;">
+            <div style="margin-bottom:8px;">
+              <span style="font-weight:600;color:#1a1a1a;">${escapeHtml(order.client_prenom || 'Client')}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+              <span style="font-size:0.85rem;color:#666;">📧</span>
+              <a href="mailto:${escapeHtml(order.client_email || '')}" style="color:#3b82f6;text-decoration:none;font-size:0.9rem;">${escapeHtml(order.client_email || 'Non renseigné')}</a>
+              ${order.client_email ? `<button onclick="navigator.clipboard.writeText('${escapeHtml(order.client_email)}'); showToast('📋 Email copié', 'success')" style="padding:4px 8px;background:#e0e0e0;border:none;border-radius:4px;font-size:0.75rem;cursor:pointer;">Copier</button>` : ''}
+            </div>
+            ${order.client_telephone ? `
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:0.85rem;color:#666;">📱</span>
+              <a href="tel:${escapeHtml(order.client_telephone)}" style="color:#3b82f6;text-decoration:none;font-size:0.9rem;">${escapeHtml(order.client_telephone)}</a>
+              <button onclick="navigator.clipboard.writeText('${escapeHtml(order.client_telephone)}'); showToast('📋 Téléphone copié', 'success')" style="padding:4px 8px;background:#e0e0e0;border:none;border-radius:4px;font-size:0.75rem;cursor:pointer;">Copier</button>
+            </div>
+            ` : ''}
+          </div>
+        </div>
+
+        <!-- Paiement & Email -->
+        <div style="margin-bottom:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <!-- Paiement -->
+          <div>
+            <div style="font-size:0.85rem;color:#888;margin-bottom:8px;font-weight:600;">💳 Paiement</div>
+            <div style="background:#f0fdf4;padding:12px;border-radius:6px;border:1px solid #86efac;">
+              <div style="font-size:0.9rem;color:#166534;font-weight:600;">${order.total.toFixed(2).replace('.', ',')} €</div>
+              <div style="font-size:0.75rem;color:#16803a;margin-top:4px;">${order.paygreen_transaction_id ? 'CB/Carte resto' : 'Edenred'}</div>
+            </div>
+          </div>
+          <!-- Email -->
+          <div>
+            <div style="font-size:0.85rem;color:#888;margin-bottom:8px;font-weight:600;">📧 Email</div>
+            <div style="background:${emailConfig.color}15;padding:12px;border-radius:6px;border:1px solid ${emailConfig.color}40;">
+              <div style="font-size:0.9rem;color:${emailConfig.color};font-weight:600;">${emailConfig.emoji} ${emailConfig.text}</div>
+              ${order.confirmation_email_sent_at ? `<div style="font-size:0.7rem;color:#666;margin-top:4px;">${formatDate(order.confirmation_email_sent_at)}</div>` : ''}
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:24px;">
+          ${order.client_email ? `<button onclick="resendCompletedOrderEmail(${order.id})" style="padding:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(59,130,246,0.3);">📧 Renvoyer l'email</button>` : ''}
+
+          ${canRefund ? `<button onclick="cancelAndRefundCompletedOrder(${order.id})" style="padding:14px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(220,38,38,0.3);">💳 Annuler & Rembourser</button>` : ''}
+
+          <button onclick="document.getElementById('completedModal').remove()" style="padding:14px;background:#f5f5f5;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;color:#666;">Fermer</button>
+        </div>
+
+        <!-- Infos supplémentaires -->
+        <div style="margin-top:20px;padding-top:20px;border-top:1px solid #e0e0e0;">
+          <div style="font-size:0.75rem;color:#999;line-height:1.5;">
+            📅 Créée le ${formatDate(order.created_at)}<br>
+            🕐 Retrait : ${escapeHtml(order.heure_retrait || 'N/A')}
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <style>
+      @keyframes slideIn {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+    </style>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+// Renvoyer l'email pour une commande terminée
+async function resendCompletedOrderEmail(orderId) {
+  if (!confirm('Renvoyer l\'email de confirmation au client ?')) return;
+
+  showToast('📧 Envoi en cours...', 'info');
+
+  try {
+    const { data, error } = await sb.functions.invoke('resend-order-email', {
+      body: { orderId },
+      headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
+    });
+
+    if (error) throw new Error(error.message);
+    if (!data.success) throw new Error(data.error || 'Erreur envoi email');
+
+    showToast(`✅ Email renvoyé à ${data.email}`, 'success');
+    document.getElementById('completedModal')?.remove();
+  } catch (error) {
+    console.error('Erreur resend email:', error);
+    showToast('❌ Erreur : ' + error.message, 'error');
+  }
+}
+
+// Annuler et rembourser une commande terminée
+async function cancelAndRefundCompletedOrder(orderId) {
+  const reason = prompt('Raison de l\'annulation/remboursement :');
+  if (!reason || !reason.trim()) {
+    showToast('❌ Annulation requise', 'error');
+    return;
+  }
+
+  if (!confirm(`⚠️ Confirmer l'annulation et le remboursement ?\n\nCette action va :\n• Marquer la commande comme annulée\n• Lancer le remboursement automatique\n• Envoyer un email au client`)) {
+    return;
+  }
+
+  showToast('🔄 Annulation et remboursement en cours...', 'info');
+
+  try {
+    const { data, error } = await sb.functions.invoke('cancel-and-refund-order', {
+      body: { orderId, reason: reason.trim() },
+      headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
+    });
+
+    if (error) throw new Error(error.message);
+    if (data.error) throw new Error(data.error);
+
+    if (data.success) {
+      showToast('✅ Commande annulée et remboursement initié', 'success');
+    } else {
+      showToast('⚠️ Commande annulée mais erreur remboursement', 'warning');
+    }
+
+    // Recharger la liste des commandes terminées
+    await loadCompleted();
+    document.getElementById('completedModal')?.remove();
+
+  } catch (error) {
+    console.error('Erreur cancel-and-refund:', error);
+    showToast('❌ Erreur : ' + error.message, 'error');
+  }
+}
+
 // Render une ligne compacte pour commande terminée
 function renderCompletedOrderLine(order) {
   const date = new Date(order.created_at);
@@ -3556,7 +3775,7 @@ function renderCompletedOrderLine(order) {
   const total = parseFloat(order.total || 0).toFixed(2).replace('.', ',');
 
   return `
-    <div class="completed-order-line ${statusClass}">
+    <div class="completed-order-line ${statusClass}" onclick="showCompletedOrderDetails(${order.id})" style="cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='#f8f8f8'" onmouseout="this.style.background=''">
       <span class="completed-order-time">${timeStr}</span>
       <span class="completed-order-num">${escapeHtml(order.numero)}</span>
       <span class="completed-order-client">${prenom}</span>
@@ -3570,7 +3789,7 @@ function renderCompletedOrderLine(order) {
 function renderCompletedGroup(dateKey, orders, isOpen) {
   const count = orders.length;
   const revenue = orders.reduce((sum, o) => sum + parseFloat(o.total || 0), 0);
-  const dateLabel = formatGroupDate(dateKey, currentCompletedPeriod);
+  const dateLabel = formatGroupDate(dateKey);
 
   const ordersHtml = orders.map(o => renderCompletedOrderLine(o)).join('');
 
@@ -3587,19 +3806,15 @@ function renderCompletedGroup(dateKey, orders, isOpen) {
   `;
 }
 
-// ===== AUTO-ARCHIVAGE HEBDOMADAIRE =====
-// Archive automatiquement les commandes terminées de la semaine précédente
-async function autoArchiveOldWeeks() {
+// ===== AUTO-ARCHIVAGE 30 JOURS =====
+// Archive automatiquement les commandes terminées > 30 jours (glissant)
+async function autoArchiveOld30Days() {
   try {
-    // Calculer le lundi 00h00 de cette semaine
     const now = new Date();
-    const mondayThisWeek = new Date(now);
-    const dayOfWeek = mondayThisWeek.getDay(); // 0=dimanche, 1=lundi, ...
-    const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    mondayThisWeek.setDate(mondayThisWeek.getDate() - daysSinceMonday);
-    mondayThisWeek.setHours(0, 0, 0, 0);
+    const thirtyDaysAgo = new Date(now);
+    thirtyDaysAgo.setDate(now.getDate() - 30); // 30 jours glissant
 
-    // Archiver toutes les commandes terminées AVANT ce lundi
+    // Archiver toutes les commandes terminées plus anciennes que 30 jours
     const { data, error } = await sb
       .from('orders')
       .update({
@@ -3608,7 +3823,7 @@ async function autoArchiveOldWeeks() {
       })
       .in('statut', ['recuperee', 'cancelled'])
       .eq('archived', false)
-      .lt('created_at', mondayThisWeek.toISOString());
+      .lt('created_at', thirtyDaysAgo.toISOString());
 
     if (error) {
       console.error('❌ Erreur auto-archivage:', error);
@@ -3617,59 +3832,32 @@ async function autoArchiveOldWeeks() {
 
     // Log silencieux (pas de toast pour ne pas déranger Paco)
     if (data && data.length > 0) {
-      console.log(`✅ Auto-archivage: ${data.length} commandes archivées`);
+      console.log(`✅ Auto-archivage: ${data.length} commandes > 30j archivées`);
     }
   } catch (err) {
-    console.error('❌ Erreur autoArchiveOldWeeks:', err);
+    console.error('❌ Erreur autoArchiveOld30Days:', err);
   }
 }
 
-async function loadCompleted(period) {
+async function loadCompleted() {
   const list = document.getElementById('completedList');
   list.innerHTML = '<div class="no-orders">Chargement...</div>';
 
-  // ✨ Auto-archiver les semaines précédentes (chaque lundi automatiquement)
-  await autoArchiveOldWeeks();
+  // ✨ Auto-archiver les commandes > 30 jours
+  await autoArchiveOld30Days();
 
-  currentCompletedPeriod = period;
+  // Toujours afficher les 30 derniers jours (glissant)
+  const now = new Date();
+  const startDate = new Date(now);
+  startDate.setDate(now.getDate() - 30); // 30 jours glissant
 
-  // Update filter buttons
-  document.querySelectorAll('.history-filter').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.period == period);
-  });
-
-  // Construire la requête selon la période
-  let query = sb.from('orders')
+  const {data, error} = await sb.from('orders')
     .select('*')
     .in('statut', ['recuperee', 'cancelled'])
     .eq('archived', false)
-    .order('created_at', {ascending: false});
-
-  const now = new Date();
-  let startDate;
-
-  if (period === 'week') {
-    // ✨ NOUVEAU: Semaine en cours (depuis dernier lundi 00h00)
-    // Reset automatique chaque lundi → commandes propres
-    startDate = new Date(now);
-    const dayOfWeek = startDate.getDay(); // 0=dimanche, 1=lundi, ...
-    const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Si dimanche, remonter à lundi précédent
-    startDate.setDate(startDate.getDate() - daysSinceMonday);
-    startDate.setHours(0, 0, 0, 0); // Lundi 00h00
-  } else if (period === 'month') {
-    startDate = new Date(now);
-    startDate.setDate(now.getDate() - 30);
-  } else if (period === 'year') {
-    startDate = new Date(now);
-    startDate.setFullYear(now.getFullYear() - 1);
-  }
-  // 'all' = pas de filtre de date
-
-  if (startDate) {
-    query = query.gte('created_at', startDate.toISOString());
-  }
-
-  const {data, error} = await query.limit(500);
+    .gte('created_at', startDate.toISOString())
+    .order('created_at', {ascending: false})
+    .limit(500);
 
   if (error) {
     list.innerHTML = '<div class="no-orders">Erreur de chargement</div>';

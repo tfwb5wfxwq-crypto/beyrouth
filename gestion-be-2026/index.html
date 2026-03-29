@@ -1207,6 +1207,7 @@ let clients = [];
 let completedOrders = [];
 let orderFilter = 'all'; // Filter: all, nouvelles, retard, urgentes, normales, futures
 let currentTab = 'orders';
+let newOrdersCount = 0; // Compteur de nouvelles commandes non vues (badge sur onglet "En cours")
 
 // ===== SETTINGS =====
 let clickCollectEnabled = true;
@@ -1900,6 +1901,13 @@ function switchTab(tab) {
   const filterBar = document.getElementById('filterBar');
   if (filterBar) {
     filterBar.style.display = tab === 'orders' ? 'flex' : 'none';
+  }
+
+  // Reset badge "nouveau" si on passe sur "En cours"
+  if (tab === 'orders') {
+    newOrdersCount = 0;
+    const badge = document.getElementById('ordersBadge');
+    badge.style.display = 'none';
   }
 
   if (tab === 'stats') updateStats();
@@ -3079,6 +3087,16 @@ function subscribeRealtime() {
         debouncedRenderOrders();
         updateTopbarStats();
         playAlert(); // Son seulement pour commandes affichables ET visibles
+
+        // Badge "nouveau" si on n'est pas sur l'onglet "En cours"
+        if (currentTab !== 'orders') {
+          newOrdersCount++;
+          const badge = document.getElementById('ordersBadge');
+          badge.textContent = newOrdersCount;
+          badge.style.display = '';
+          badge.style.background = '#ef4444';
+          badge.style.animation = 'pulse 1s ease-in-out';
+        }
       } else {
         if (!isDisplayable) {
           console.log('⚠️ Commande reçue mais statut non affichable:', payload.new.statut, '→ Pas de son');

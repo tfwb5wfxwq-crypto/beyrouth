@@ -3755,8 +3755,7 @@ async function showCompletedOrderDetails(orderId) {
           <!-- Actions pour commandes RÉCUPÉRÉES -->
           ${order.client_email ? `<button onclick="resendCompletedOrderEmail(${order.id})" style="padding:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(59,130,246,0.3);">📧 Renvoyer le ticket</button>` : ''}
           ` : isCancelled ? `
-          <!-- Actions pour commandes ANNULÉES -->
-          ${order.client_email ? `<button onclick="resendCompletedOrderEmail(${order.id})" style="padding:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(59,130,246,0.3);">📧 Renvoyer le ticket</button>` : ''}
+          <!-- Actions pour commandes ANNULÉES (pas de renvoie de ticket) -->
           ` : ''}
 
           <button onclick="document.getElementById('completedModal').remove()" style="padding:14px;background:#f5f5f5;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;color:#666;">Fermer</button>
@@ -3790,22 +3789,22 @@ async function showCompletedOrderDetails(orderId) {
   document.body.insertAdjacentHTML('beforeend', modalHtml);
 }
 
-// Renvoyer l'email pour une commande terminée
+// Renvoyer le ticket de caisse (email "Merci + PDF")
 async function resendCompletedOrderEmail(orderId) {
-  if (!confirm('Renvoyer l\'email de confirmation au client ?')) return;
+  if (!confirm('Renvoyer le ticket de caisse au client ?\n(Email "Merci pour votre visite" avec lien PDF)')) return;
 
   showToast('📧 Envoi en cours...', 'info');
 
   try {
-    const { data, error } = await sb.functions.invoke('resend-order-email', {
-      body: { orderId },
+    const { data, error } = await sb.functions.invoke('send-order-completed', {
+      body: { orderId, forceResend: true },
       headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
     });
 
     if (error) throw new Error(error.message);
-    if (!data.success) throw new Error(data.error || 'Erreur envoi email');
+    if (data.error) throw new Error(data.error);
 
-    showToast(`✅ Email renvoyé à ${data.email}`, 'success');
+    showToast(`✅ Ticket renvoyé (email avec PDF)`, 'success');
     document.getElementById('completedModal')?.remove();
   } catch (error) {
     console.error('Erreur resend email:', error);

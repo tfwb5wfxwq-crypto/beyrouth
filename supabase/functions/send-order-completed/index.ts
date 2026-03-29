@@ -61,7 +61,7 @@ serve(async (req) => {
       console.log('✅ Appel depuis service_role (webhook)')
     }
 
-    const { orderId, emailOverride } = await req.json()
+    const { orderId, emailOverride, forceResend } = await req.json()
 
     if (!orderId) {
       return new Response(
@@ -90,13 +90,17 @@ serve(async (req) => {
       )
     }
 
-    // Vérifier qu'on n'a pas déjà envoyé l'email
-    if (order.completed_email_sent_at) {
+    // Vérifier qu'on n'a pas déjà envoyé l'email (sauf si forceResend)
+    if (order.completed_email_sent_at && !forceResend) {
       console.log(`⏭️  Email de remerciement déjà envoyé pour commande ${order.numero}`)
       return new Response(
         JSON.stringify({ success: true, message: 'Email déjà envoyé' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
+    }
+
+    if (forceResend) {
+      console.log(`🔄 Renvoi forcé de l'email pour commande ${order.numero}`)
     }
 
     // Liens externes (utiliser le token sécurisé)

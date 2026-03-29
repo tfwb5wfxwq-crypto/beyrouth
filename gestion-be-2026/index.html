@@ -2193,8 +2193,36 @@ function getEmailStatusBadge(order) {
   " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">${config.emoji} Email: ${config.text}</div>`;
 }
 
-// Afficher les détails complets de l'email
-function showEmailDetails(orderId) {
+// Afficher les détails complets de l'email (avec refresh auto)
+async function showEmailDetails(orderId) {
+  // Refresh automatique du statut email avant d'afficher
+  showToast('🔄 Mise à jour du statut email...', 'info');
+
+  try {
+    const { data, error } = await sb.functions.invoke('sync-email-status', {
+      body: { orderId }
+    });
+
+    if (!error && data.success) {
+      // Recharger la commande avec les données à jour
+      const { data: updatedOrder } = await sb
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .single();
+
+      if (updatedOrder) {
+        const idx = orders.findIndex(o => o.id === orderId);
+        if (idx !== -1) {
+          orders[idx] = updatedOrder;
+          debouncedRenderOrders();
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Erreur refresh email:', err);
+  }
+
   const order = orders.find(o => o.id === orderId);
   if (!order) return;
 
@@ -2537,7 +2565,7 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
         }
 
         ${!isHistory
-          ? `<div class="order-actions" style="display:flex;gap:8px;flex-wrap:wrap;width:100%;margin-top:8px;">${getActionButtons(order)}</div>`
+          ? `<div class="order-actions" style="display:flex;gap:8px;flex-wrap:nowrap;width:100%;margin-top:8px;overflow-x:auto;">${getActionButtons(order)}</div>`
           : ''
         }
       </div>

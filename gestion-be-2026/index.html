@@ -2266,6 +2266,7 @@ function showEmailDetails(orderId) {
         ` : ''}
 
         <!-- Boutons actions -->
+        <button onclick="refreshEmailStatus(${order.id})" style="width:100%;padding:14px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;margin-top:8px;box-shadow:0 4px 12px rgba(16,185,129,0.3);">🔄 Rafraîchir statut depuis Brevo</button>
         <button onclick="resendEmailWithCorrection(${order.id})" style="width:100%;padding:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;margin-top:8px;box-shadow:0 4px 12px rgba(59,130,246,0.3);">📧 Renvoyer l'email</button>
         <button onclick="document.getElementById('emailModal').remove()" style="width:100%;padding:14px;background:#f5f5f5;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;color:#666;margin-top:8px;">Fermer</button>
       </div>
@@ -2279,6 +2280,61 @@ function showEmailDetails(orderId) {
   `;
 
   document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+// Rafraîchir le statut email depuis Brevo
+async function refreshEmailStatus(orderId) {
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+
+  // Fermer la modal actuelle
+  const modal = document.getElementById('emailModal');
+  if (modal) modal.remove();
+
+  // Toast de chargement
+  showToast('🔄 Synchronisation avec Brevo...', 'info');
+
+  try {
+    // Appeler l'Edge Function sync-email-status
+    const { data, error } = await sb.functions.invoke('sync-email-status', {
+      body: { orderId: order.id }
+    });
+
+    if (error) {
+      throw new Error(error.message || 'Erreur lors de la synchronisation');
+    }
+
+    if (!data.success) {
+      throw new Error(data.error || 'Échec de la synchronisation');
+    }
+
+    // Recharger la commande depuis la BDD pour avoir les nouvelles données
+    const { data: updatedOrder, error: fetchError } = await sb
+      .from('orders')
+      .select('*')
+      .eq('id', order.id)
+      .single();
+
+    if (fetchError || !updatedOrder) {
+      throw new Error('Erreur lors du rechargement de la commande');
+    }
+
+    // Mettre à jour dans le cache local
+    const idx = orders.findIndex(o => o.id === order.id);
+    if (idx !== -1) {
+      orders[idx] = updatedOrder;
+      debouncedRenderOrders();
+    }
+
+    showToast('✅ Statut email mis à jour !', 'success');
+
+    // Réouvrir la modal avec les données à jour
+    setTimeout(() => showEmailDetails(order.id), 300);
+
+  } catch (error) {
+    console.error('❌ Erreur refresh email status:', error);
+    showToast('❌ Erreur: ' + error.message, 'error');
+  }
 }
 
 // Renvoyer email avec possibilité de corriger l'adresse

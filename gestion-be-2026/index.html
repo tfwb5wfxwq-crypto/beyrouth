@@ -576,7 +576,8 @@ button{cursor:pointer;font-family:inherit;border:none}
     gap:12px;
   }
   .topbar h1{font-size:1.1rem}
-  .topbar a img{height:36px!important} /* Logo admin */
+  .topbar a img:first-child{height:32px!important} /* Logo falafels */
+  .topbar a img:last-child{height:26px!important} /* Logo texte */
   .topbar-right #currentTime{display:none!important} /* Masquer dans topbar */
   #clockBar{display:block!important} /* Afficher barre heure 2ème ligne */
   .topbar-right{
@@ -722,8 +723,9 @@ button{cursor:pointer;font-family:inherit;border:none}
 <div class="dashboard" id="dashboard">
   <div class="topbar">
     <div style="display:flex;align-items:center;">
-      <a href="https://beyrouth.express" target="_blank" style="display:flex;align-items:center;text-decoration:none;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-        <img src="../img/logo-admin.svg" alt="Beyrouth Express" style="height:42px;filter:drop-shadow(0 0 8px rgba(212,175,55,0.2));">
+      <a href="https://beyrouth.express" target="_blank" style="display:flex;align-items:center;gap:12px;text-decoration:none;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        <img src="../img/logo-admin.svg" alt="Falafels" style="height:42px;filter:drop-shadow(0 0 8px rgba(212,175,55,0.2));">
+        <img src="../img/logo-text-admin.svg" alt="Beyrouth Express" style="height:36px;filter:drop-shadow(0 0 8px rgba(248,175,47,0.3));">
       </a>
     </div>
     <div class="topbar-right">

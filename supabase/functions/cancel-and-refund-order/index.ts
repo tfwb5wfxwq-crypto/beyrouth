@@ -262,7 +262,7 @@ serve(async (req) => {
     const { error: updateError } = await supabase
       .from('orders')
       .update({
-        statut: 'cancelled',
+        statut: refundSuccess ? 'refunded' : 'cancelled', // ✅ FIX: refunded si remboursement OK
         note: reason,
         updated_at: new Date().toISOString()
       })

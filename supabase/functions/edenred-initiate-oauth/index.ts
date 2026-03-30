@@ -2,8 +2,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// URLs Edenred PRODUCTION
-const EDENRED_AUTHORIZE_URL = 'https://sso.edenred.io/connect/authorize'
+// URLs Edenred PRODUCTION (EU region)
+const EDENRED_AUTHORIZE_URL = 'https://sso.eu.edenred.io/connect/authorize'
 const REDIRECT_URI = 'https://beyrouth.express/?edenred_oauth=1'
 
 // CORS restreint à beyrouth.express
@@ -65,7 +65,7 @@ serve(async (req) => {
       redirect_uri: REDIRECT_URI,
       response_type: 'code',
       scope: 'openid offline_access edg-xp-mealdelivery-api',
-      acr_values: 'tenant:fr-ctrtku',
+      acr_values: 'tenant:fr-ctrtku', // Tenant sandbox - à vérifier si différent en prod
       state: state // Utilise le token CSRF aléatoire
     })
 

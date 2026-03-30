@@ -2,8 +2,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// URLs Edenred PRODUCTION
-const EDENRED_AUTH_URL = 'https://sso.edenred.io/connect/token'
+// URLs Edenred PRODUCTION (EU region)
+const EDENRED_AUTH_URL = 'https://sso.eu.edenred.io/connect/token'
 const EDENRED_PAYMENT_URL = 'https://directpayment.eu.edenred.io/v2/transactions'
 const EDENRED_MID = '1422285' // Merchant ID PROD (SARL PAPA)
 
@@ -43,9 +43,9 @@ function isOpenNow(): boolean {
   const m = parisTime.getMinutes()
   const nowMin = h * 60 + m
 
-  // Tous les jours de 11h30 (690 min) à 21h00 (1260 min)
+  // Tous les jours de 11h30 (690 min) à 22h00 (1320 min) - TEMP TESTING EDENRED
   // ⚠️ RAPPEL : Cartes resto interdites samedi/dimanche (bloqué côté client), seule CB acceptée
-  return false
+  return nowMin >= 690 && nowMin <= 1320
 }
 
 serve(async (req) => {

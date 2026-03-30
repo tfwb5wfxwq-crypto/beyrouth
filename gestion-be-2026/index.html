@@ -3078,7 +3078,9 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
 
         ${!isHistory
           ? `<span class="order-time-badge" onclick="rescheduleOrder(${order.id},'${order.heure_retrait}')" style="flex-shrink:0;">${order.heure_retrait === 'asap' ? '⚡ Dès que possible' : '🕐 ' + order.heure_retrait}</span>`
-          : `<span class="order-time-badge" style="cursor:default;flex-shrink:0;">${statusEmoji} ${statusLabel} — ${dateStr} ${timeStr}</span>`
+          : (statusEmoji && statusLabel && dateStr && timeStr)
+            ? `<span class="order-time-badge" style="cursor:default;flex-shrink:0;">${statusEmoji} ${statusLabel} — ${dateStr} ${timeStr}</span>`
+            : `<span class="order-time-badge" style="cursor:default;flex-shrink:0;">🕐 ${order.heure_retrait || 'N/A'}</span>`
         }
 
         ${isHistory

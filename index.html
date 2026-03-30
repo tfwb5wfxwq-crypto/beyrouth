@@ -1004,9 +1004,12 @@ function showToast(message, type = 'info') {
     info: 'ℹ️'
   };
 
+  // Convertir \n en <br> pour affichage HTML
+  const formattedMessage = message.replace(/\n/g, '<br>');
+
   toast.innerHTML = `
     <span class="toast-icon">${icons[type] || icons.info}</span>
-    <span class="toast-message">${message}</span>
+    <span class="toast-message">${formattedMessage}</span>
   `;
 
   container.appendChild(toast);
@@ -1014,12 +1017,13 @@ function showToast(message, type = 'info') {
   // Animation d'entrée
   setTimeout(() => toast.classList.add('show'), 10);
 
-  // Animation de sortie et suppression
+  // Animation de sortie et suppression (plus long pour les messages multi-lignes)
+  const duration = message.includes('\n') ? 5500 : 3500;
   setTimeout(() => {
     toast.classList.add('hide');
     toast.classList.remove('show');
     setTimeout(() => toast.remove(), 400);
-  }, 3500);
+  }, duration);
 }
 
 // ===== RENDER =====
@@ -1780,12 +1784,21 @@ async function submitOrder() {
       console.error('Edge Function error:', error);
       console.error('Edge Function data:', data);
       // Extraire le vrai message d'erreur depuis l'Edge Function
-      let errorMessage = 'Erreur de paiement';
+      let errorMessage = 'Erreur de paiement. Réessayez.';
+
+      // Cas 1: Message dans data.error (réponse 400 de l'Edge Function)
       if (data && typeof data === 'object' && data.error) {
         errorMessage = data.error;
-      } else if (error.message && !error.message.includes('FunctionsHttpError') && !error.message.includes('non-2xx')) {
+      }
+      // Cas 2: Message dans error.message mais pas un message technique
+      else if (error.message && !error.message.includes('FunctionsHttpError') && !error.message.includes('non-2xx')) {
         errorMessage = error.message;
       }
+      // Cas 3: Erreur réseau ou technique
+      else if (error.message && error.message.includes('Failed to fetch')) {
+        errorMessage = 'Erreur de connexion. Vérifiez votre réseau.';
+      }
+
       throw new Error(errorMessage);
     }
 
@@ -1799,7 +1812,9 @@ async function submitOrder() {
     }
   } catch (e) {
     console.error('Erreur:', e);
-    showToast(`Erreur lors du paiement: ${e.message || 'Réessayez'}`, 'error');
+    // Afficher le message d'erreur sans préfixe si déjà explicite
+    const errorMsg = e.message || 'Erreur de paiement. Réessayez.';
+    showToast(errorMsg, 'error');
     btn.disabled = false;
     btn.textContent = 'Passer la commande';
     // 🔒 FIX #1: Reset flag pour permettre retry

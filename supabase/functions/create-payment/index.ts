@@ -90,7 +90,9 @@ serve(async (req) => {
 
     if (indefinitePauseData?.value === 'true') {
       return new Response(
-        JSON.stringify({ error: 'Click & collect actuellement fermé. Réessayez plus tard.' }),
+        JSON.stringify({
+          error: 'Click & collect temporairement fermé.\n\nPour vos événements (10+ personnes), découvrez notre service traiteur :\nbeyrouth.express/traiteur'
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

@@ -824,8 +824,8 @@ function updateOpenStatus() {
   // ⚠️ PAUSE INDÉFINIE - Bloquer complètement le site
   if (window.indefinitePause === true) {
     statusEl.classList.add('closed');
-    textEl.textContent = 'Fermé';
-    hoursEl.textContent = '· Click & collect indisponible';
+    textEl.textContent = 'Temporairement fermé';
+    hoursEl.innerHTML = '· <a href="/traiteur" style="color:var(--gold);text-decoration:none;">Service traiteur disponible →</a>';
     return false;
   }
 

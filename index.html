@@ -1149,6 +1149,20 @@ function renderNavCats() {
 function getCartQty(id) { const c = cart.find(c => c.id === id); return c ? c.qty : 0; }
 
 function addToCart(itemId) {
+  // ⚠️ CHECK : Restaurant fermé ou en pause indéfinie
+  if (window.indefinitePause === true) {
+    showToast('Click & collect temporairement fermé.\n\nDécouvrez notre service traiteur pour vos événements.', 'error');
+    return;
+  }
+
+  // ⚠️ CHECK : Restaurant fermé (horaires)
+  if (!isOpenNow()) {
+    const next = getNextOpenSlot();
+    const nextMsg = next ? ` Réouverture ${next.jour} ${next.h}h${next.m ? String(next.m).padStart(2,'0') : '00'}` : '';
+    showToast(`Restaurant fermé.${nextMsg}`, 'error');
+    return;
+  }
+
   const item = menuItems.find(i => i.id === itemId);
   if (!item || !item.disponible) return;
 

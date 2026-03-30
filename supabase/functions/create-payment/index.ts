@@ -81,6 +81,20 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // ===== VALIDATION #0 : PAUSE INDÉFINIE =====
+    const { data: indefinitePauseData } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'indefinite_pause')
+      .maybeSingle()
+
+    if (indefinitePauseData?.value === 'true') {
+      return new Response(
+        JSON.stringify({ error: 'Click & collect actuellement fermé. Réessayez plus tard.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // ===== VALIDATION #1 : PAUSE ADMIN =====
     const { data: pauseData } = await supabase
       .from('settings')

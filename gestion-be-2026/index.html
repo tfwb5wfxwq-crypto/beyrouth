@@ -769,21 +769,17 @@ button{cursor:pointer;font-family:inherit;border:none}
     </div>
     <div class="topbar-right">
       <!-- Horloge -->
-      <div id="currentTime" style="font-size:0.85rem;font-weight:600;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:0.3px;padding:6px 12px;background:rgba(255,255,255,0.05);border-radius:6px;"></div>
+      <div id="currentTime" style="font-size:0.85rem;font-weight:600;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:0.3px;padding:6px 10px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(255,255,255,0.1);"></div>
 
-      <span class="topbar-stats" id="topbarStats" style="display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.08);padding:8px 16px;border-radius:10px;backdrop-filter:blur(10px);">
-        <span style="display:flex;align-items:center;gap:7px;">
-          <span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.15);border-radius:7px;">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-          </span>
-          <span style="font-weight:700;font-size:1rem;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;">0</span>
+      <span class="topbar-stats" id="topbarStats" style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);">
+        <span style="display:flex;align-items:center;gap:5px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <span style="font-weight:600;font-size:0.85rem;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;">0</span>
         </span>
-        <span style="width:1px;height:22px;background:rgba(255,255,255,0.15);"></span>
-        <span style="display:flex;align-items:center;gap:7px;">
-          <span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.15);border-radius:7px;">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          </span>
-          <span style="font-weight:700;font-size:1rem;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;">0,00 €</span>
+        <span style="width:1px;height:16px;background:rgba(255,255,255,0.2);"></span>
+        <span style="display:flex;align-items:center;gap:5px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span style="font-weight:600;font-size:0.85rem;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;">0,00 €</span>
         </span>
       </span>
 
@@ -1098,6 +1094,9 @@ button{cursor:pointer;font-family:inherit;border:none}
     </div>
 
     <button onclick="pauseSlots('tomorrow'); closeSlotPauseModal()" class="pause-btn" style="width:100%;padding:9px;font-size:.85rem;margin-bottom:8px">🌙 Jusqu'à demain</button>
+
+    <!-- Pause indéfinie (vacances/urgence) -->
+    <button onclick="showIndefinitePauseConfirm(); closeSlotPauseModal()" class="pause-btn" style="width:100%;padding:9px;font-size:.85rem;margin-bottom:8px;background:linear-gradient(135deg,#dc2626,#b91c1c);border:none;color:#fff;font-weight:600;">🔒 Pause indéfinie</button>
 
     <button onclick="closeSlotPauseModal()" style="width:100%;padding:7px;background:#f0f0f0;color:#666;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:.8rem">Annuler</button>
   </div>
@@ -1514,11 +1513,23 @@ let nextSlotAvailableAt = '';
 
 async function loadSlotPause() {
   try {
-    const { data } = await sb.from('settings').select('value').eq('key', 'next_slot_available_at').single();
-    if (data && data.value) {
-      nextSlotAvailableAt = data.value;
-      updateSlotPauseButton();
+    // Charger les deux settings en parallèle
+    const [pauseData, indefiniteData] = await Promise.all([
+      sb.from('settings').select('value').eq('key', 'next_slot_available_at').maybeSingle(),
+      sb.from('settings').select('value').eq('key', 'indefinite_pause').maybeSingle()
+    ]);
+
+    if (pauseData.data && pauseData.data.value) {
+      nextSlotAvailableAt = pauseData.data.value;
     }
+
+    if (indefiniteData.data && indefiniteData.data.value === 'true') {
+      window.indefinitePause = true;
+    } else {
+      window.indefinitePause = false;
+    }
+
+    updateSlotPauseButton();
   } catch (err) {
     console.error('Erreur chargement slot pause:', err);
   }
@@ -1564,6 +1575,15 @@ function updateTimers() {
 function updateSlotPauseButton() {
   const btn = document.getElementById('slotPauseBtn');
   const text = document.getElementById('slotPauseText');
+
+  // Vérifier d'abord si on est en pause indéfinie
+  if (window.indefinitePause === true) {
+    text.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span style="font-weight:600;color:#fff;margin-left:6px;">FERMÉ</span>';
+    btn.style.background = 'linear-gradient(135deg,#dc2626,#b91c1c)';
+    btn.style.border = '1px solid rgba(220,38,38,0.5)';
+    btn.onclick = () => resumeIndefinitePause();
+    return;
+  }
 
   if (nextSlotAvailableAt) {
     const pauseDate = new Date(nextSlotAvailableAt);
@@ -1706,6 +1726,83 @@ async function resumeSlots() {
   }
 }
 
+// ===== PAUSE INDÉFINIE (Vacances/Urgence) =====
+
+async function showIndefinitePauseConfirm() {
+  const confirmed = await showConfirm(
+    '🔒 <strong>Pause indéfinie</strong><br><br>' +
+    'Le click & collect sera <strong>totalement fermé</strong> jusqu\'à ce que vous le réactiviez manuellement.<br><br>' +
+    '⚠️ Aucune commande ne sera possible.<br><br>' +
+    '<em>Utilisez cette fonction pour les vacances, fermetures exceptionnelles ou urgences.</em>',
+    '🔒 Activer la pause',
+    'Annuler'
+  );
+
+  if (!confirmed) return;
+
+  await setIndefinitePause();
+}
+
+async function setIndefinitePause() {
+  haptic.trigger('buzz');
+
+  try {
+    // Activer le flag de pause indéfinie
+    await sb.from('settings').upsert({
+      key: 'indefinite_pause',
+      value: 'true'
+    });
+
+    // Marquer aussi les slots comme pausés pour cohérence
+    await sb.from('settings').upsert({
+      key: 'next_slot_available_at',
+      value: new Date('2099-12-31').toISOString() // Date très lointaine
+    });
+
+    updateSlotPauseButton();
+    showToast('🔒 Click & collect fermé (pause indéfinie)', 'warning', 5000);
+  } catch (err) {
+    console.error('Erreur pause indéfinie:', err);
+    showToast('❌ Erreur lors de la pause', 'error');
+    haptic.trigger('error');
+  }
+}
+
+async function resumeIndefinitePause() {
+  const confirmed = await showConfirm(
+    '▶️ <strong>Réactiver le click & collect ?</strong><br><br>' +
+    'Les clients pourront à nouveau commander.',
+    '▶️ Réactiver',
+    'Annuler'
+  );
+
+  if (!confirmed) return;
+
+  haptic.trigger('success');
+
+  try {
+    // Désactiver le flag de pause indéfinie
+    await sb.from('settings').upsert({
+      key: 'indefinite_pause',
+      value: 'false'
+    });
+
+    // Reprendre les slots
+    await sb.from('settings').upsert({
+      key: 'next_slot_available_at',
+      value: ''
+    });
+
+    nextSlotAvailableAt = '';
+    updateSlotPauseButton();
+    showToast('▶️ Click & collect réactivé', 'success');
+  } catch (err) {
+    console.error('Erreur reprise:', err);
+    showToast('❌ Erreur lors de la reprise', 'error');
+    haptic.trigger('error');
+  }
+}
+
 // ===== AUTH 🔒 SÉCURISÉ =====
 
 async function checkSession() {
@@ -1813,6 +1910,16 @@ async function doLogin() {
   btn.textContent = 'Vérification...';
 
   try {
+    // 🔑 Générer ou récupérer device_id unique (comme Facebook/Google)
+    let deviceId = localStorage.getItem('device_id');
+    if (!deviceId) {
+      deviceId = crypto.randomUUID();
+      localStorage.setItem('device_id', deviceId);
+      console.log('🆔 Nouveau device_id généré:', deviceId);
+    } else {
+      console.log('🆔 Device_id existant:', deviceId);
+    }
+
     // 🔒 Appeler l'Edge Function pour valider le code côté serveur
     const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-auth`, {
       method: 'POST',
@@ -1820,7 +1927,7 @@ async function doLogin() {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
       },
-      body: JSON.stringify({ code })
+      body: JSON.stringify({ code, deviceId })
     });
 
     const data = await response.json();
@@ -1873,6 +1980,43 @@ async function doLogout() {
 }
 
 // 👥 Afficher les sessions admin actives
+// Helper: Détecter le type de device depuis user_agent
+function detectDevice(ua) {
+  const lower = ua.toLowerCase();
+
+  // Tablette Android
+  if (lower.includes('android') && !lower.includes('mobile')) {
+    const model = ua.match(/SM-[A-Z0-9]+/i)?.[0] || 'Tablette Android';
+    return { icon: '📱', name: model, type: 'tablet' };
+  }
+
+  // iPad
+  if (lower.includes('ipad')) {
+    return { icon: '📱', name: 'iPad', type: 'tablet' };
+  }
+
+  // iPhone
+  if (lower.includes('iphone')) {
+    return { icon: '📱', name: 'iPhone', type: 'phone' };
+  }
+
+  // Mac
+  if (lower.includes('mac os') || lower.includes('macintosh')) {
+    if (lower.includes('safari') && !lower.includes('chrome')) {
+      return { icon: '💻', name: 'MacBook (Safari)', type: 'desktop' };
+    }
+    return { icon: '💻', name: 'MacBook', type: 'desktop' };
+  }
+
+  // Windows
+  if (lower.includes('windows')) {
+    return { icon: '💻', name: 'PC Windows', type: 'desktop' };
+  }
+
+  // Default
+  return { icon: '🖥️', name: 'Appareil inconnu', type: 'unknown' };
+}
+
 async function showActiveSessions() {
   const adminToken = localStorage.getItem('adminToken');
   if (!adminToken) {
@@ -1889,55 +2033,75 @@ async function showActiveSessions() {
 
     const sessions = data.sessions || [];
 
+    // Charger les noms personnalisés depuis localStorage
+    const customNames = JSON.parse(localStorage.getItem('sessionCustomNames') || '{}');
+
     // Créer le modal
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
     modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
 
     modal.innerHTML = `
-      <div class="modal-box" style="max-width:800px;max-height:80vh;overflow-y:auto;">
-        <div class="modal-title">👥 Sessions actives (${sessions.length})</div>
+      <div class="modal-box" style="max-width:600px;max-height:80vh;overflow-y:auto;">
+        <div class="modal-title" style="font-size:1.3rem;margin-bottom:8px;">👥 Sessions actives</div>
+        <p style="color:#888;font-size:0.85rem;margin:0 0 20px 0;">${sessions.length} appareil${sessions.length > 1 ? 's' : ''} connecté${sessions.length > 1 ? 's' : ''}</p>
 
         ${sessions.length === 0 ? `
           <p style="text-align:center;color:#666;padding:40px 20px;">Aucune session active</p>
         ` : `
-          <div style="margin-top:20px;">
-            ${sessions.map(s => `
-              <div style="background:${s.is_current ? 'linear-gradient(135deg, rgba(212,168,83,0.1), rgba(212,168,83,0.05))' : '#f8f9fa'};
-                          border:2px solid ${s.is_current ? '#D4A853' : '#e0e0e0'};
-                          border-radius:12px;
-                          padding:16px 20px;
-                          margin-bottom:12px;
-                          position:relative;">
-                ${s.is_current ? '<div style="position:absolute;top:12px;right:12px;background:#D4A853;color:#fff;padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:700;">VOUS</div>' : ''}
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            ${sessions.map(s => {
+              const device = detectDevice(s.user_agent);
+              const sessionKey = s.ip_address; // Utiliser IP comme clé unique
+              const customName = customNames[sessionKey] || '';
 
-                <div style="display:grid;grid-template-columns:120px 1fr;gap:12px;font-size:0.9rem;">
-                  <div style="color:#666;font-weight:600;">IP</div>
-                  <div style="font-family:'Courier New',monospace;color:#1a1a1a;">${escapeHtml(s.ip_address)}</div>
+              return `
+              <div style="background:${s.is_current ? 'linear-gradient(135deg, rgba(212,168,83,0.15), rgba(212,168,83,0.05))' : '#fafafa'};
+                          border:1px solid ${s.is_current ? '#D4A853' : '#e5e7eb'};
+                          border-radius:10px;
+                          padding:14px 16px;
+                          position:relative;
+                          transition:all 0.2s;">
 
-                  <div style="color:#666;font-weight:600;">Appareil</div>
-                  <div style="color:#666;font-size:0.85rem;">${escapeHtml(s.user_agent).substring(0, 80)}${s.user_agent.length > 80 ? '...' : ''}</div>
+                ${s.is_current ? '<div style="position:absolute;top:10px;right:12px;background:#D4A853;color:#fff;padding:3px 10px;border-radius:12px;font-size:0.7rem;font-weight:700;letter-spacing:0.5px;">VOUS</div>' : ''}
 
-                  <div style="color:#666;font-weight:600;">Connecté depuis</div>
-                  <div style="color:#1a1a1a;">
-                    <strong>${escapeHtml(s.age)}</strong>
-                    <span style="color:#999;font-size:0.85rem;margin-left:8px;">(${escapeHtml(s.created_at)})</span>
+                <!-- Header: icône + nom device -->
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+                  <span style="font-size:28px;line-height:1;">${device.icon}</span>
+                  <div style="flex:1;">
+                    ${customName ? `
+                      <div style="font-weight:700;font-size:0.95rem;color:#1a1a1a;margin-bottom:2px;">${escapeHtml(customName)}</div>
+                      <div style="font-size:0.75rem;color:#999;">${device.name}</div>
+                    ` : `
+                      <div style="font-weight:600;font-size:0.9rem;color:#1a1a1a;">${device.name}</div>
+                    `}
                   </div>
+                  <button onclick="renameSession('${sessionKey}', '${device.name}')" style="background:#f0f0f0;border:none;padding:6px 10px;border-radius:6px;font-size:0.75rem;color:#666;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='#e0e0e0'" onmouseout="this.style.background='#f0f0f0'">
+                    ✏️ Renommer
+                  </button>
+                </div>
 
-                  <div style="color:#666;font-weight:600;">Dernière activité</div>
-                  <div style="color:#1a1a1a;">${escapeHtml(s.last_activity)}</div>
-
-                  <div style="color:#666;font-weight:600;">Expire dans</div>
-                  <div style="color:${s.expires_in.includes('j') ? '#22c55e' : '#f59e0b'};">
-                    <strong>${escapeHtml(s.expires_in)}</strong>
+                <!-- Infos compactes -->
+                <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:0.75rem;color:#666;">
+                  <div style="display:flex;align-items:center;gap:4px;">
+                    <span style="opacity:0.6;">🌐</span>
+                    <span style="font-family:'Courier New',monospace;">${escapeHtml(s.ip_address)}</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:4px;">
+                    <span style="opacity:0.6;">⏱️</span>
+                    <span>${escapeHtml(s.age)}</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:4px;">
+                    <span style="opacity:0.6;">📍</span>
+                    <span>${escapeHtml(s.last_activity)}</span>
                   </div>
                 </div>
               </div>
-            `).join('')}
+            `}).join('')}
           </div>
         `}
 
-        <div class="modal-buttons" style="margin-top:24px;">
+        <div class="modal-buttons" style="margin-top:20px;">
           <button class="modal-btn modal-btn-primary" onclick="this.closest('.modal-overlay').remove()">Fermer</button>
         </div>
       </div>
@@ -1949,6 +2113,54 @@ async function showActiveSessions() {
     console.error('Erreur chargement sessions:', err);
     showToast('❌ Erreur chargement sessions', 'error');
   }
+}
+
+// Renommer une session
+async function renameSession(sessionKey, defaultName) {
+  const customNames = JSON.parse(localStorage.getItem('sessionCustomNames') || '{}');
+  const currentName = customNames[sessionKey] || defaultName;
+
+  const modalHtml = `
+    <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10001;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);" id="renameModal" onclick="if(event.target.id==='renameModal') document.getElementById('renameModal').remove()">
+      <div style="background:#fff;border-radius:16px;padding:28px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideIn 0.2s ease-out;" onclick="event.stopPropagation()">
+        <h3 style="margin:0 0 8px 0;font-size:1.3rem;color:#1a1a1a;">✏️ Renommer l'appareil</h3>
+        <p style="color:#666;margin:0 0 20px 0;font-size:0.9rem;">Donnez un nom personnalisé à cet appareil (ex: "Tablette principale", "MacBook de Ludo")</p>
+
+        <input type="text" id="renameInput" value="${escapeHtml(currentName)}" placeholder="Nom de l'appareil" style="width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:0.95rem;margin-bottom:20px;" autofocus>
+
+        <div style="display:flex;gap:10px;">
+          <button onclick="document.getElementById('renameModal').remove()" style="flex:1;padding:12px;background:#f5f5f5;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;color:#666;">Annuler</button>
+          <button onclick="saveSessionName('${sessionKey}')" style="flex:1;padding:12px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;box-shadow:0 4px 12px rgba(59,130,246,0.3);">💾 Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  setTimeout(() => document.getElementById('renameInput').focus(), 100);
+}
+
+function saveSessionName(sessionKey) {
+  const input = document.getElementById('renameInput');
+  const newName = input.value.trim();
+
+  const customNames = JSON.parse(localStorage.getItem('sessionCustomNames') || '{}');
+
+  if (newName) {
+    customNames[sessionKey] = newName;
+  } else {
+    delete customNames[sessionKey];
+  }
+
+  localStorage.setItem('sessionCustomNames', JSON.stringify(customNames));
+
+  document.getElementById('renameModal').remove();
+  document.querySelector('.modal-overlay').remove();
+
+  showToast('✅ Nom enregistré', 'success');
+
+  // Recharger le modal
+  setTimeout(() => showActiveSessions(), 300);
 }
 
 async function showDashboard() {
@@ -3365,17 +3577,13 @@ async function updateTopbarStats() {
     // Utiliser innerHTML pour garder les SVG (pas textContent qui écrase tout)
     document.getElementById('topbarStats').innerHTML = `
       <span style="display:flex;align-items:center;gap:5px;">
-        <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;background:rgba(255,255,255,0.15);border-radius:6px;">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-        </span>
-        <span style="font-weight:700;font-size:0.7rem;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;">${total}</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span style="font-weight:600;font-size:0.85rem;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;">${total}</span>
       </span>
-      <span style="width:1px;height:18px;background:rgba(255,255,255,0.15);"></span>
+      <span style="width:1px;height:16px;background:rgba(255,255,255,0.2);"></span>
       <span style="display:flex;align-items:center;gap:5px;">
-        <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;background:rgba(255,255,255,0.15);border-radius:6px;">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        </span>
-        <span style="font-weight:700;font-size:0.7rem;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;">${revenue.toFixed(2).replace('.', ',')} €</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span style="font-weight:600;font-size:0.85rem;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;">${revenue.toFixed(2).replace('.', ',')} €</span>
       </span>
     `;
   } catch (err) {
@@ -3385,17 +3593,13 @@ async function updateTopbarStats() {
     const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
     document.getElementById('topbarStats').innerHTML = `
       <span style="display:flex;align-items:center;gap:5px;">
-        <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;background:rgba(255,255,255,0.15);border-radius:6px;">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-        </span>
-        <span style="font-weight:700;font-size:0.7rem;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;">${total}</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span style="font-weight:600;font-size:0.85rem;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;">${total}</span>
       </span>
-      <span style="width:1px;height:18px;background:rgba(255,255,255,0.15);"></span>
+      <span style="width:1px;height:16px;background:rgba(255,255,255,0.2);"></span>
       <span style="display:flex;align-items:center;gap:5px;">
-        <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;background:rgba(255,255,255,0.15);border-radius:6px;">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        </span>
-        <span style="font-weight:700;font-size:0.7rem;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;">${revenue.toFixed(2).replace('.', ',')} €</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span style="font-weight:600;font-size:0.85rem;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;">${revenue.toFixed(2).replace('.', ',')} €</span>
       </span>
     `;
   }
@@ -3996,6 +4200,7 @@ async function showCompletedOrderDetails(orderId) {
               <div style="font-size:0.9rem;color:${emailConfig.color};font-weight:600;">${emailConfig.emoji} ${emailConfig.text}</div>
               ${order.confirmation_email_sent_at ? `<div style="font-size:0.7rem;color:#666;margin-top:4px;">${formatDate(order.confirmation_email_sent_at)}</div>` : ''}
               ${order.reminder_sent_at ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid ${emailConfig.color}30;"><div style="font-size:0.85rem;color:#666;margin-bottom:2px;">Relance${order.reminder_count > 1 ? `s (${order.reminder_count})` : ''} :</div><div style="font-size:0.9rem;color:#f59e0b;font-weight:600;">📧 Envoyé</div>${(order.reminder_dates || []).map(date => `<div style="font-size:0.7rem;color:#666;margin-top:4px;">• ${formatDate(date)}</div>`).join('')}</div>` : ''}
+              ${order.completed_email_sent_at ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid ${emailConfig.color}30;"><div style="font-size:0.85rem;color:#666;margin-bottom:2px;">Remerciement :</div><div style="font-size:0.9rem;color:#10b981;font-weight:600;">✅ Envoyé</div><div style="font-size:0.7rem;color:#666;margin-top:4px;">${formatDate(order.completed_email_sent_at)}</div></div>` : ''}
             </div>
           </div>
         </div>

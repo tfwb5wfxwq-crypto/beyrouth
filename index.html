@@ -821,6 +821,14 @@ function updateOpenStatus() {
     return isOpenNow();
   }
 
+  // ⚠️ PAUSE INDÉFINIE - Bloquer complètement le site
+  if (window.indefinitePause === true) {
+    statusEl.classList.add('closed');
+    textEl.textContent = 'Fermé';
+    hoursEl.textContent = '· Click & collect indisponible';
+    return false;
+  }
+
   const open = isOpenNow();
   if (open) {
     statusEl.classList.remove('closed');
@@ -855,6 +863,22 @@ async function init() {
   }
 
   generateTimeSlots();
+
+  // Charger la pause indéfinie depuis Supabase
+  if (sb) {
+    try {
+      const { data } = await sb.from('settings').select('value').eq('key', 'indefinite_pause').maybeSingle();
+      if (data && data.value === 'true') {
+        window.indefinitePause = true;
+      } else {
+        window.indefinitePause = false;
+      }
+    } catch (err) {
+      console.error('Erreur chargement pause indéfinie:', err);
+      window.indefinitePause = false;
+    }
+  }
+
   const open = updateOpenStatus();
   setInterval(updateOpenStatus, 60000);
   if (sb) {
@@ -928,6 +952,30 @@ function subscribeRealtime() {
     })
     .subscribe((status) => {
       console.log('📡 Realtime settings status:', status);
+    });
+
+  // Écouter les changements de pause indéfinie
+  const indefinitePauseChannel = sb.channel('indefinite-pause-changes')
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'settings',
+      filter: 'key=eq.indefinite_pause'
+    }, async (payload) => {
+      console.log('🔔 Realtime: Pause indéfinie changée', payload);
+      // Mettre à jour l'état
+      if (payload.new && payload.new.value === 'true') {
+        window.indefinitePause = true;
+      } else {
+        window.indefinitePause = false;
+      }
+
+      // Mettre à jour l'UI immédiatement
+      updateOpenStatus();
+      generateTimeSlots();
+    })
+    .subscribe((status) => {
+      console.log('📡 Realtime indefinite pause status:', status);
     });
 
   // Store channels for cleanup

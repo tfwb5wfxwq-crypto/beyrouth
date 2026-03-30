@@ -6,9 +6,16 @@ const PAYGREEN_API_URL = 'https://api.paygreen.fr/payment/payment-orders'
 const PAYGREEN_SECRET_KEY = Deno.env.get('PAYGREEN_SECRET_KEY') ?? ''
 const PAYGREEN_SHOP_ID = Deno.env.get('PAYGREEN_SHOP_ID') ?? ''
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://beyrouth.express',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// CORS dynamique pour accepter beyrouth.express et www.beyrouth.express
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || ''
+  const allowedOrigins = ['https://beyrouth.express', 'https://www.beyrouth.express']
+  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://beyrouth.express'
+
+  return {
+    'Access-Control-Allow-Origin': corsOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  }
 }
 
 // Helper pour parser le pickup time (format: "Aujourd'hui 14h30", "Demain 11h00", "Lundi 12h00")
@@ -50,6 +57,8 @@ function parsePickupTime(pickup: string): Date | null {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req)
+
   // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })

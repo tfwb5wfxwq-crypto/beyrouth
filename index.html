@@ -543,9 +543,9 @@ a{color:inherit;text-decoration:none}
 
       <div class="cart-form">
         <input type="hidden" id="pickupTime" value="">
-        <input type="text" id="clientName" placeholder="Prénom" required minlength="2" maxlength="50" pattern="[a-zA-ZÀ-ÿ\s'-]{2,50}">
+        <input type="text" id="clientName" placeholder="Prénom" required minlength="2" maxlength="50" pattern="[a-zA-ZÀ-ÿ '\-]{2,50}" title="Lettres, espaces, apostrophes et tirets uniquement">
         <div class="form-row">
-          <input type="tel" id="clientPhone" placeholder="Téléphone (ex: 0612345678)" required pattern="(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}">
+          <input type="tel" id="clientPhone" placeholder="Téléphone (ex: 0612345678)" required pattern="[0-9\s\.\-\+]{10,14}" title="Numéro de téléphone français valide">
           <input type="email" id="clientEmail" placeholder="Email" required pattern="[^\s@]+@[^\s@]+\.[^\s@]+">
         </div>
         <textarea id="clientNote" placeholder="Note : allergies, sans oignon, etc." maxlength="500"></textarea>

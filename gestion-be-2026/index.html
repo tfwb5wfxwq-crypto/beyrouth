@@ -22,8 +22,19 @@
   --gold:#D4A853;--bordeaux:#8B1A1A;--olive:#4A5B3C;
   --cream:#FFF8F0;--noir:#1A1A1A;--radius:12px;
 }
-body{font-family:'Inter',sans-serif;color:var(--noir);background:#f0f0f0;min-height:100vh}
-h1,h2,h3{font-family:'Playfair Display',serif}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto','Oxygen','Ubuntu',sans-serif;
+  color:#1f2937;
+  background:#f3f4f6;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+h1,h2,h3{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto',sans-serif;
+  font-weight:700;
+  letter-spacing:-0.02em;
+}
 button{cursor:pointer;font-family:inherit;border:none}
 
 /* ========= LOGIN ========= */
@@ -152,23 +163,25 @@ button{cursor:pointer;font-family:inherit;border:none}
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto','Oxygen','Ubuntu',sans-serif;
   font-weight:600;
   font-size:1rem;
-  letter-spacing:0.01em;
-  color:#6b7280;
+  letter-spacing:0.02em;
+  color:#9ca3af;
   border-bottom:3px solid transparent;
   background:none;
-  transition:all .25s ease;
+  transition:all .25s cubic-bezier(0.4,0,0.2,1);
   position:relative;
+  text-transform:capitalize;
 }
 .tab.active{
-  color:#1f2937;
+  color:#111827;
   font-weight:700;
-  background:linear-gradient(to bottom, #ffffff, #fafafa);
-  border-bottom-color:#2C3E50;
-  box-shadow:0 1px 3px rgba(0,0,0,.08);
+  background:linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(249,250,251,0.6) 100%);
+  border-bottom-color:#3b82f6;
+  box-shadow:0 2px 4px rgba(59,130,246,0.12), 0 1px 2px rgba(0,0,0,0.04);
 }
 .tab:hover:not(.active){
-  color:#374151;
-  background:#f9fafb;
+  color:#4b5563;
+  background:rgba(249,250,251,0.5);
+  transform:translateY(-1px);
 }
 .tab-badge{
   display:inline-flex;align-items:center;justify-content:center;
@@ -758,11 +771,20 @@ button{cursor:pointer;font-family:inherit;border:none}
       <!-- Horloge -->
       <div id="currentTime" style="font-size:0.85rem;font-weight:600;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:0.3px;padding:6px 12px;background:rgba(255,255,255,0.05);border-radius:6px;"></div>
 
-      <span class="topbar-stats" id="topbarStats">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-        0 •
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin:0 4px"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg>
-        0,00 €
+      <span class="topbar-stats" id="topbarStats" style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.08);padding:8px 16px;border-radius:8px;backdrop-filter:blur(10px);">
+        <span style="display:flex;align-items:center;gap:6px;">
+          <span style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:linear-gradient(135deg,#60a5fa,#3b82f6);border-radius:6px;box-shadow:0 2px 8px rgba(59,130,246,0.25);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+          </span>
+          <span style="font-weight:700;font-size:0.95rem;font-variant-numeric:tabular-nums;">0</span>
+        </span>
+        <span style="width:1px;height:20px;background:rgba(255,255,255,0.2);"></span>
+        <span style="display:flex;align-items:center;gap:6px;">
+          <span style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:linear-gradient(135deg,#34d399,#10b981);border-radius:6px;box-shadow:0 2px 8px rgba(16,185,129,0.25);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </span>
+          <span style="font-weight:700;font-size:0.95rem;font-variant-numeric:tabular-nums;">0,00 €</span>
+        </span>
       </span>
 
       <!-- Toggles -->

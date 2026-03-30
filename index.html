@@ -1779,7 +1779,14 @@ async function submitOrder() {
     if (error) {
       console.error('Edge Function error:', error);
       console.error('Edge Function data:', data);
-      throw new Error(data?.error || error.message || 'Erreur de paiement');
+      // Extraire le vrai message d'erreur depuis l'Edge Function
+      let errorMessage = 'Erreur de paiement';
+      if (data && typeof data === 'object' && data.error) {
+        errorMessage = data.error;
+      } else if (error.message && !error.message.includes('FunctionsHttpError') && !error.message.includes('non-2xx')) {
+        errorMessage = error.message;
+      }
+      throw new Error(errorMessage);
     }
 
     // Ouvrir le paiement dans un modal (mode inline PayGreenJS)

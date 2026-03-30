@@ -4371,7 +4371,7 @@ async function showCompletedOrderDetails(orderId) {
         <div style="display:flex;flex-direction:column;gap:10px;margin-top:24px;">
           ${isNotRecuperee ? `
           <!-- Actions pour commandes PAS RÉCUPÉRÉES (client pas venu) -->
-          ${order.client_email ? `<button onclick="remindClient(${order.id})" style="padding:14px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(245,158,11,0.3);">📧 Relancer le client</button>` : ''}
+          ${order.client_email ? `<button onclick="remindClient(${order.id})" style="padding:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(59,130,246,0.3);">📧 Relancer le client</button>` : ''}
           <button onclick="markAsRecuperee(${order.id})" style="padding:14px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(16,185,129,0.3);">✅ Marquer comme récupérée</button>
           ` : isRecuperee ? `
           <!-- Actions pour commandes RÉCUPÉRÉES -->
@@ -4386,7 +4386,7 @@ async function showCompletedOrderDetails(orderId) {
         <!-- Action remboursement (discrète, séparée) -->
         ${(isNotRecuperee || (isRecuperee && canRefund)) ? `
         <div style="margin-top:16px;padding-top:16px;border-top:1px solid #f0f0f0;">
-          <button onclick="cancelAndRefundCompletedOrder(${order.id})" style="width:100%;padding:10px;background:#fff;color:#dc2626;border:1px solid #fecaca;border-radius:6px;font-weight:500;cursor:pointer;font-size:0.85rem;transition:all 0.2s;">⚠️ Annuler & Rembourser</button>
+          <button onclick="cancelAndRefundCompletedOrder(${order.id})" style="width:100%;padding:14px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;box-shadow:0 4px 12px rgba(245,158,11,0.3);">⚠️ Annuler & Rembourser</button>
         </div>
         ` : ''}
 

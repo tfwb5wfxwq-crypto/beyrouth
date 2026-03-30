@@ -774,14 +774,14 @@ button{cursor:pointer;font-family:inherit;border:none}
       <span class="topbar-stats" id="topbarStats" style="display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.08);padding:8px 16px;border-radius:10px;backdrop-filter:blur(10px);">
         <span style="display:flex;align-items:center;gap:7px;">
           <span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.15);border-radius:7px;">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
           </span>
           <span style="font-weight:700;font-size:1rem;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;">0</span>
         </span>
         <span style="width:1px;height:22px;background:rgba(255,255,255,0.15);"></span>
         <span style="display:flex;align-items:center;gap:7px;">
           <span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.15);border-radius:7px;">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           </span>
           <span style="font-weight:700;font-size:1rem;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;">0,00 €</span>
         </span>
@@ -3338,14 +3338,14 @@ async function updateTopbarStats() {
     document.getElementById('topbarStats').innerHTML = `
       <span style="display:flex;align-items:center;gap:7px;">
         <span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.15);border-radius:7px;">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
         </span>
         <span style="font-weight:700;font-size:0.7rem;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;">${total}</span>
       </span>
       <span style="width:1px;height:22px;background:rgba(255,255,255,0.15);"></span>
       <span style="display:flex;align-items:center;gap:7px;">
         <span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.15);border-radius:7px;">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         </span>
         <span style="font-weight:700;font-size:0.7rem;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;">${revenue.toFixed(2).replace('.', ',')} €</span>
       </span>
@@ -3358,14 +3358,14 @@ async function updateTopbarStats() {
     document.getElementById('topbarStats').innerHTML = `
       <span style="display:flex;align-items:center;gap:7px;">
         <span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.15);border-radius:7px;">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
         </span>
         <span style="font-weight:700;font-size:0.7rem;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;">${total}</span>
       </span>
       <span style="width:1px;height:22px;background:rgba(255,255,255,0.15);"></span>
       <span style="display:flex;align-items:center;gap:7px;">
         <span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.15);border-radius:7px;">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         </span>
         <span style="font-weight:700;font-size:0.7rem;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;">${revenue.toFixed(2).replace('.', ',')} €</span>
       </span>

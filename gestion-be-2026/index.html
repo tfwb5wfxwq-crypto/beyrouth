@@ -484,6 +484,15 @@ button{cursor:pointer;font-family:inherit;border:none}
 .client-stat-value{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--noir)}
 .client-stat-label{font-size:.7rem;color:#999;text-transform:uppercase;letter-spacing:.5px}
 
+/* Client filters */
+.client-filter:hover{
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(44,62,80,.2);
+}
+.client-filter.active{
+  box-shadow:0 4px 12px rgba(44,62,80,.25);
+}
+
 /* Client detail modal */
 .client-detail-overlay{
   position:fixed;top:0;left:0;right:0;bottom:0;
@@ -906,6 +915,23 @@ button{cursor:pointer;font-family:inherit;border:none}
           <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--bordeaux);margin:0;">Tous les clients</h3>
           <input type="search" id="clientSearch" placeholder="Rechercher..." style="padding:8px 16px;border:2px solid #e0e0e0;border-radius:8px;font-size:.9rem;width:240px;">
         </div>
+
+        <!-- Filtres de segmentation -->
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+          <button class="client-filter active" data-filter="all" onclick="filterClientsByType('all')" style="padding:8px 16px;background:#2C3E50;color:#fff;border:none;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer;transition:all .3s;">
+            📋 Tous
+          </button>
+          <button class="client-filter" data-filter="vip" onclick="filterClientsByType('vip')" style="padding:8px 16px;background:#f5f5f5;color:#666;border:2px solid #e0e0e0;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer;transition:all .3s;">
+            🏆 VIP (10+)
+          </button>
+          <button class="client-filter" data-filter="promo" onclick="filterClientsByType('promo')" style="padding:8px 16px;background:#f5f5f5;color:#666;border:2px solid #e0e0e0;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer;transition:all .3s;">
+            📧 Promos acceptées
+          </button>
+          <button class="client-filter" data-filter="recent" onclick="filterClientsByType('recent')" style="padding:8px 16px;background:#f5f5f5;color:#666;border:2px solid #e0e0e0;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer;transition:all .3s;">
+            🔥 Actifs (7j)
+          </button>
+        </div>
+
         <div id="allClientsList"></div>
       </div>
     </div>
@@ -4570,6 +4596,23 @@ async function computeAnalytics() {
 
 // ===== CLIENTS =====
 let clientsDisplayLimit = 50;  // Afficher 50 clients par défaut
+let currentClientFilter = 'all';  // Filtre actif
+
+// Helper: Calculer "il y a X jours"
+function getTimeAgo(dateString) {
+  if (!dateString) return 'Jamais';
+  const now = new Date();
+  const date = new Date(dateString);
+  const diffMs = now - date;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return 'Aujourd\'hui';
+  if (diffDays === 1) return 'Hier';
+  if (diffDays < 7) return `Il y a ${diffDays}j`;
+  if (diffDays < 30) return `Il y a ${Math.floor(diffDays / 7)}sem`;
+  if (diffDays < 365) return `Il y a ${Math.floor(diffDays / 30)}mois`;
+  return `Il y a ${Math.floor(diffDays / 365)}an${Math.floor(diffDays / 365) > 1 ? 's' : ''}`;
+}
 
 async function loadClients() {
   clientsDisplayLimit = 50;  // Reset à chaque chargement
@@ -4597,24 +4640,30 @@ async function loadClients() {
 
   // Top clients
   const topClients = [...clients].slice(0, 10);
-  const topHtml = topClients.map(c => `
-    <div class="client-card" onclick="showClientDetail('${c.email}')">
-      <div class="client-info">
-        <div class="client-name">${escapeHtml(c.prenom) || 'Client'}${(c.nombre_commandes || 0) >= 10 ? ' 🏆' : ''}</div>
-        <div class="client-contact">${escapeHtml(c.email) || ''} ${c.telephone ? '· ' + escapeHtml(c.telephone) : ''}</div>
-      </div>
-      <div class="client-stats">
-        <div class="client-stat">
-          <div class="client-stat-value">${c.nombre_commandes || 0}</div>
-          <div class="client-stat-label">commandes</div>
+  const topHtml = topClients.map(c => {
+    const badges = [];
+    if ((c.nombre_commandes || 0) >= 10) badges.push('<span style="color:#D4A853;margin-left:4px">🏆</span>');
+    if (c.optin_promo) badges.push('<span style="display:inline-flex;align-items:center;background:#10b981;color:#fff;font-size:.65rem;padding:2px 6px;border-radius:4px;margin-left:4px;font-weight:600">📧 Promo</span>');
+
+    return `
+      <div class="client-card" onclick="showClientDetail('${c.email}')">
+        <div class="client-info">
+          <div class="client-name">${escapeHtml(c.prenom) || 'Client'}${badges.join('')}</div>
+          <div class="client-contact">${escapeHtml(c.email) || ''} ${c.telephone ? '· ' + escapeHtml(c.telephone) : ''}</div>
         </div>
-        <div class="client-stat">
-          <div class="client-stat-value">${(c.total_depense || 0).toFixed(0)} €</div>
-          <div class="client-stat-label">dépensé</div>
+        <div class="client-stats">
+          <div class="client-stat">
+            <div class="client-stat-value">${c.nombre_commandes || 0}</div>
+            <div class="client-stat-label">commandes</div>
+          </div>
+          <div class="client-stat">
+            <div class="client-stat-value">${(c.total_depense || 0).toFixed(0)} €</div>
+            <div class="client-stat-label">dépensé</div>
+          </div>
         </div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
   document.getElementById('topClientsList').innerHTML = topHtml;
 
   // All clients
@@ -4628,36 +4677,100 @@ async function loadClients() {
       (c.email || '').toLowerCase().includes(search) ||
       (c.telephone || '').includes(search)
     );
-    renderAllClients(filtered);
+    renderAllClients(applyClientFilter(filtered));
   };
+}
+
+// Filtrer clients par type
+function filterClientsByType(filterType) {
+  currentClientFilter = filterType;
+
+  // Update button styles
+  document.querySelectorAll('.client-filter').forEach(btn => {
+    if (btn.dataset.filter === filterType) {
+      btn.style.background = '#2C3E50';
+      btn.style.color = '#fff';
+      btn.style.border = 'none';
+      btn.classList.add('active');
+    } else {
+      btn.style.background = '#f5f5f5';
+      btn.style.color = '#666';
+      btn.style.border = '2px solid #e0e0e0';
+      btn.classList.remove('active');
+    }
+  });
+
+  // Apply filter
+  const search = document.getElementById('clientSearch').value.toLowerCase();
+  let filtered = clients;
+
+  if (search) {
+    filtered = clients.filter(c =>
+      (c.prenom || '').toLowerCase().includes(search) ||
+      (c.email || '').toLowerCase().includes(search) ||
+      (c.telephone || '').includes(search)
+    );
+  }
+
+  renderAllClients(applyClientFilter(filtered));
+}
+
+// Appliquer le filtre actuel
+function applyClientFilter(clientList) {
+  if (currentClientFilter === 'all') return clientList;
+
+  if (currentClientFilter === 'vip') {
+    return clientList.filter(c => (c.nombre_commandes || 0) >= 10);
+  }
+
+  if (currentClientFilter === 'promo') {
+    return clientList.filter(c => c.optin_promo === true);
+  }
+
+  if (currentClientFilter === 'recent') {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    return clientList.filter(c => {
+      const lastOrder = new Date(c.derniere_commande || c.created_at);
+      return lastOrder >= sevenDaysAgo;
+    });
+  }
+
+  return clientList;
 }
 
 function renderAllClients(clientList) {
   const displayedClients = clientList.slice(0, clientsDisplayLimit);
   const remaining = clientList.length - clientsDisplayLimit;
 
-  const html = displayedClients.map(c => `
-    <div class="client-card" style="margin-bottom:8px;" onclick="showClientDetail('${c.email}')">
-      <div class="client-info">
-        <div class="client-name">${escapeHtml(c.prenom) || 'Client'}${(c.nombre_commandes || 0) >= 10 ? ' 🏆' : ''}</div>
-        <div class="client-contact">${escapeHtml(c.email) || ''} ${c.telephone ? '· ' + escapeHtml(c.telephone) : ''}</div>
+  const html = displayedClients.map(c => {
+    const badges = [];
+    if ((c.nombre_commandes || 0) >= 10) badges.push('<span style="color:#D4A853;margin-left:4px">🏆</span>');
+    if (c.optin_promo) badges.push('<span style="display:inline-flex;align-items:center;background:#10b981;color:#fff;font-size:.65rem;padding:2px 6px;border-radius:4px;margin-left:4px;font-weight:600">📧 Promo</span>');
+
+    return `
+      <div class="client-card" style="margin-bottom:8px;" onclick="showClientDetail('${c.email}')">
+        <div class="client-info">
+          <div class="client-name">${escapeHtml(c.prenom) || 'Client'}${badges.join('')}</div>
+          <div class="client-contact">${escapeHtml(c.email) || ''} ${c.telephone ? '· ' + escapeHtml(c.telephone) : ''}</div>
+        </div>
+        <div class="client-stats">
+          <div class="client-stat">
+            <div class="client-stat-value">${c.nombre_commandes || 0}</div>
+            <div class="client-stat-label">commandes</div>
+          </div>
+          <div class="client-stat">
+            <div class="client-stat-value">${(c.total_depense || 0).toFixed(0)} €</div>
+            <div class="client-stat-label">dépensé</div>
+          </div>
+          <div class="client-stat">
+            <div class="client-stat-value" style="font-size:.9rem;color:#888">${getTimeAgo(c.derniere_commande || c.created_at)}</div>
+            <div class="client-stat-label">dernière</div>
+          </div>
+        </div>
       </div>
-      <div class="client-stats">
-        <div class="client-stat">
-          <div class="client-stat-value">${c.nombre_commandes || 0}</div>
-          <div class="client-stat-label">commandes</div>
-        </div>
-        <div class="client-stat">
-          <div class="client-stat-value">${(c.total_depense || 0).toFixed(0)} €</div>
-          <div class="client-stat-label">dépensé</div>
-        </div>
-        <div class="client-stat">
-          <div class="client-stat-value" style="font-size:.9rem;color:#888">${new Date(c.derniere_commande || c.created_at).toLocaleDateString('fr-FR', {day:'numeric',month:'short'})}</div>
-          <div class="client-stat-label">dernière</div>
-        </div>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   let loadMoreBtn = '';
   if (remaining > 0) {
@@ -4676,16 +4789,17 @@ function renderAllClients(clientList) {
 function showMoreClients() {
   clientsDisplayLimit += 50;
   const search = document.getElementById('clientSearch').value.toLowerCase();
+  let filtered = clients;
+
   if (search) {
-    const filtered = clients.filter(c =>
+    filtered = clients.filter(c =>
       (c.prenom || '').toLowerCase().includes(search) ||
       (c.email || '').toLowerCase().includes(search) ||
       (c.telephone || '').includes(search)
     );
-    renderAllClients(filtered);
-  } else {
-    renderAllClients(clients);
   }
+
+  renderAllClients(applyClientFilter(filtered));
 }
 
 async function showClientDetail(clientEmail) {

@@ -1688,6 +1688,28 @@ async function pauseSlots(minutes) {
   } else {
     // Pause normale avec minutes
     pauseUntil = new Date(now.getTime() + minutes * 60000);
+
+    // ⚠️ VÉRIFICATION : Si pause dépasse 21h (fermeture resto), reporter à demain 11h30
+    const CLOSING_HOUR = 21;
+    const pauseHour = pauseUntil.getHours();
+    const pauseMinutes = pauseUntil.getMinutes();
+
+    // Si pause après 21h00 OU si lundi-vendredi seulement
+    const pauseDay = pauseUntil.getDay(); // 0=dimanche, 1=lundi, ..., 5=vendredi, 6=samedi
+    const isWeekend = pauseDay === 0 || pauseDay === 6;
+
+    if (pauseHour >= CLOSING_HOUR || isWeekend) {
+      // Reporter au prochain jour ouvré à 11h30
+      pauseUntil = new Date(now);
+      pauseUntil.setDate(pauseUntil.getDate() + 1);
+
+      // Si demain est samedi, passer à lundi
+      if (pauseUntil.getDay() === 6) pauseUntil.setDate(pauseUntil.getDate() + 2);
+      // Si demain est dimanche, passer à lundi
+      if (pauseUntil.getDay() === 0) pauseUntil.setDate(pauseUntil.getDate() + 1);
+
+      pauseUntil.setHours(11, 30, 0, 0);
+    }
   }
 
   nextSlotAvailableAt = pauseUntil.toISOString();
@@ -1703,9 +1725,23 @@ async function pauseSlots(minutes) {
 
     const hours = String(pauseUntil.getHours()).padStart(2, '0');
     const mins = String(pauseUntil.getMinutes()).padStart(2, '0');
-    const message = minutes === 'tomorrow'
-      ? `⏸️ Créneaux en pause jusqu'à demain ${hours}h${mins}`
-      : `⏸️ Créneaux en pause jusqu'à ${hours}h${mins}`;
+
+    // Déterminer le jour pour le message
+    let dayLabel = '';
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const pauseDay = new Date(pauseUntil.getFullYear(), pauseUntil.getMonth(), pauseUntil.getDate());
+    const daysDiff = Math.floor((pauseDay - today) / (1000 * 60 * 60 * 24));
+
+    if (daysDiff === 0) {
+      dayLabel = ''; // Aujourd'hui, pas de label
+    } else if (daysDiff === 1) {
+      dayLabel = ' demain';
+    } else {
+      const JOURS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+      dayLabel = ' ' + JOURS[pauseUntil.getDay()];
+    }
+
+    const message = `⏸️ Créneaux en pause jusqu'à${dayLabel} ${hours}h${mins}`;
     showToast(message, 'info');
   } catch (err) {
     console.error('Erreur pause:', err);

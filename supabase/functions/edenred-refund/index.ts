@@ -144,7 +144,7 @@ serve(async (req) => {
       .from('orders')
       .update({
         edenred_status: 'refunded',
-        refunded_at: new Date().toISOString()
+        refund_completed_at: new Date().toISOString()
       })
       .eq('edenred_payment_id', captureId)
 

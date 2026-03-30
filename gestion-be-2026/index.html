@@ -151,12 +151,19 @@ button{cursor:pointer;font-family:inherit;border:none}
   padding:16px 24px;font-weight:600;font-size:.95rem;
   color:#888;border-bottom:3px solid transparent;
   background:none;transition:all .3s;position:relative;
+  border-radius:8px 8px 0 0;
 }
 .tab.active{
-  color:var(--bordeaux);border-bottom-color:var(--gold);
-  background:linear-gradient(to bottom, rgba(212,168,83,.05), transparent);
+  color:var(--bordeaux);
+  background:#fff;
+  box-shadow:0 -2px 12px rgba(139,21,34,.08), inset 0 -3px 0 var(--gold);
+  transform:translateY(-2px);
 }
-.tab:hover{color:var(--noir);background:rgba(0,0,0,.02)}
+.tab:hover{
+  color:var(--noir);
+  background:rgba(139,21,34,.03);
+  transform:translateY(-1px);
+}
 .tab-badge{
   display:inline-flex;align-items:center;justify-content:center;
   background:linear-gradient(135deg, var(--gold), #C49843);
@@ -832,12 +839,19 @@ button{cursor:pointer;font-family:inherit;border:none}
 
     <!-- Terminées Tab -->
     <div class="tab-content" id="tab-completed" style="display:none">
-      <h2 style="margin-bottom:16px;color:var(--bordeaux)">Commandes terminées</h2>
-      <p style="margin-bottom:12px;color:#666;font-size:0.9rem;">📅 30 derniers jours • Les commandes plus anciennes sont archivées automatiquement</p>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--bordeaux)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <h2 style="margin:0;color:var(--bordeaux);font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;letter-spacing:-0.02em;">Historique</h2>
+      </div>
+      <p style="margin-bottom:20px;color:#888;font-size:0.9rem;display:flex;align-items:center;gap:8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>30 derniers jours • Les commandes plus anciennes sont archivées automatiquement</span>
+      </p>
 
       <!-- Recherche rapide -->
-      <div style="margin-bottom:20px;">
-        <input type="text" id="completedSearchInput" placeholder="🔍 Rechercher par numéro ou nom..." style="width:100%;padding:12px 16px;border:2px solid #e0e0e0;border-radius:8px;font-size:0.95rem;transition:border-color 0.2s;" oninput="filterCompletedOrders(this.value)" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='#e0e0e0'">
+      <div style="margin-bottom:20px;position:relative;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="completedSearchInput" placeholder="Rechercher par numéro ou nom..." style="width:100%;padding:12px 16px 12px 44px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.95rem;transition:all 0.2s;" oninput="filterCompletedOrders(this.value)" onfocus="this.style.borderColor='var(--gold)';this.style.boxShadow='0 0 0 3px rgba(212,168,83,.1)'" onblur="this.style.borderColor='#e0e0e0';this.style.boxShadow='none'">
       </div>
 
       <div id="completedList">
@@ -2608,8 +2622,8 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
             <div style="font-weight:700;font-size:0.9rem;color:#1a1a1a;white-space:nowrap;">
               ${(order.total || 0).toFixed(2).replace('.',',')} €
             </div>
-            <div style="font-size:0.65rem;color:#888;">
-              ${order.paygreen_transaction_id ? '💳 CB' : order.edenred_payment_id ? '🎫 TR' : '❓'}
+            <div style="font-size:0.7rem;color:#888;display:flex;align-items:center;">
+              ${getPaymentIcon(order, true)}
             </div>
           </div>`
           : `<div style="min-width:70px;text-align:right;font-weight:700;font-size:0.95rem;color:#1a1a1a;flex-shrink:0;">
@@ -2620,9 +2634,7 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
             if (!isHistory) return '';
             const paymentMethod = order.paygreen_transaction_id ? 'CB' :
                                   order.edenred_payment_id ? 'Edenred' : 'Inconnu';
-            const paymentIcon = order.paygreen_transaction_id ? '💳' :
-                               order.edenred_payment_id ? '🎫' : '❓';
-            return `<span style="flex-shrink:0;font-size:0.75rem;padding:4px 8px;background:#f0f0f0;border-radius:6px;color:#666;white-space:nowrap;" title="Moyen de paiement">${paymentIcon} ${paymentMethod}</span>`;
+            return `<span style="flex-shrink:0;font-size:0.75rem;padding:4px 8px;background:#f0f0f0;border-radius:6px;color:#666;white-space:nowrap;display:flex;align-items:center;" title="Moyen de paiement">${getPaymentIcon(order, false)} <span style="margin-left:4px">${paymentMethod}</span></span>`;
           })()}`
         }
 
@@ -3684,19 +3696,19 @@ async function showCompletedOrderDetails(orderId) {
 
   let statusColor, statusEmoji, statusText, statusBg;
   if (isRecuperee) {
-    statusColor = '#047857';
-    statusBg = '#d1fae5';
-    statusEmoji = '✅';
+    statusColor = '#059669';
+    statusBg = '#ecfdf5';
+    statusEmoji = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><polyline points="20 6 9 17 4 12"/></svg>';
     statusText = 'Récupérée';
   } else if (isCancelled) {
-    statusColor = '#dc2626';
-    statusBg = '#fecaca';
-    statusEmoji = '❌';
+    statusColor = '#e11d48';
+    statusBg = '#fee2e2';
+    statusEmoji = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
     statusText = 'Annulée';
   } else if (isNotRecuperee) {
-    statusColor = '#d97706';
-    statusBg = '#fef3c7';
-    statusEmoji = '⚠️';
+    statusColor = '#ea580c';
+    statusBg = '#fef9c3';
+    statusEmoji = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
     statusText = 'Pas récupérée';
   }
 
@@ -4070,9 +4082,9 @@ function renderCompletedOrderLine(order) {
   // Config couleurs et labels (couleurs douces/pastels)
   let statusBg, statusColor, statusIcon, statusText;
   if (isRecuperee) {
-    statusBg = '#d1fae5';
-    statusColor = '#047857'; // Vert plus doux
-    statusIcon = '✅';
+    statusBg = '#ecfdf5';
+    statusColor = '#059669'; // Vert menthe
+    statusIcon = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><polyline points="20 6 9 17 4 12"/></svg>';
     // Afficher l'heure de récupération si disponible
     if (order.recuperee_at) {
       const recupereeDate = new Date(order.recuperee_at);
@@ -4083,20 +4095,20 @@ function renderCompletedOrderLine(order) {
       statusText = 'Récupérée';
     }
   } else if (isCancelled) {
-    statusBg = '#fecaca';
-    statusColor = '#dc2626'; // Rouge plus doux
-    statusIcon = '❌';
+    statusBg = '#fee2e2';
+    statusColor = '#e11d48'; // Rose doux
+    statusIcon = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
     statusText = 'Annulée';
   } else if (isNotRecuperee) {
-    statusBg = '#fef3c7';
-    statusColor = '#d97706'; // Orange plus doux
-    statusIcon = '⚠️';
+    statusBg = '#fef9c3';
+    statusColor = '#ea580c'; // Pêche
+    statusIcon = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
     statusText = 'Pas récupérée';
   }
 
   // Badge paiement : uniquement si récupérée (sinon redondant avec "Annulée")
   const paymentBadge = isRecuperee
-    ? '<span style="background:#f0fdf4;color:#166534;padding:3px 8px;border-radius:4px;font-size:0.7rem;font-weight:600;">💳 Payé</span>'
+    ? '<span style="background:#ecfdf5;color:#059669;padding:4px 10px;border-radius:6px;font-size:0.7rem;font-weight:600;display:inline-flex;align-items:center;gap:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Payé</span>'
     : '';
 
   return `
@@ -4632,6 +4644,25 @@ async function computeAnalytics() {
 // ===== CLIENTS =====
 let clientsDisplayLimit = 50;  // Afficher 50 clients par défaut
 let currentClientFilter = 'all';  // Filtre actif
+
+// Helper: Icône SVG moyen de paiement
+function getPaymentIcon(order, includeText = true) {
+  const isCB = !!order.paygreen_transaction_id;
+  const isEdenred = !!order.edenred_payment_id;
+
+  if (isCB) {
+    const icon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:3px"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>';
+    return includeText ? icon + ' CB' : icon;
+  }
+
+  if (isEdenred) {
+    const icon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:3px"><path d="M21 4H3v16h18V4z"/><path d="M6 8h12"/><path d="M6 12h12"/><path d="M6 16h6"/></svg>';
+    return includeText ? icon + ' TR' : icon;
+  }
+
+  const icon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:3px"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+  return includeText ? icon + ' ?' : icon;
+}
 
 // Helper: Calculer "il y a X jours"
 function getTimeAgo(dateString) {

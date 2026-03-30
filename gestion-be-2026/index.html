@@ -2107,20 +2107,35 @@ function parsePickupTime(order) {
 
 // Helper: check if order is for today
 function isToday(order) {
-  // Si heure_retrait contient "Demain" ou jours futurs → pas aujourd'hui
   const heureRetrait = (order.heure_retrait || '').toLowerCase();
-  if (heureRetrait.includes('demain') || heureRetrait.includes('lundi') || heureRetrait.includes('mardi') || heureRetrait.includes('mercredi') || heureRetrait.includes('jeudi') || heureRetrait.includes('vendredi') || heureRetrait.includes('samedi') || heureRetrait.includes('dimanche')) {
+  const now = new Date();
+
+  // "Aujourd'hui" explicite → oui
+  if (heureRetrait.includes("aujourd'hui") || heureRetrait.includes('today')) {
+    return true;
+  }
+
+  // "Demain" explicite → non
+  if (heureRetrait.includes('demain') || heureRetrait.includes('tomorrow')) {
     return false;
   }
 
-  // Si created dans les dernières 18h → probablement pour aujourd'hui
-  // (Permet commandes créées tard hier soir pour aujourd'hui)
+  // Jour de la semaine mentionné : vérifier si c'est aujourd'hui
+  const jours = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+  const jourAujourdhui = jours[now.getDay()];
+
+  const jourMentionne = jours.find(j => heureRetrait.includes(j));
+  if (jourMentionne) {
+    // Si le jour mentionné = aujourd'hui → oui, sinon → non (future)
+    return jourMentionne === jourAujourdhui;
+  }
+
+  // Pas de jour mentionné : si créée dans les dernières 18h → aujourd'hui
   const orderDate = new Date(order.created_at);
-  const now = new Date();
   const hoursSinceCreated = (now - orderDate) / (1000 * 60 * 60);
 
   if (hoursSinceCreated < 18) {
-    return true; // Commande récente, probablement pour aujourd'hui
+    return true;
   }
 
   // Sinon, vérifier si created_at est aujourd'hui
@@ -2129,17 +2144,30 @@ function isToday(order) {
 
 // Helper: check if order is future (J+1, J+2...)
 function isFuture(order) {
-  // Check if pickup time contains "Demain" or future date indicators (jours de la semaine)
   const heureRetrait = (order.heure_retrait || '').toLowerCase();
-  if (heureRetrait.includes('demain') || heureRetrait.includes('tomorrow') ||
-      heureRetrait.includes('lundi') || heureRetrait.includes('mardi') ||
-      heureRetrait.includes('mercredi') || heureRetrait.includes('jeudi') ||
-      heureRetrait.includes('vendredi') || heureRetrait.includes('samedi') ||
-      heureRetrait.includes('dimanche')) {
+  const now = new Date();
+
+  // "Demain" explicite → oui, c'est futur
+  if (heureRetrait.includes('demain') || heureRetrait.includes('tomorrow')) {
     return true;
   }
 
-  // Fallback: check created_at date
+  // "Aujourd'hui" explicite → non, pas futur
+  if (heureRetrait.includes("aujourd'hui") || heureRetrait.includes('today')) {
+    return false;
+  }
+
+  // Jour de la semaine mentionné : vérifier si c'est dans le futur
+  const jours = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+  const jourAujourdhui = jours[now.getDay()];
+
+  const jourMentionne = jours.find(j => heureRetrait.includes(j));
+  if (jourMentionne) {
+    // Si le jour mentionné != aujourd'hui → c'est futur
+    return jourMentionne !== jourAujourdhui;
+  }
+
+  // Fallback: check created_at date (rare, au cas où)
   const orderDate = new Date(order.created_at);
   const today = new Date();
   today.setHours(0, 0, 0, 0);

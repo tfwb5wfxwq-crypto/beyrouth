@@ -148,21 +148,27 @@ button{cursor:pointer;font-family:inherit;border:none}
   box-shadow:0 2px 8px rgba(0,0,0,.04);
 }
 .tab{
-  padding:16px 24px;font-weight:600;font-size:.95rem;
-  color:#888;border-bottom:3px solid transparent;
-  background:none;transition:all .3s;position:relative;
-  border-radius:8px 8px 0 0;
+  padding:16px 24px;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto','Oxygen','Ubuntu',sans-serif;
+  font-weight:600;
+  font-size:1rem;
+  letter-spacing:0.01em;
+  color:#6b7280;
+  border-bottom:3px solid transparent;
+  background:none;
+  transition:all .25s ease;
+  position:relative;
 }
 .tab.active{
-  color:var(--bordeaux);
-  background:#fff;
-  box-shadow:0 -2px 12px rgba(139,21,34,.08), inset 0 -3px 0 var(--gold);
-  transform:translateY(-2px);
+  color:#1f2937;
+  font-weight:700;
+  background:linear-gradient(to bottom, #ffffff, #fafafa);
+  border-bottom-color:#2C3E50;
+  box-shadow:0 1px 3px rgba(0,0,0,.08);
 }
-.tab:hover{
-  color:var(--noir);
-  background:rgba(139,21,34,.03);
-  transform:translateY(-1px);
+.tab:hover:not(.active){
+  color:#374151;
+  background:#f9fafb;
 }
 .tab-badge{
   display:inline-flex;align-items:center;justify-content:center;
@@ -841,7 +847,7 @@ button{cursor:pointer;font-family:inherit;border:none}
     <div class="tab-content" id="tab-completed" style="display:none">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--bordeaux)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        <h2 style="margin:0;color:var(--bordeaux);font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;letter-spacing:-0.02em;">Historique</h2>
+        <h2 style="margin:0;color:#1f2937;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto',sans-serif;font-size:1.75rem;font-weight:700;letter-spacing:-0.03em;">Historique</h2>
       </div>
       <p style="margin-bottom:20px;color:#888;font-size:0.9rem;display:flex;align-items:center;gap:8px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>

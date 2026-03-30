@@ -3457,7 +3457,7 @@ function showConfirm(message, confirmText = 'Confirmer', cancelText = 'Annuler',
     const formattedMessage = message.replace(/\n/g, '<br>');
 
     modal.innerHTML = `
-      <div class="modal-box" style="animation:slideIn 0.3s ease;">
+      <div class="modal-box">
         <div style="font-size:1.1rem;font-weight:600;color:#1a1a1a;margin-bottom:16px;line-height:1.6;">
           ${formattedMessage}
         </div>

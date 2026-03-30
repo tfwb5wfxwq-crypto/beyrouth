@@ -3922,7 +3922,7 @@ async function showCompletedOrderDetails(orderId) {
               <div style="font-size:0.85rem;color:#666;margin-bottom:2px;">Confirmation :</div>
               <div style="font-size:0.9rem;color:${emailConfig.color};font-weight:600;">${emailConfig.emoji} ${emailConfig.text}</div>
               ${order.confirmation_email_sent_at ? `<div style="font-size:0.7rem;color:#666;margin-top:4px;">${formatDate(order.confirmation_email_sent_at)}</div>` : ''}
-              ${order.reminder_sent_at ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid ${emailConfig.color}30;"><div style="font-size:0.85rem;color:#666;margin-bottom:2px;">Relance${order.reminder_count > 1 ? ` (×${order.reminder_count})` : ''} :</div><div style="font-size:0.9rem;color:#f59e0b;font-weight:600;">📧 Envoyé</div><div style="font-size:0.7rem;color:#666;margin-top:4px;">${formatDate(order.reminder_sent_at)}</div></div>` : ''}
+              ${order.reminder_sent_at ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid ${emailConfig.color}30;"><div style="font-size:0.85rem;color:#666;margin-bottom:2px;">Relance${order.reminder_count > 1 ? `s (${order.reminder_count})` : ''} :</div><div style="font-size:0.9rem;color:#f59e0b;font-weight:600;">📧 Envoyé</div>${(order.reminder_dates || []).map(date => `<div style="font-size:0.7rem;color:#666;margin-top:4px;">• ${formatDate(date)}</div>`).join('')}</div>` : ''}
             </div>
           </div>
         </div>
@@ -4138,14 +4138,20 @@ async function remindClient(orderId) {
 
     showToast(`✅ Email de relance envoyé à ${data.email}`, 'success');
 
-    // Incrémenter reminder_count et mettre à jour reminder_sent_at
-    const { data: order } = await sb.from('orders').select('reminder_count').eq('id', orderId).single();
+    // Ajouter la date dans l'historique et incrémenter le compteur
+    const { data: order } = await sb.from('orders').select('reminder_count, reminder_dates').eq('id', orderId).single();
     const newCount = (order?.reminder_count || 0) + 1;
+    const now = new Date().toISOString();
+
+    // Ajouter la nouvelle date à l'array (ou créer l'array si null)
+    const dates = order?.reminder_dates || [];
+    dates.push(now);
 
     await sb.from('orders')
       .update({
-        reminder_sent_at: new Date().toISOString(),
-        reminder_count: newCount
+        reminder_sent_at: now, // Dernière date (pour compat)
+        reminder_count: newCount,
+        reminder_dates: dates
       })
       .eq('id', orderId);
 

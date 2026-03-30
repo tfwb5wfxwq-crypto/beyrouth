@@ -1789,18 +1789,39 @@ async function submitOrder() {
     if (error) {
       console.error('Edge Function error:', error);
       console.error('Edge Function data:', data);
-      // Extraire le vrai message d'erreur depuis l'Edge Function
+
       let errorMessage = 'Erreur de paiement. Réessayez.';
 
       // Cas 1: Message dans data.error (réponse 400 de l'Edge Function)
       if (data && typeof data === 'object' && data.error) {
         errorMessage = data.error;
       }
-      // Cas 2: Message dans error.message mais pas un message technique
-      else if (error.message && !error.message.includes('FunctionsHttpError') && !error.message.includes('non-2xx')) {
+      // Cas 2: FunctionsFetchError avec data null - fetch manuel pour récupérer le vrai message
+      else if (error.name === 'FunctionsFetchError' && !data) {
+        try {
+          // Faire un fetch() manuel pour récupérer le message d'erreur de l'Edge Function
+          const manualResponse = await fetch(`${SUPABASE_URL}/functions/v1/create-payment`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+            },
+            body: JSON.stringify({orderNum, total: Math.round(total * 100), email, name, phone, pickup, note, items: cart})
+          });
+
+          const manualData = await manualResponse.json();
+          if (manualData && manualData.error) {
+            errorMessage = manualData.error;
+          }
+        } catch (fetchErr) {
+          console.error('Erreur fetch manuel:', fetchErr);
+        }
+      }
+      // Cas 3: Message dans error.message mais pas un message technique
+      else if (error.message && !error.message.includes('FunctionsHttpError') && !error.message.includes('non-2xx') && !error.message.includes('Failed to send')) {
         errorMessage = error.message;
       }
-      // Cas 3: Erreur réseau ou technique
+      // Cas 4: Erreur réseau
       else if (error.message && error.message.includes('Failed to fetch')) {
         errorMessage = 'Erreur de connexion. Vérifiez votre réseau.';
       }

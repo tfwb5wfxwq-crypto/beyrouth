@@ -3445,6 +3445,46 @@ function showToast(message, type = 'info') {
   }, 3000);
 }
 
+// ===== CONFIRM MODAL (remplace confirm() natif) =====
+function showConfirm(message, confirmText = 'Confirmer', cancelText = 'Annuler', danger = false) {
+  return new Promise((resolve) => {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+
+    // Nettoyer le message (remplacer \n par <br>)
+    const formattedMessage = message.replace(/\n/g, '<br>');
+
+    modal.innerHTML = `
+      <div class="modal-box" style="animation:slideIn 0.3s ease;">
+        <div style="font-size:1.1rem;font-weight:600;color:#1a1a1a;margin-bottom:16px;line-height:1.6;">
+          ${formattedMessage}
+        </div>
+        <div class="modal-buttons" style="margin-top:24px;">
+          <button class="modal-btn modal-btn-secondary" data-action="cancel">${cancelText}</button>
+          <button class="modal-btn modal-btn-primary" data-action="confirm" style="${danger ? 'background:#ef4444;' : ''}">${confirmText}</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Gérer les clics
+    modal.addEventListener('click', (e) => {
+      const action = e.target.dataset.action;
+      if (action === 'confirm') {
+        modal.remove();
+        resolve(true);
+      } else if (action === 'cancel' || e.target === modal) {
+        modal.remove();
+        resolve(false);
+      }
+    });
+
+    // Focus sur le bouton confirmer
+    setTimeout(() => modal.querySelector('[data-action="confirm"]')?.focus(), 100);
+  });
+}
+
 // ===== RESCHEDULE ORDER =====
 function rescheduleOrder(orderId, currentTime) {
   const modal = document.createElement('div');
@@ -3877,6 +3917,7 @@ async function showCompletedOrderDetails(orderId) {
             <div style="background:${emailConfig.color}15;padding:12px;border-radius:6px;border:1px solid ${emailConfig.color}40;">
               <div style="font-size:0.9rem;color:${emailConfig.color};font-weight:600;">${emailConfig.emoji} ${emailConfig.text}</div>
               ${order.confirmation_email_sent_at ? `<div style="font-size:0.7rem;color:#666;margin-top:4px;">${formatDate(order.confirmation_email_sent_at)}</div>` : ''}
+              ${order.reminder_sent_at ? `<div style="font-size:0.7rem;color:#f59e0b;margin-top:6px;padding-top:6px;border-top:1px solid ${emailConfig.color}20;">📧 Relancé le ${formatDate(order.reminder_sent_at)}</div>` : ''}
             </div>
           </div>
         </div>
@@ -3927,7 +3968,12 @@ async function showCompletedOrderDetails(orderId) {
 
 // Renvoyer le ticket de caisse (email "Merci + PDF")
 async function resendCompletedOrderEmail(orderId) {
-  if (!confirm('Renvoyer le ticket de caisse au client ?\n(Email "Merci pour votre visite" avec lien PDF)')) return;
+  const confirmed = await showConfirm(
+    'Renvoyer le ticket de caisse au client ?<br><br>Email "Merci pour votre visite" avec lien PDF',
+    '📧 Renvoyer',
+    'Annuler'
+  );
+  if (!confirmed) return;
 
   showToast('📧 Envoi en cours...', 'info');
 
@@ -4067,7 +4113,12 @@ async function confirmCancelAndRefundCompleted(orderId) {
 
 // Relancer le client (email de rappel pour commande pas récupérée)
 async function remindClient(orderId) {
-  if (!confirm('Envoyer un email de relance au client pour lui rappeler sa commande ?')) return;
+  const confirmed = await showConfirm(
+    'Envoyer un email de relance au client pour lui rappeler sa commande ?',
+    '📧 Envoyer',
+    'Annuler'
+  );
+  if (!confirmed) return;
 
   showToast('📧 Envoi en cours...', 'info');
 
@@ -4098,7 +4149,12 @@ async function remindClient(orderId) {
 
 // Marquer une commande comme récupérée (si finalement client est venu)
 async function markAsRecuperee(orderId) {
-  if (!confirm('Marquer cette commande comme récupérée ?\n\nCela signifie que le client est finalement venu chercher sa commande.')) return;
+  const confirmed = await showConfirm(
+    'Marquer cette commande comme récupérée ?<br><br>Cela signifie que le client est finalement venu chercher sa commande.',
+    'Oui, récupérée',
+    'Annuler'
+  );
+  if (!confirmed) return;
 
   showToast('✅ Mise à jour...', 'info');
 
@@ -4429,9 +4485,13 @@ async function loadArchiveStats() {
 }
 
 async function runArchivingNow() {
-  if (!confirm('Exécuter l\'archivage maintenant ?\n\nCela va :\n• Masquer les commandes > 30 jours\n• Archiver les commandes > 1 an\n• Marquer éligibles à la purge les commandes > 3 ans')) {
-    return;
-  }
+  const confirmed = await showConfirm(
+    'Exécuter l\'archivage maintenant ?<br><br>Cela va :<br>• Masquer les commandes > 30 jours<br>• Archiver les commandes > 1 an<br>• Marquer éligibles à la purge les commandes > 3 ans',
+    'Archiver',
+    'Annuler',
+    true
+  );
+  if (!confirmed) return;
 
   showToast('⏳ Archivage en cours...');
 
@@ -4671,9 +4731,12 @@ async function loadArchiveLogs() {
 }
 
 async function computeAnalytics() {
-  if (!confirm('Recalculer les analytics ?\n\nCela va recalculer les statistiques pour toutes les commandes archivées. Cette opération peut prendre quelques minutes.')) {
-    return;
-  }
+  const confirmed = await showConfirm(
+    'Recalculer les analytics ?<br><br>Cela va recalculer les statistiques pour toutes les commandes archivées. Cette opération peut prendre quelques minutes.',
+    'Calculer',
+    'Annuler'
+  );
+  if (!confirmed) return;
 
   showToast('⏳ Calcul en cours...');
 

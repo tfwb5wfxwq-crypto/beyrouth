@@ -2083,16 +2083,16 @@ function selectPaymentMethod(method) {
     const currentMinutes = hour * 60 + minute;
 
     const isSunday = day === 0;
-    const isOpenHours = currentMinutes >= 11 * 60 + 30 && currentMinutes <= 21 * 60; // 11h30 - 21h00
+    const isOpenHours = currentMinutes >= 11 * 60 + 30 && currentMinutes <= 22 * 60; // 11h30 - 22h00 (TEMP TESTING)
 
     const isBlocked = isSunday || !isOpenHours;
 
     if (isBlocked) {
       haptic.trigger('error');
       if (isSunday) {
-        showToast('⏰ Les cartes restaurant ne sont acceptées que du lundi au samedi de 11h30 à 21h00', 'error');
+        showToast('⏰ Les cartes restaurant ne sont acceptées que du lundi au samedi de 11h30 à 22h00', 'error');
       } else {
-        showToast('⏰ Les cartes restaurant ne sont acceptées que de 11h30 à 21h00', 'error');
+        showToast('⏰ Les cartes restaurant ne sont acceptées que de 11h30 à 22h00', 'error');
       }
       return;
     }

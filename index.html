@@ -825,7 +825,7 @@ function updateOpenStatus() {
   if (window.indefinitePause === true) {
     statusEl.classList.add('closed');
     textEl.textContent = 'Temporairement fermé';
-    hoursEl.innerHTML = '· <a href="/traiteur" style="color:var(--gold);text-decoration:none;">Service traiteur disponible →</a>';
+    hoursEl.textContent = '· Réouverture prochaine';
     return false;
   }
 

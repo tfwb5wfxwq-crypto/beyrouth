@@ -3826,7 +3826,9 @@ async function showCompletedOrderDetails(orderId) {
     opened: { emoji: '👁️', text: 'Lu', color: '#3b82f6' },
     error: { emoji: '❌', text: 'Erreur', color: '#ef4444' }
   };
-  const emailConfig = emailStatusConfig[order.email_status] || { emoji: '📧', text: 'Non envoyé', color: '#999' };
+  // Si confirmation_email_sent_at existe mais pas de email_status, considérer comme "Envoyé"
+  const emailConfig = emailStatusConfig[order.email_status] ||
+    (order.confirmation_email_sent_at ? { emoji: '✅', text: 'Envoyé', color: '#22c55e' } : { emoji: '📧', text: 'Non envoyé', color: '#999' });
 
   // Items HTML
   const itemsHtml = items.map(item => {
@@ -3913,11 +3915,12 @@ async function showCompletedOrderDetails(orderId) {
           </div>
           <!-- Email -->
           <div>
-            <div style="font-size:0.85rem;color:#888;margin-bottom:8px;font-weight:600;">📧 Email</div>
+            <div style="font-size:0.85rem;color:#888;margin-bottom:8px;font-weight:600;">📧 Emails</div>
             <div style="background:${emailConfig.color}15;padding:12px;border-radius:6px;border:1px solid ${emailConfig.color}40;">
+              <div style="font-size:0.85rem;color:#666;margin-bottom:2px;">Confirmation :</div>
               <div style="font-size:0.9rem;color:${emailConfig.color};font-weight:600;">${emailConfig.emoji} ${emailConfig.text}</div>
               ${order.confirmation_email_sent_at ? `<div style="font-size:0.7rem;color:#666;margin-top:4px;">${formatDate(order.confirmation_email_sent_at)}</div>` : ''}
-              ${order.reminder_sent_at ? `<div style="font-size:0.7rem;color:#f59e0b;margin-top:6px;padding-top:6px;border-top:1px solid ${emailConfig.color}20;">📧 Relancé le ${formatDate(order.reminder_sent_at)}</div>` : ''}
+              ${order.reminder_sent_at ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid ${emailConfig.color}30;"><div style="font-size:0.85rem;color:#666;margin-bottom:2px;">Relance :</div><div style="font-size:0.9rem;color:#f59e0b;font-weight:600;">📧 Envoyé</div><div style="font-size:0.7rem;color:#666;margin-top:4px;">${formatDate(order.reminder_sent_at)}</div></div>` : ''}
             </div>
           </div>
         </div>

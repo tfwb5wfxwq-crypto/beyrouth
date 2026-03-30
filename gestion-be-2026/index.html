@@ -778,7 +778,7 @@ button{cursor:pointer;font-family:inherit;border:none}
         </span>
         <span style="width:1px;height:14px;background:rgba(255,255,255,0.15);"></span>
         <span style="display:flex;align-items:center;gap:4px;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span style="font-size:14px;font-weight:700;color:#fff;">€</span>
           <span style="font-weight:600;font-size:0.85rem;font-variant-numeric:tabular-nums;">0€</span>
         </span>
       </span>
@@ -3093,7 +3093,7 @@ async function updateStatus(orderId, newStatus) {
       }
     }
 
-    // Envoyer email de remerciement quand commande récupérée
+    // Envoyer email avec ticket de caisse quand commande récupérée
     if (newStatus === 'recuperee') {
       haptic.trigger('success'); // Vibration confirmation récupération
 
@@ -3111,20 +3111,20 @@ async function updateStatus(orderId, newStatus) {
           if (error) throw error;
 
           // SUCCÈS !
-          console.log(`✅ Email de remerciement envoyé (tentative ${attempt}/3):`, data);
-          showToast('✅ Email de remerciement envoyé à ' + (order.client_email || 'client'), 'success', 5000);
+          console.log(`✅ Ticket de caisse envoyé (tentative ${attempt}/3):`, data);
+          showToast('✅ Ticket de caisse envoyé à ' + (order.client_email || 'client'), 'success', 5000);
           emailSent = true;
           break; // Succès → sortir de la boucle
 
         } catch (err) {
-          console.error(`❌ Tentative ${attempt}/3 envoi email remerciement échouée:`, err);
+          console.error(`❌ Tentative ${attempt}/3 envoi ticket de caisse échoué:`, err);
 
           if (attempt < 3) {
             // Attendre avant retry : 1s, 2s, 4s (backoff exponentiel)
             await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt - 1)));
           } else {
             // ÉCHEC après 3 tentatives (pas critique, juste log)
-            console.warn('⚠️ Email de remerciement non envoyé, le client pourra quand même télécharger sa facture.');
+            console.warn('⚠️ Ticket de caisse non envoyé, le client pourra quand même télécharger sa facture.');
           }
         }
       }
@@ -4208,7 +4208,7 @@ async function showCompletedOrderDetails(orderId) {
               <div style="font-size:0.9rem;color:${emailConfig.color};font-weight:600;">${emailConfig.emoji} ${emailConfig.text}</div>
               ${order.confirmation_email_sent_at ? `<div style="font-size:0.7rem;color:#666;margin-top:4px;">${formatDate(order.confirmation_email_sent_at)}</div>` : ''}
               ${order.reminder_sent_at ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid ${emailConfig.color}30;"><div style="font-size:0.85rem;color:#666;margin-bottom:2px;">Relance${order.reminder_count > 1 ? `s (${order.reminder_count})` : ''} :</div><div style="font-size:0.9rem;color:#f59e0b;font-weight:600;">📧 Envoyé</div>${(order.reminder_dates || []).map(date => `<div style="font-size:0.7rem;color:#666;margin-top:4px;">• ${formatDate(date)}</div>`).join('')}</div>` : ''}
-              ${order.completed_email_sent_at ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid ${emailConfig.color}30;"><div style="font-size:0.85rem;color:#666;margin-bottom:2px;">Remerciement :</div><div style="font-size:0.9rem;color:#10b981;font-weight:600;">✅ Envoyé</div><div style="font-size:0.7rem;color:#666;margin-top:4px;">${formatDate(order.completed_email_sent_at)}</div></div>` : ''}
+              ${order.completed_email_sent_at ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid ${emailConfig.color}30;"><div style="font-size:0.85rem;color:#666;margin-bottom:2px;">Ticket de caisse :</div><div style="font-size:0.9rem;color:#10b981;font-weight:600;">✅ Envoyé</div><div style="font-size:0.7rem;color:#666;margin-top:4px;">${formatDate(order.completed_email_sent_at)}</div></div>` : ''}
             </div>
           </div>
         </div>
@@ -4476,7 +4476,7 @@ async function markAsRecuperee(orderId) {
 
     showToast('✅ Commande marquée comme récupérée', 'success');
 
-    // Envoyer l'email de remerciement avec facture
+    // Envoyer l'email avec ticket de caisse
     try {
       const adminToken = localStorage.getItem('adminToken');
       const { data, error: emailError } = await sb.functions.invoke('send-order-completed', {
@@ -4485,10 +4485,10 @@ async function markAsRecuperee(orderId) {
       });
 
       if (emailError) throw emailError;
-      console.log('✅ Email de remerciement envoyé:', data);
-      showToast('📧 Email de remerciement envoyé', 'success', 3000);
+      console.log('✅ Ticket de caisse envoyé:', data);
+      showToast('📧 Ticket de caisse envoyé', 'success', 3000);
     } catch (emailErr) {
-      console.warn('⚠️ Email de remerciement non envoyé:', emailErr);
+      console.warn('⚠️ Ticket de caisse non envoyé:', emailErr);
       showToast('⚠️ Commande récupérée mais email non envoyé', 'warning', 5000);
     }
 

@@ -776,11 +776,11 @@ const DEMO_ITEMS = [
 // ⚠️ Restaurant fermé week-end (affiche "Fermé" samedi/dimanche)
 // Client peut QUAND MÊME commander le week-end pour retrait lundi (sélection horaires fonctionne toujours)
 const BUSINESS_HOURS = [
-  [1, 11, 30, 21, 30],  // Lundi: 11h30 - 21h30 (dernière commande) - TEMP TESTING
-  [2, 11, 30, 21, 30],  // Mardi: 11h30 - 21h30 (dernière commande) - TEMP TESTING
-  [3, 11, 30, 21, 30],  // Mercredi: 11h30 - 21h30 (dernière commande) - TEMP TESTING
-  [4, 11, 30, 21, 30],  // Jeudi: 11h30 - 21h30 (dernière commande) - TEMP TESTING
-  [5, 11, 30, 21, 30],  // Vendredi: 11h30 - 21h30 (dernière commande) - TEMP TESTING
+  [1, 11, 30, 20, 30],  // Lundi: 11h30 - 20h30 (dernière commande)
+  [2, 11, 30, 20, 30],  // Mardi: 11h30 - 20h30 (dernière commande)
+  [3, 11, 30, 20, 30],  // Mercredi: 11h30 - 20h30 (dernière commande)
+  [4, 11, 30, 20, 30],  // Jeudi: 11h30 - 20h30 (dernière commande)
+  [5, 11, 30, 20, 30],  // Vendredi: 11h30 - 20h30 (dernière commande)
 ];
 const JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 
@@ -2028,7 +2028,7 @@ function updateRestoCardsAvailability() {
   const currentMinutes = hour * 60 + minute;
 
   const isSunday = day === 0;
-  const isOpenHours = currentMinutes >= 11 * 60 + 30 && currentMinutes <= 21 * 60; // 11h30 - 21h00
+  const isOpenHours = currentMinutes >= 11 * 60 + 30 && currentMinutes <= 22 * 60; // 11h30 - 22h00 (TEMP TESTING)
 
   // Cartes resto bloquées si dimanche OU hors horaires (samedi autorisé aux heures d'ouverture)
   const isBlocked = isSunday || !isOpenHours;
@@ -2040,9 +2040,9 @@ function updateRestoCardsAvailability() {
     // Afficher le message d'avertissement adapté
     if (warning) {
       if (isSunday) {
-        warning.innerHTML = '⏰ <strong>Les cartes restaurant sont acceptées du lundi au samedi de 11h30 à 21h00.</strong><br>Veuillez utiliser une carte bancaire.';
+        warning.innerHTML = '⏰ <strong>Les cartes restaurant sont acceptées du lundi au samedi de 11h30 à 22h00.</strong><br>Veuillez utiliser une carte bancaire.';
       } else {
-        warning.innerHTML = '⏰ <strong>Les cartes restaurant sont uniquement acceptées de 11h30 à 21h00.</strong><br>Veuillez utiliser une carte bancaire.';
+        warning.innerHTML = '⏰ <strong>Les cartes restaurant sont uniquement acceptées de 11h30 à 22h00.</strong><br>Veuillez utiliser une carte bancaire.';
       }
       warning.style.display = 'block';
     }

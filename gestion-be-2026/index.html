@@ -1081,9 +1081,9 @@ button{cursor:pointer;font-family:inherit;border:none}
 <!-- Modal Pause Créneaux -->
 <div id="slotPauseModal" style="display:none;position:absolute;z-index:10000;top:0;left:0">
   <div style="background:#fff;border-radius:12px;padding:16px;width:240px;box-shadow:0 4px 20px rgba(0,0,0,.15);border:1px solid #e0e0e0">
-    <p style="color:#666;margin-bottom:12px;font-size:.85rem;font-weight:600">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-      Décaler créneaux :
+    <p style="color:#666;margin-bottom:12px;font-size:.85rem;font-weight:600;display:flex;align-items:center;gap:6px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Décaler créneaux
     </p>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
@@ -1093,10 +1093,16 @@ button{cursor:pointer;font-family:inherit;border:none}
       <button onclick="pauseSlots(120); closeSlotPauseModal()" class="pause-btn" style="padding:9px;font-size:.85rem">2h</button>
     </div>
 
-    <button onclick="pauseSlots('tomorrow'); closeSlotPauseModal()" class="pause-btn" style="width:100%;padding:9px;font-size:.85rem;margin-bottom:8px">🌙 Jusqu'à demain</button>
+    <button onclick="pauseSlots('tomorrow'); closeSlotPauseModal()" class="pause-btn" style="width:100%;padding:9px;font-size:.85rem;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:6px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      Jusqu'à demain 11h30
+    </button>
 
     <!-- Pause indéfinie (vacances/urgence) -->
-    <button onclick="showIndefinitePauseConfirm(); closeSlotPauseModal()" class="pause-btn" style="width:100%;padding:9px;font-size:.85rem;margin-bottom:8px;background:linear-gradient(135deg,#dc2626,#b91c1c);border:none;color:#fff;font-weight:600;">🔒 Pause indéfinie</button>
+    <button onclick="showIndefinitePauseConfirm(); closeSlotPauseModal()" class="pause-btn" style="width:100%;padding:9px;font-size:.85rem;margin-bottom:8px;background:linear-gradient(135deg,#f97316,#ea580c);border:none;color:#fff;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Pause indéfinie
+    </button>
 
     <button onclick="closeSlotPauseModal()" style="width:100%;padding:7px;background:#f0f0f0;color:#666;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:.8rem">Annuler</button>
   </div>

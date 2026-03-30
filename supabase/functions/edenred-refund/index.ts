@@ -138,10 +138,7 @@ serve(async (req) => {
     }
 
     // Mettre à jour la commande pour tracker le remboursement
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    // (réutilise le client supabase déjà créé en ligne 38)
 
     const { error: updateError } = await supabase
       .from('orders')

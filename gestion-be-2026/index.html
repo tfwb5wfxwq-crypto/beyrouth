@@ -4800,10 +4800,10 @@ async function loadCompleted() {
   startDate.setDate(now.getDate() - 30); // 30 jours glissant
 
   // Charger toutes les commandes terminées OU archivées (client pas venu)
-  // = Récupérées (recuperee) + Annulées (cancelled) + Pas récupérées (archived = true)
+  // = Récupérées (recuperee) + Annulées (cancelled) + Remboursées (refunded) + Pas récupérées (archived = true)
   const {data, error} = await sb.from('orders')
     .select('*')
-    .or('statut.eq.recuperee,statut.eq.cancelled,archived.eq.true')
+    .or('statut.eq.recuperee,statut.eq.cancelled,statut.eq.refunded,archived.eq.true')
     .gte('created_at', startDate.toISOString())
     .order('created_at', {ascending: false})
     .limit(500);

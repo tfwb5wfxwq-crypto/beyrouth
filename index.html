@@ -1155,14 +1155,6 @@ function addToCart(itemId) {
     return;
   }
 
-  // ⚠️ CHECK : Restaurant fermé (horaires)
-  if (!isOpenNow()) {
-    const next = getNextOpenSlot();
-    const nextMsg = next ? ` Réouverture ${next.jour} ${next.h}h${next.m ? String(next.m).padStart(2,'0') : '00'}` : '';
-    showToast(`Restaurant fermé.${nextMsg}`, 'error');
-    return;
-  }
-
   const item = menuItems.find(i => i.id === itemId);
   if (!item || !item.disponible) return;
 

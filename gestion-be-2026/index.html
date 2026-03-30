@@ -3450,6 +3450,8 @@ function showConfirm(message, confirmText = 'Confirmer', cancelText = 'Annuler',
   return new Promise((resolve) => {
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
+    // ⚠️ IMPORTANT: z-index 10000 pour passer AU-DESSUS des autres modales (completedModal = 9999)
+    modal.style.zIndex = '10000';
 
     // Nettoyer le message (remplacer \n par <br>)
     const formattedMessage = message.replace(/\n/g, '<br>');

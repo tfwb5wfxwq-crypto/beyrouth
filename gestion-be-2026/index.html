@@ -2343,6 +2343,7 @@ async function loadOrders() {
   // pour éviter de surcharger l'admin après plusieurs mois d'activité
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  sevenDaysAgo.setHours(0, 0, 0, 0); // ⚠️ FIX: Inclure toute la journée du 7e jour (pas juste depuis l'heure actuelle)
 
   const {data} = await sb.from('orders')
     .select('*')

@@ -4080,25 +4080,19 @@ function formatGroupDate(dateKey) {
   if (diffDays === 0) return '📅 Aujourd\'hui';
   if (diffDays === 1) return '📅 Hier';
 
-  // Cette semaine
+  // Cette semaine (lundi à aujourd'hui-2)
   const weekStart = new Date(today);
   weekStart.setDate(today.getDate() - today.getDay() + 1); // Lundi
   if (targetDate >= weekStart && targetDate < today) {
     const dayName = date.toLocaleDateString('fr-FR', { weekday: 'long' });
-    return dayName.charAt(0).toUpperCase() + dayName.slice(1);
+    return '📅 ' + dayName.charAt(0).toUpperCase() + dayName.slice(1);
   }
 
-  // Semaine dernière
-  const lastWeekStart = new Date(weekStart);
-  lastWeekStart.setDate(weekStart.getDate() - 7);
-  if (targetDate >= lastWeekStart && targetDate < weekStart) {
-    return 'Semaine dernière';
-  }
-
-  // Format standard (Lun 24 mars)
+  // ⚠️ FIX: Afficher toujours le jour précis au lieu de "Semaine dernière"
+  // Format: "Lun 23 mars" pour clarté maximale
   const dayName = date.toLocaleDateString('fr-FR', { weekday: 'short' });
   const dateStr = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-  return dayName.charAt(0).toUpperCase() + dayName.slice(1) + ' ' + dateStr;
+  return '📅 ' + dayName.charAt(0).toUpperCase() + dayName.slice(1) + ' ' + dateStr;
 }
 
 // Afficher les détails d'une commande terminée (modal cliquable)

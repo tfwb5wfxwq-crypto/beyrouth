@@ -318,6 +318,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let orderData = null;
+let autoAcceptEnabled = false;
 
 // 🔒 SÉCURITÉ : Fonction d'échappement HTML pour prévenir les XSS
 function escapeHtml(text) {
@@ -371,30 +372,79 @@ function updateDisplay(order) {
   title.className = '';
 
   // Adapter selon statut
-  if (effectiveStatus === 'payee') {
-    // En attente validation
+  if (effectiveStatus === 'pending') {
+    // Paiement en cours de traitement
     icon.classList.add('orange');
     icon.textContent = '⏳';
     title.classList.add('orange');
-    title.textContent = 'En attente de validation';
-    subtitle.textContent = 'Le restaurant va confirmer votre commande';
+    title.textContent = 'Paiement en cours...';
+    subtitle.textContent = 'Validation du paiement en cours';
 
     banner.innerHTML = `
       <div class="status-banner waiting">
         <div class="status-banner-icon spinner">⏳</div>
-        <div class="status-banner-title">Validation en cours...</div>
+        <div class="status-banner-title">Traitement du paiement...</div>
         <div class="status-banner-text">
-          Le restaurant examine votre commande.<br>
-          Vous recevrez un email dès validation.
+          Votre paiement est en cours de validation.<br>
+          La page se met à jour automatiquement.
         </div>
         <div class="live-indicator">
           <div class="live-dot"></div>
-          <span>Cette page se met à jour automatiquement</span>
+          <span>En attente de confirmation...</span>
         </div>
       </div>
     `;
 
-    emailMsg.innerHTML = '✉️ <strong>Email envoyé</strong><br><span class="email-sub">Vous serez notifié dès validation</span>';
+    emailMsg.innerHTML = '⏳ <strong>Paiement en cours de validation</strong>';
+
+  } else if (effectiveStatus === 'payee') {
+    icon.classList.add('orange');
+    icon.textContent = '⏳';
+    title.classList.add('orange');
+
+    if (autoAcceptEnabled) {
+      // Auto-accept ON : validation automatique imminente
+      title.textContent = 'Validation automatique...';
+      subtitle.textContent = 'Votre commande va être confirmée dans quelques instants';
+
+      banner.innerHTML = `
+        <div class="status-banner waiting">
+          <div class="status-banner-icon spinner">⏳</div>
+          <div class="status-banner-title">Validation automatique en cours...</div>
+          <div class="status-banner-text">
+            Votre commande est en cours d'acceptation.<br>
+            Vous recevrez un email de confirmation dans quelques instants.
+          </div>
+          <div class="live-indicator">
+            <div class="live-dot"></div>
+            <span>Traitement en cours...</span>
+          </div>
+        </div>
+      `;
+
+      emailMsg.innerHTML = '✉️ <strong>Email de confirmation en route</strong><br><span class="email-sub">Quelques secondes...</span>';
+    } else {
+      // Auto-accept OFF : validation manuelle par le restaurant
+      title.textContent = 'En attente de validation';
+      subtitle.textContent = 'Le restaurant va confirmer votre commande';
+
+      banner.innerHTML = `
+        <div class="status-banner waiting">
+          <div class="status-banner-icon spinner">⏳</div>
+          <div class="status-banner-title">En attente du restaurant...</div>
+          <div class="status-banner-text">
+            Le restaurant examine votre commande.<br>
+            Vous recevrez un email dès validation.
+          </div>
+          <div class="live-indicator">
+            <div class="live-dot"></div>
+            <span>Cette page se met à jour automatiquement</span>
+          </div>
+        </div>
+      `;
+
+      emailMsg.innerHTML = '✉️ <strong>Email envoyé</strong><br><span class="email-sub">Vous serez notifié dès validation</span>';
+    }
 
   } else if (effectiveStatus === 'acceptee') {
     // Acceptée, en préparation
@@ -482,12 +532,13 @@ async function loadOrder() {
   }
 
   try {
-    // Charger la commande
-    const { data, error } = await sb
-      .from('orders')
-      .select('*')
-      .eq('numero', orderNum)
-      .single();
+    // Charger la commande + setting auto-accept en parallèle
+    const [{ data, error }, { data: autoAcceptSetting }] = await Promise.all([
+      sb.from('orders').select('*').eq('numero', orderNum).single(),
+      sb.from('settings').select('value').eq('key', 'auto_accept_orders').maybeSingle()
+    ]);
+
+    autoAcceptEnabled = autoAcceptSetting?.value === 'true';
 
     if (error) throw error;
     if (!data) {
@@ -541,9 +592,34 @@ async function loadOrder() {
         filter: `numero=eq.${orderNum}`
       }, payload => {
         console.log('Commande mise à jour:', payload.new);
+        orderData = payload.new;
         updateDisplay(payload.new);
       })
       .subscribe();
+
+    // Polling si pending OU si payee+auto-accept (transition rapide imminente)
+    if (data.statut === 'pending' || (data.statut === 'payee' && autoAcceptEnabled)) {
+      const pendingPoll = setInterval(async () => {
+        if (!orderData || (orderData.statut !== 'pending' && orderData.statut !== 'payee')) {
+          clearInterval(pendingPoll);
+          return;
+        }
+        try {
+          const { data: refreshed } = await sb
+            .from('orders')
+            .select('*')
+            .eq('numero', orderNum)
+            .single();
+          if (refreshed && refreshed.statut !== 'pending' && refreshed.statut !== 'payee') {
+            clearInterval(pendingPoll);
+            orderData = refreshed;
+            updateDisplay(refreshed);
+          }
+        } catch (e) {
+          console.error('Erreur polling pending:', e);
+        }
+      }, 3000);
+    }
 
   } catch (error) {
     console.error('Erreur:', error);

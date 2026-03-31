@@ -100,6 +100,11 @@ serve(async (req) => {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
   <meta name="supported-color-schemes" content="light">
+  <style>
+    .email-header-bg { background-color: #000000 !important; }
+    .email-wrapper { background-color: #f5f5f5 !important; }
+    .email-body { background-color: #ffffff !important; }
+  </style>
   <title>Commande annulée</title>
 </head>
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;">
@@ -110,7 +115,7 @@ serve(async (req) => {
 
           <!-- Header fond noir avec logo -->
           <tr>
-            <td style="background:#000;padding:8px 24px;text-align:center;">
+            <td class="email-header-bg" style="background:#000000;padding:8px 24px;text-align:center;">
               <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width:240px;height:auto;max-width:100%;display:block;margin:0 auto;">
             </td>
           </tr>

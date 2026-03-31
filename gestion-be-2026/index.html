@@ -2472,9 +2472,19 @@ function parsePickupTime(order) {
   const match = order.heure_retrait.match(/(\d+)h(\d+)/);
   if (!match) return new Date(order.created_at);
 
-  // Use order's created_at date, not today
-  const orderDate = new Date(order.created_at);
-  const dateStr = orderDate.toISOString().split('T')[0];
+  const heureRetrait = (order.heure_retrait || '').toLowerCase();
+  let targetDate;
+
+  if (heureRetrait.includes('demain') || heureRetrait.includes('tomorrow')) {
+    // "Demain HHhMM" → date de demain
+    targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 1);
+  } else {
+    // Utiliser la date de created_at (comportement existant)
+    targetDate = new Date(order.created_at);
+  }
+
+  const dateStr = targetDate.toISOString().split('T')[0];
   return new Date(`${dateStr}T${match[1].padStart(2, '0')}:${match[2].padStart(2, '0')}:00`);
 }
 
@@ -3951,10 +3961,39 @@ function showConfirm(message, confirmText = 'Confirmer', cancelText = 'Annuler',
 function rescheduleOrder(orderId, currentTime) {
   const modal = document.createElement('div');
   modal.className = 'modal-overlay';
+
+  // Extraire l'heure pour le champ time (ex: "Demain 11h30" → "11:30")
+  const timeMatch = currentTime.match(/(\d+)h(\d+)/);
+  const timeInputVal = timeMatch ? `${timeMatch[1].padStart(2,'0')}:${timeMatch[2]}` : '';
+
+  // Défaut "Demain" si commande déjà prévue pour demain, ou si on est après 20h30
+  const now = new Date();
+  const isPastClosing = now.getHours() > 20 || (now.getHours() === 20 && now.getMinutes() >= 30);
+  const isCurrentlyDemain = currentTime.toLowerCase().includes('demain');
+  const defaultDay = (isCurrentlyDemain || isPastClosing) ? 'demain' : 'aujourd\'hui';
+
+  const styleDemain = defaultDay === 'demain'
+    ? 'border:2px solid #D4A853;background:#FFF8DC;'
+    : 'border:2px solid #e5e7eb;background:#f5f5f5;';
+  const styleAujourdhui = defaultDay === 'aujourd\'hui'
+    ? 'border:2px solid #D4A853;background:#FFF8DC;'
+    : 'border:2px solid #e5e7eb;background:#f5f5f5;';
+
   modal.innerHTML = `
     <div class="modal-box">
       <div class="modal-title">⏰ Modifier l'heure de retrait</div>
-      <input type="time" class="modal-input" id="newPickupTime" value="${currentTime === 'asap' ? '' : currentTime.replace('h', ':')}">
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <button id="dayAujourdhui" onclick="selectRescheduleDay('aujourd\\'hui')"
+          style="flex:1;padding:10px;border-radius:8px;font-weight:600;cursor:pointer;transition:all 0.2s;${styleAujourdhui}">
+          Aujourd'hui
+        </button>
+        <button id="dayDemain" onclick="selectRescheduleDay('demain')"
+          style="flex:1;padding:10px;border-radius:8px;font-weight:600;cursor:pointer;transition:all 0.2s;${styleDemain}">
+          Demain
+        </button>
+      </div>
+      <input type="hidden" id="rescheduleDay" value="${defaultDay}">
+      <input type="time" class="modal-input" id="newPickupTime" value="${timeInputVal}">
       <div class="modal-buttons">
         <button class="modal-btn modal-btn-secondary" onclick="this.closest('.modal-overlay').remove()">Annuler</button>
         <button class="modal-btn modal-btn-primary" onclick="confirmReschedule(${orderId})">Confirmer</button>
@@ -3965,14 +4004,29 @@ function rescheduleOrder(orderId, currentTime) {
   setTimeout(() => document.getElementById('newPickupTime').focus(), 100);
 }
 
+function selectRescheduleDay(day) {
+  document.getElementById('rescheduleDay').value = day;
+  const btnAuj = document.getElementById('dayAujourdhui');
+  const btnDem = document.getElementById('dayDemain');
+  if (day === 'demain') {
+    btnAuj.style.borderColor = '#e5e7eb'; btnAuj.style.background = '#f5f5f5';
+    btnDem.style.borderColor = '#D4A853'; btnDem.style.background = '#FFF8DC';
+  } else {
+    btnAuj.style.borderColor = '#D4A853'; btnAuj.style.background = '#FFF8DC';
+    btnDem.style.borderColor = '#e5e7eb'; btnDem.style.background = '#f5f5f5';
+  }
+}
+
 async function confirmReschedule(orderId) {
   const input = document.getElementById('newPickupTime');
+  const day = document.getElementById('rescheduleDay')?.value || 'aujourd\'hui';
   const timeValue = input.value; // Format: "12:30"
   if (!timeValue) {
     alert('Veuillez choisir une heure');
     return;
   }
-  const formatted = timeValue.replace(':', 'h'); // Convert to "12h30"
+  const timeFormatted = timeValue.replace(':', 'h'); // "12h30"
+  const formatted = day === 'demain' ? `Demain ${timeFormatted}` : timeFormatted;
   await sb.from('orders').update({heure_retrait: formatted}).eq('id', orderId);
   const order = orders.find(o => o.id === orderId);
   if (order) order.heure_retrait = formatted;

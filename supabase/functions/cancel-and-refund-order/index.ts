@@ -301,7 +301,7 @@ serve(async (req) => {
     <div style="padding: 32px 24px;">
       <div style="font-size: 22px; font-weight: 600; color: #dc2626; margin-bottom: 16px;">⚠️ Commande annulée</div>
 
-      <div style="background: #fef2f2; border-left: 3px solid #dc2626; padding: 16px 20px; border-radius: 2px; margin-bottom: 24px;">
+      <div style="background: #fef2f2; padding: 16px 20px; border-radius: 2px; margin-bottom: 24px;">
         <div style="font-size: 13px; color: #991b1b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Numéro de commande</div>
         <div style="font-size: 24px; font-weight: 700; font-family: 'Courier New', monospace; color: #1a1a1a; letter-spacing: 2px;">${order.numero}</div>
       </div>

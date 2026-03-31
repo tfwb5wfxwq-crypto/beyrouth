@@ -120,7 +120,7 @@ serve(async (req) => {
               <!-- Alerte annulation -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
                 <tr>
-                  <td style="background:#fef2f2;border-left:3px solid #ef4444;padding:16px 20px;">
+                  <td style="background:#fef2f2;padding:16px 20px;">
                     <span style="font-size:16px;font-weight:600;color:#991b1b;">❌ Commande annulée</span>
                   </td>
                 </tr>
@@ -151,7 +151,7 @@ serve(async (req) => {
               <!-- Remboursement -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
                 <tr>
-                  <td style="background:#fef3c7;border-left:3px solid #f59e0b;padding:16px 20px;">
+                  <td style="background:#fef3c7;padding:16px 20px;">
                     <div style="font-size:14px;font-weight:600;color:#92400e;margin-bottom:6px;">💳 Remboursement automatique</div>
                     <div style="font-size:13px;color:#78350f;line-height:1.5;">Le montant de <strong>${parseFloat(order.total).toFixed(2).replace('.', ',')} €</strong> vous sera remboursé sous 5 à 7 jours ouvrés.</div>
                   </td>

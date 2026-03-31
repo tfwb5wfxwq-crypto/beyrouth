@@ -106,7 +106,7 @@ serve(async (req) => {
               <!-- Info principale -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
                 <tr>
-                  <td style="background:#fafafa;border-left:3px solid #D4A853;padding:16px 20px;">
+                  <td style="background:#fafafa;padding:16px 20px;">
                     <div style="font-size:14px;color:#1a1a1a;font-weight:600;margin-bottom:8px;">✅ Votre demande a été enregistrée</div>
                     <div style="font-size:13px;color:#666;line-height:1.5;">
                       Notre équipe va étudier votre demande et vous envoyer un devis personnalisé dans les 48 heures.
@@ -135,7 +135,7 @@ serve(async (req) => {
               <!-- Message -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
                 <tr>
-                  <td style="background:#fafafa;border-left:3px solid #D4A853;padding:16px 20px;">
+                  <td style="background:#fafafa;padding:16px 20px;">
                     <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Votre message</div>
                     <div style="font-size:14px;color:#1a1a1a;line-height:1.6;white-space:pre-wrap;">${message}</div>
                   </td>
@@ -259,7 +259,7 @@ serve(async (req) => {
               <!-- Message -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;">
                 <tr>
-                  <td style="background:#fafafa;border-left:3px solid #D4A853;padding:16px 20px;">
+                  <td style="background:#fafafa;padding:16px 20px;">
                     <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Message</div>
                     <div style="font-size:14px;color:#1a1a1a;line-height:1.6;white-space:pre-wrap;">${message}</div>
                   </td>
@@ -270,7 +270,7 @@ serve(async (req) => {
               <!-- Info -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td style="background:#E3F2FD;border-left:3px solid #2196F3;padding:12px 16px;">
+                  <td style="background:#E3F2FD;padding:12px 16px;">
                     <div style="font-size:13px;color:#1565C0;font-weight:600;">✉️ Email de confirmation envoyé au client</div>
                   </td>
                 </tr>

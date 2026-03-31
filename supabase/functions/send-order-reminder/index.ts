@@ -92,7 +92,12 @@ serve(async (req) => {
     }
 
     // Formater l'heure de retrait
-    const pickupText = order.heure_retrait || 'Dès que possible'
+    let pickupText = order.heure_retrait || 'Dès que possible'
+    if (!pickupText || pickupText === 'asap' || pickupText === 'ASAP') {
+      pickupText = 'Dès que possible'
+    } else {
+      pickupText = pickupText.replace(/^Aujourd'hui\s+/i, '')
+    }
 
     // Template email (Gmail-compatible - tables, solid colors, no flex/gradient)
     const emailHtml = `
@@ -123,7 +128,7 @@ serve(async (req) => {
               <!-- Alerte orange -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
                 <tr>
-                  <td style="background:#fef3c7;border-left:3px solid #f59e0b;padding:16px 20px;">
+                  <td style="background:#fef3c7;padding:16px 20px;">
                     <span style="font-size:16px;font-weight:600;color:#92400e;">⏰ Votre commande vous attend</span>
                   </td>
                 </tr>

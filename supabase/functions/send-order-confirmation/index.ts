@@ -129,10 +129,13 @@ serve(async (req) => {
       return html
     }).join('')
 
-    // Formater l'heure de retrait (convertir "asap" en texte clair)
+    // Formater l'heure de retrait
     let pickupText = order.heure_retrait || 'Dès que possible'
-    if (pickupText === 'asap' || pickupText === 'ASAP') {
+    if (!pickupText || pickupText === 'asap' || pickupText === 'ASAP') {
       pickupText = 'Dès que possible'
+    } else {
+      // "Aujourd'hui 16h30" → "16h30" / "Lundi 12h30" → "Lundi 12h30" / "Demain 14h00" → "Demain 14h00"
+      pickupText = pickupText.replace(/^Aujourd'hui\s+/i, '')
     }
 
     // Calculer TVA (10% restauration)
@@ -169,7 +172,7 @@ serve(async (req) => {
               <!-- Statut -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
                 <tr>
-                  <td style="background:#f0fdf4;border-left:3px solid #22c55e;padding:16px 20px;">
+                  <td style="background:#f0fdf4;padding:16px 20px;">
                     <span style="font-size:16px;font-weight:600;color:#166534;">✅ Commande confirmée</span>
                   </td>
                 </tr>
@@ -208,7 +211,7 @@ serve(async (req) => {
               <!-- Note -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
                 <tr>
-                  <td style="background:#fef2f2;border-left:3px solid #f87171;padding:14px 18px;">
+                  <td style="background:#fef2f2;padding:14px 18px;">
                     <div style="font-size:12px;color:#991b1b;font-weight:600;text-transform:uppercase;margin-bottom:6px;">Note</div>
                     <div style="font-size:14px;color:#7f1d1d;line-height:1.5;">${order.note.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
                   </td>

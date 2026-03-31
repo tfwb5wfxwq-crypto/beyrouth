@@ -90,7 +90,7 @@ serve(async (req) => {
               <!-- Statut -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
                 <tr>
-                  <td style="background:#fef3c7;border-left:3px solid #f59e0b;padding:16px 20px;">
+                  <td style="background:#fef3c7;padding:16px 20px;">
                     <div style="font-size:16px;font-weight:600;color:#92400e;margin-bottom:4px;">✅ Paiement confirmé</div>
                     <div style="font-size:13px;color:#78350f;">En attente de validation</div>
                   </td>

@@ -3300,13 +3300,13 @@ async function remindOrder(orderId) {
 
   try {
     const adminToken = localStorage.getItem('adminToken');
-    const { data, error } = await sb.functions.invoke('send-order-reminder', {
-      headers: {
-        Authorization: `Bearer ${adminToken}`
-      },
-      body: { orderId: orderId }
+    const reminderRes = await fetch(`${SUPABASE_URL}/functions/v1/send-order-reminder`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${adminToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId: orderId })
     });
-    if (error) throw error;
+    const reminderData = await reminderRes.json();
+    if (!reminderRes.ok) throw new Error(reminderData.error || `Erreur ${reminderRes.status}`);
 
     // Marquer la commande comme "relancée"
     await sb.from('orders')
@@ -4589,12 +4589,14 @@ async function remindClient(orderId) {
   showToast('📧 Envoi en cours...', 'info');
 
   try {
-    const { data, error } = await sb.functions.invoke('send-order-reminder', {
-      body: { orderId },
-      headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
+    const adminToken = localStorage.getItem('adminToken');
+    const reminderRes = await fetch(`${SUPABASE_URL}/functions/v1/send-order-reminder`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${adminToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId })
     });
-
-    if (error) throw new Error(error.message);
+    const data = await reminderRes.json();
+    if (!reminderRes.ok) throw new Error(data.error || `Erreur ${reminderRes.status}`);
     if (!data.success) throw new Error(data.error || 'Erreur envoi email');
 
     showToast(`✅ Email de relance envoyé à ${data.email}`, 'success');
@@ -5659,6 +5661,11 @@ function playAlert() {
     console.warn('🔇 Audio non activé, impossible de jouer le son');
     // Continuer pour vibration et notification native
   } else {
+    // Reprendre le contexte audio si suspendu (avant première interaction)
+    if (audioContext.state === 'suspended') {
+      audioContext.resume().then(() => playAlert());
+      return;
+    }
     try {
       // Fonction pour créer une note avec fade-out doux
       const playNote = (startTime, frequency, duration, fadeOutDuration = 0.15) => {
@@ -5742,8 +5749,20 @@ window.addEventListener('load', () => {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
     audioContext.resume().catch(err => {
       console.warn('AudioContext nécessite interaction utilisateur:', err);
-      audioActivated = false;
+      // Ne pas désactiver — reprendre au premier clic
     });
+
+    // Auto-resume AudioContext au premier clic (requis par les navigateurs modernes)
+    document.addEventListener('click', function resumeAudio() {
+      if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+          console.log('🔊 AudioContext repris au clic');
+          audioActivated = true;
+          updateAudioButton();
+        });
+      }
+      document.removeEventListener('click', resumeAudio);
+    }, { once: true });
 
     // Sauvegarder dans localStorage si première visite
     if (!audioSetting) {

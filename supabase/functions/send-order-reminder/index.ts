@@ -192,7 +192,7 @@ serve(async (req) => {
     // Envoyer l'email via Brevo API
     const emailResult = await sendEmailViaBrevo({
       to: order.client_email,
-      subject: `⏰ ${order.numero} - Votre commande vous attend`,
+      subject: `⏰ ${order.numero} · Prête depuis ${pickupText === 'Dès que possible' ? 'tout à l\'heure' : pickupText} - A Beyrouth`,
       html: emailHtml,
       replyTo: 'contact@beyrouth.express',
       orderId: orderId

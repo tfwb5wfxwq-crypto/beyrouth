@@ -202,8 +202,8 @@ serve(async (req) => {
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
                 ${itemsHtml}
                 <tr>
-                  <td style="padding:14px 0 0 0;border-top:2px solid #1a1a1a;font-size:16px;font-weight:600;color:#1a1a1a;">Total TTC</td>
-                  <td style="padding:14px 0 0 0;border-top:2px solid #1a1a1a;text-align:right;font-size:18px;font-weight:700;color:#1a1a1a;">${totalTTC.toFixed(2)}€</td>
+                  <td style="padding:14px 0 0 0;border-top:1px solid #e0e0e0;font-size:16px;font-weight:600;color:#1a1a1a;">Total TTC</td>
+                  <td style="padding:14px 0 0 0;border-top:1px solid #e0e0e0;text-align:right;font-size:18px;font-weight:700;color:#1a1a1a;">${totalTTC.toFixed(2)}€</td>
                 </tr>
               </table>
 

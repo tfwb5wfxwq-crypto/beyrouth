@@ -1359,6 +1359,7 @@ function updateCartUI() {
   const total = cart.reduce((s, c) => Math.round((s + c.prix * c.qty) * 100) / 100, 0);
   const count = cart.reduce((s, c) => s + c.qty, 0);
   const bar = document.getElementById('bottomBar');
+  if (!bar) return; // Mode OAuth callback — DOM non initialisé
   bar.classList.toggle('show', count > 0);
   document.getElementById('bottomCount').textContent = count;
   document.getElementById('bottomTotal').textContent = formatPrice(total);
@@ -2842,12 +2843,15 @@ async function showConfirmation(orderNum) {
   // Charger statut + realtime
   loadOrderStatus(orderNum);
 
-  // Reset
-  cart = []; saveCart(); updateCartUI(); renderMenu();
-  document.getElementById('cartSubmit').disabled = false;
-  document.getElementById('cartSubmit').textContent = 'Passer la commande';
-  ['clientNote'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('optinPromos').checked = true;
+  // Reset (seulement si DOM normal, pas en mode OAuth callback)
+  cart = []; saveCart(); updateCartUI();
+  if (document.getElementById('cartSubmit')) {
+    renderMenu();
+    document.getElementById('cartSubmit').disabled = false;
+    document.getElementById('cartSubmit').textContent = 'Passer la commande';
+    ['clientNote'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    const optin = document.getElementById('optinPromos'); if (optin) optin.checked = true;
+  }
 }
 
 async function loadOrderStatus(orderNum) {

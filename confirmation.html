@@ -404,7 +404,9 @@ function updateDisplay(order) {
     title.textContent = 'Commande acceptée !';
     subtitle.textContent = 'Votre commande est en préparation';
 
-    const heureText = (!order.heure_retrait || order.heure_retrait === 'asap') ? 'dès que possible' : `à <strong>${order.heure_retrait}</strong>`;
+    const rawHeure = order.heure_retrait || ''
+    const heureDisplay = rawHeure.replace(/^Aujourd'hui\s+/i, '')
+    const heureText = (!rawHeure || rawHeure === 'asap' || rawHeure === 'ASAP') ? 'dès que possible' : `à <strong>${heureDisplay}</strong>`;
     banner.innerHTML = `
       <div class="status-banner accepted">
         <div class="status-banner-icon">👨‍🍳</div>
@@ -496,7 +498,8 @@ async function loadOrder() {
 
     // Remplir les infos fixes
     document.getElementById('orderNum').textContent = data.numero;
-    document.getElementById('pickupTime').textContent = data.heure_retrait || 'Dès que possible';
+    const rawPickup = data.heure_retrait || ''
+    document.getElementById('pickupTime').textContent = (!rawPickup || rawPickup === 'asap' || rawPickup === 'ASAP') ? 'Dès que possible' : rawPickup.replace(/^Aujourd'hui\s+/i, '');
 
     // Items - 🔒 SÉCURISÉ contre XSS
     const itemsHtml = data.items.map(item => {

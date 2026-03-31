@@ -92,11 +92,15 @@ serve(async (req) => {
     }
 
     // Formater l'heure de retrait
-    let pickupText = order.heure_retrait || 'Dès que possible'
-    if (!pickupText || pickupText === 'asap' || pickupText === 'ASAP') {
-      pickupText = 'Dès que possible'
-    } else {
-      pickupText = pickupText.replace(/^Aujourd'hui\s+/i, '')
+    const rawPickup = order.heure_retrait || ''
+    let pickupText = 'Dès que possible'
+    let subjectPickup = 'dès que possible'
+
+    if (rawPickup && rawPickup !== 'asap' && rawPickup !== 'ASAP') {
+      const isToday = /^Aujourd'hui\s+/i.test(rawPickup)
+      const heureOnly = rawPickup.replace(/^Aujourd'hui\s+/i, '')
+      pickupText = heureOnly  // corps email : "16h30" ou "Lundi 12h30"
+      subjectPickup = isToday ? `aujourd'hui à ${heureOnly}` : rawPickup.toLowerCase()
     }
 
     // Template email (Gmail-compatible - tables, solid colors, no flex/gradient)
@@ -176,8 +180,32 @@ serve(async (req) => {
 
           <!-- Footer -->
           <tr>
-            <td style="background:#fafafa;padding:20px;border-top:1px solid #e0e0e0;text-align:center;">
-              <a href="https://beyrouth.express" style="font-size:13px;color:#D4A853;text-decoration:none;">beyrouth.express</a>
+            <td style="background:#fafafa;padding:32px 24px;border-top:1px solid #e0e0e0;text-align:center;">
+
+              <!-- Instagram -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+                <tr>
+                  <td align="center" style="font-size:12px;color:#aaa;letter-spacing:0.5px;text-transform:uppercase;padding-bottom:8px;">Retrouvez-nous sur</td>
+                </tr>
+                <tr>
+                  <td align="center">
+                    <a href="https://www.instagram.com/a_beyrouth/" target="_blank" style="display:inline-block;background:#fafafa;color:#1a1a1a;text-decoration:none;padding:10px 28px;border-radius:20px;font-weight:600;font-size:14px;border:1px solid #e0e0e0;letter-spacing:0.3px;">
+                      @a_beyrouth
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Adresse -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="text-align:center;font-size:13px;color:#888;line-height:1.6;">
+                    <strong style="color:#1a1a1a;">A Beyrouth</strong> · 4 Esp. Gal de Gaulle, 92400 Courbevoie<br>
+                    <a href="https://beyrouth.express" style="color:#D4A853;text-decoration:none;">beyrouth.express</a>
+                  </td>
+                </tr>
+              </table>
+
             </td>
           </tr>
 
@@ -192,7 +220,7 @@ serve(async (req) => {
     // Envoyer l'email via Brevo API
     const emailResult = await sendEmailViaBrevo({
       to: order.client_email,
-      subject: `⏰ ${order.numero} · Prête depuis ${pickupText === 'Dès que possible' ? 'tout à l\'heure' : pickupText} - A Beyrouth`,
+      subject: `⏰ ${order.numero} · Votre commande prête depuis ${subjectPickup} - A Beyrouth`,
       html: emailHtml,
       replyTo: 'contact@beyrouth.express',
       orderId: orderId

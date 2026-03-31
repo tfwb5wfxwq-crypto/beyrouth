@@ -151,11 +151,14 @@ serve(async (req) => {
               </table>
 
               <!-- Instagram -->
-              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+                <tr>
+                  <td align="center" style="font-size:12px;color:#aaa;letter-spacing:0.5px;text-transform:uppercase;padding-bottom:8px;">Retrouvez-nous sur</td>
+                </tr>
                 <tr>
                   <td align="center">
-                    <a href="https://www.instagram.com/a_beyrouth/" target="_blank" style="display:inline-block;background:#fff;color:#C13584;text-decoration:none;padding:10px 22px;border-radius:8px;font-weight:600;font-size:13px;border:2px solid #C13584;">
-                      📸 &nbsp;@a_beyrouth sur Instagram
+                    <a href="https://www.instagram.com/a_beyrouth/" target="_blank" style="display:inline-block;background:#fafafa;color:#1a1a1a;text-decoration:none;padding:10px 28px;border-radius:20px;font-weight:600;font-size:14px;border:1px solid #e0e0e0;letter-spacing:0.3px;">
+                      @a_beyrouth
                     </a>
                   </td>
                 </tr>

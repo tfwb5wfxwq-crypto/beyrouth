@@ -2328,6 +2328,14 @@ async function showDashboard() {
   await loadSlotPause();
   subscribeRealtime();
 
+  // ⚠️ AUDIO: Si auto-login sans interaction, AudioContext reste suspendu
+  // Afficher une bannière pour forcer l'activation avant la première commande
+  setTimeout(() => {
+    if (audioActivated && audioContext && audioContext.state === 'suspended') {
+      showAudioActivationBanner();
+    }
+  }, 500); // Laisser le temps à AudioContext de s'initialiser
+
   // Horloge temps réel
   updateClock();
   intervals.push(setInterval(updateClock, 1000));
@@ -5648,6 +5656,32 @@ function updateAudioButton() {
     }
     btn.style.opacity = audioActivated ? '1' : '0.5';
   }
+}
+
+// Bannière "touchez pour activer le son" (auto-login sans geste utilisateur)
+function showAudioActivationBanner() {
+  if (document.getElementById('audioBanner')) return; // déjà affiché
+
+  const banner = document.createElement('div');
+  banner.id = 'audioBanner';
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#f59e0b;color:#1a1a1a;text-align:center;padding:14px 20px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);';
+  banner.innerHTML = '🔊 Touchez ici pour activer les alertes sonores';
+
+  const activate = () => {
+    if (audioContext && audioContext.state === 'suspended') {
+      audioContext.resume().then(() => {
+        console.log('🔊 AudioContext activé via bannière');
+        audioActivated = true;
+        updateAudioButton();
+      });
+    }
+    banner.remove();
+  };
+
+  banner.addEventListener('click', activate);
+  banner.addEventListener('touchstart', activate, { passive: true });
+
+  document.body.prepend(banner);
 }
 
 // Ancienne fonction (gardée pour compatibilité)

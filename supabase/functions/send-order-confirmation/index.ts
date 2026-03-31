@@ -130,12 +130,15 @@ serve(async (req) => {
     }).join('')
 
     // Formater l'heure de retrait
-    let pickupText = order.heure_retrait || 'Dès que possible'
-    if (!pickupText || pickupText === 'asap' || pickupText === 'ASAP') {
-      pickupText = 'Dès que possible'
-    } else {
-      // "Aujourd'hui 16h30" → "16h30" / "Lundi 12h30" → "Lundi 12h30" / "Demain 14h00" → "Demain 14h00"
-      pickupText = pickupText.replace(/^Aujourd'hui\s+/i, '')
+    const rawPickup = order.heure_retrait || ''
+    let pickupText = 'Dès que possible'
+    let subjectPickup = 'dès que possible'
+
+    if (rawPickup && rawPickup !== 'asap' && rawPickup !== 'ASAP') {
+      const isToday = /^Aujourd'hui\s+/i.test(rawPickup)
+      const heureOnly = rawPickup.replace(/^Aujourd'hui\s+/i, '')
+      pickupText = heureOnly  // corps email : "16h30" ou "Lundi 12h30"
+      subjectPickup = isToday ? `aujourd'hui à ${heureOnly}` : rawPickup.toLowerCase()
     }
 
     // Calculer TVA (10% restauration)
@@ -260,9 +263,12 @@ serve(async (req) => {
               <!-- Instagram -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
                 <tr>
+                  <td align="center" style="font-size:12px;color:#aaa;letter-spacing:0.5px;text-transform:uppercase;padding-bottom:8px;">Retrouvez-nous sur</td>
+                </tr>
+                <tr>
                   <td align="center">
-                    <a href="https://www.instagram.com/a_beyrouth/" target="_blank" style="display:inline-block;background:#fff;color:#C13584;text-decoration:none;padding:10px 22px;border-radius:8px;font-weight:600;font-size:13px;border:2px solid #C13584;">
-                      📸 &nbsp;@a_beyrouth sur Instagram
+                    <a href="https://www.instagram.com/a_beyrouth/" target="_blank" style="display:inline-block;background:#fafafa;color:#1a1a1a;text-decoration:none;padding:10px 28px;border-radius:20px;font-weight:600;font-size:14px;border:1px solid #e0e0e0;letter-spacing:0.3px;">
+                      @a_beyrouth
                     </a>
                   </td>
                 </tr>
@@ -293,7 +299,7 @@ serve(async (req) => {
     // Envoyer l'email via Brevo API
     const emailResult = await sendEmailViaBrevo({
       to: order.client_email,
-      subject: `✅ ${order.numero} · Retrait ${pickupText === 'Dès que possible' ? 'dès que possible' : pickupText} - A Beyrouth`,
+      subject: `Commande ${order.numero} validée · Retrait ${subjectPickup} - A Beyrouth`,
       html: emailHtml,
       replyTo: 'contact@beyrouth.express',
       orderId: orderId  // Pour sync auto du statut

@@ -3828,9 +3828,23 @@ function subscribeRealtime() {
       }
 
       const idx = orders.findIndex(o => o.id === fullOrder.id);
+      const oldStatut = payload.old?.statut
 
+      // 🔔 Son + ajout dans liste si commande passe en payee (PayGreen webhook)
+      if (fullOrder.statut === 'payee' && oldStatut === 'pending') {
+        console.log('🔔 Nouvelle commande payée:', fullOrder.numero);
+        if (idx === -1) orders.unshift(fullOrder);
+        else orders[idx] = fullOrder;
+        playAlert();
+        if (currentTab !== 'orders') {
+          newOrdersCount++;
+          const badge = document.getElementById('ordersBadge');
+          badge.textContent = newOrdersCount;
+          badge.style.display = '';
+        }
+      }
       // Si la commande est annulée, récupérée OU archivée, la retirer de la liste "En cours"
-      if (fullOrder.statut === 'cancelled' || fullOrder.statut === 'recuperee' || fullOrder.archived === true) {
+      else if (fullOrder.statut === 'cancelled' || fullOrder.statut === 'recuperee' || fullOrder.archived === true) {
         if (idx !== -1) {
           console.log('🗑️  Retrait commande terminée/archivée:', fullOrder.numero);
           orders.splice(idx, 1);

@@ -125,8 +125,8 @@ serve(async (req) => {
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f5;">
     <tr>
-      <td align="center" style="padding:20px 10px;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:#fff;">
+      <td align="center" style="padding:10px 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;">
 
           <!-- Header fond noir avec logo -->
           <tr>

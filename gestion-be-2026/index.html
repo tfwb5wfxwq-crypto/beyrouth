@@ -4056,23 +4056,26 @@ async function confirmCancel(orderId, cancellationReason = '') {
     }
 
     // 3. Demander remboursement selon moyen de paiement (SEULEMENT si commande payée)
-    const isPaid = order.statut === 'payee' || order.statut === 'acceptee' || order.payment_confirmed_at;
+    // Re-fetch depuis DB pour avoir les données fraîches (cache local peut être obsolète)
+    const { data: freshOrder } = await sb.from('orders').select('statut,edenred_status,edenred_payment_id,paygreen_transaction_id,total,payment_confirmed_at').eq('id', orderId).single();
+    const refundOrder = freshOrder || order;
+    const isPaid = refundOrder.statut === 'payee' || refundOrder.statut === 'acceptee' || refundOrder.payment_confirmed_at;
 
     if (!isPaid) {
       console.log('⏭️  Commande non payée, pas de remboursement nécessaire');
-    } else if (order.edenred_status === 'captured' && order.edenred_payment_id) {
+    } else if (refundOrder.edenred_status === 'captured' && refundOrder.edenred_payment_id) {
       // Remboursement Edenred (Ticket Restaurant)
       try {
-        await refundEdenredTransaction(order.edenred_payment_id, order.total);
+        await refundEdenredTransaction(refundOrder.edenred_payment_id, refundOrder.total);
         console.log('✅ Remboursement Edenred demandé');
       } catch (err) {
         console.error('❌ Erreur remboursement Edenred:', err);
         showToast('⚠️ Remboursement à faire manuellement via portail Edenred', 'warning');
       }
-    } else if (order.paygreen_transaction_id) {
+    } else if (refundOrder.paygreen_transaction_id) {
       // Remboursement PayGreen (CB, Swile, Conecs, etc.)
       try {
-        await refundPayGreenTransaction(order.paygreen_transaction_id, order.total);
+        await refundPayGreenTransaction(refundOrder.paygreen_transaction_id, refundOrder.total);
         console.log('✅ Remboursement PayGreen demandé');
       } catch (err) {
         console.error('❌ Erreur remboursement PayGreen:', err);

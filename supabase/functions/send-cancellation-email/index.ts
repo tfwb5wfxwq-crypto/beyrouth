@@ -253,9 +253,9 @@ serve(async (req) => {
 
     console.log(`✅ Email d'annulation envoyé pour ${order.numero}`)
 
-    // Remboursement automatique PayGreen
+    // Remboursement automatique PayGreen (seulement si pas Edenred)
     let refundResult = null
-    if (order.paygreen_transaction_id && order.total > 0) {
+    if (order.paygreen_transaction_id && order.total > 0 && order.edenred_status !== 'captured') {
       try {
         console.log(`💳 Remboursement de ${(order.total / 100).toFixed(2)}€ pour ${order.numero}...`)
 

@@ -2329,12 +2329,12 @@ async function showDashboard() {
   subscribeRealtime();
 
   // ⚠️ AUDIO: Si auto-login sans interaction, AudioContext reste suspendu
-  // Afficher une bannière pour forcer l'activation avant la première commande
+  // Signaler visuellement si AudioContext suspendu (auto-login sans geste)
   setTimeout(() => {
     if (audioActivated && audioContext && audioContext.state === 'suspended') {
-      showAudioActivationBanner();
+      markAudioButtonNeedsActivation();
     }
-  }, 500); // Laisser le temps à AudioContext de s'initialiser
+  }, 500);
 
   // Horloge temps réel
   updateClock();
@@ -5625,6 +5625,15 @@ let audioActivated = false;
 
 // Toggle audio ON/OFF avec bouton header
 function toggleAudio() {
+  // Si AudioContext suspendu (auto-login), reprendre sans désactiver
+  if (audioActivated && audioContext && audioContext.state === 'suspended') {
+    audioContext.resume().then(() => {
+      console.log('🔊 AudioContext activé via bouton header');
+      updateAudioButton();
+      playAlert();
+    });
+    return;
+  }
   if (!audioActivated) {
     // Activer l'audio (nécessite interaction utilisateur)
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -5649,39 +5658,43 @@ function updateAudioButton() {
   const icon = document.getElementById('audioIcon');
   const btn = document.getElementById('audioToggleBtn');
   if (icon && btn) {
+    // Effacer l'animation pulse si active
+    btn.style.animation = '';
+    btn.title = 'Activer/Désactiver le son';
     if (audioActivated) {
       icon.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
+      btn.style.background = 'rgba(34,197,94,0.15)';
+      btn.style.borderColor = 'rgba(34,197,94,0.3)';
+      btn.style.opacity = '1';
     } else {
       icon.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
+      btn.style.background = 'rgba(34,197,94,0.15)';
+      btn.style.borderColor = 'rgba(34,197,94,0.3)';
+      btn.style.opacity = '0.5';
     }
-    btn.style.opacity = audioActivated ? '1' : '0.5';
   }
 }
 
-// Bannière "touchez pour activer le son" (auto-login sans geste utilisateur)
-function showAudioActivationBanner() {
-  if (document.getElementById('audioBanner')) return; // déjà affiché
+// Indique visuellement que le bouton son nécessite un tap (AudioContext suspendu après auto-login)
+function markAudioButtonNeedsActivation() {
+  const btn = document.getElementById('audioToggleBtn');
+  const icon = document.getElementById('audioIcon');
+  if (!btn || !icon) return;
 
-  const banner = document.createElement('div');
-  banner.id = 'audioBanner';
-  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#f59e0b;color:#1a1a1a;text-align:center;padding:14px 20px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);';
-  banner.innerHTML = '🔊 Touchez ici pour activer les alertes sonores';
+  // Injecter l'animation CSS si pas encore fait
+  if (!document.getElementById('audioPulseStyle')) {
+    const style = document.createElement('style');
+    style.id = 'audioPulseStyle';
+    style.textContent = '@keyframes audioPulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0.6);background:rgba(251,191,36,0.15);}50%{box-shadow:0 0 0 7px rgba(251,191,36,0);background:rgba(251,191,36,0.35);}}';
+    document.head.appendChild(style);
+  }
 
-  const activate = () => {
-    if (audioContext && audioContext.state === 'suspended') {
-      audioContext.resume().then(() => {
-        console.log('🔊 AudioContext activé via bannière');
-        audioActivated = true;
-        updateAudioButton();
-      });
-    }
-    banner.remove();
-  };
-
-  banner.addEventListener('click', activate);
-  banner.addEventListener('touchstart', activate, { passive: true });
-
-  document.body.prepend(banner);
+  // Icône orange + animation pulse
+  icon.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
+  btn.style.borderColor = 'rgba(251,191,36,0.6)';
+  btn.style.opacity = '1';
+  btn.style.animation = 'audioPulse 1.5s ease-in-out infinite';
+  btn.title = 'Appuyez pour activer les alertes sonores';
 }
 
 // Ancienne fonction (gardée pour compatibilité)

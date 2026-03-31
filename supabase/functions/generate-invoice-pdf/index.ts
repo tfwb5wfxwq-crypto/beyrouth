@@ -97,8 +97,7 @@ function generateInvoiceHTML(order: any): string {
   const dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Paris' })
   const timeStr = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' })
 
-  // Utiliser le numéro de facture si disponible, sinon numéro de commande
-  const invoiceNumber = order.invoice_number || order.numero
+  const invoiceNumber = order.numero
 
   // Calculer TVA (10% restauration)
   const totalTTC = order.total
@@ -144,7 +143,7 @@ function generateInvoiceHTML(order: any): string {
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Facture ${order.numero}</title>
+  <title>Reçu ${order.numero}</title>
   <style>
     @media (max-width: 768px) {
       body {
@@ -294,8 +293,8 @@ function generateInvoiceHTML(order: any): string {
 <body>
   <div class="invoice-header">
     <div>
-      <div class="invoice-title">FACTURE</div>
-      <div class="invoice-number">N° ${invoiceNumber}</div>
+      <div class="invoice-title">REÇU</div>
+      <div class="invoice-number">N° de commande ${invoiceNumber}</div>
     </div>
     <div style="text-align: right;">
       <div class="info-line"><strong>Date :</strong> ${dateStr}</div>

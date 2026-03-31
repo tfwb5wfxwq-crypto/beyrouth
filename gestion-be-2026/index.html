@@ -2476,15 +2476,19 @@ function parsePickupTime(order) {
   let targetDate;
 
   if (heureRetrait.includes('demain') || heureRetrait.includes('tomorrow')) {
-    // "Demain HHhMM" → date de demain
+    // "Demain HHhMM" → date locale de demain
     targetDate = new Date();
     targetDate.setDate(targetDate.getDate() + 1);
   } else {
-    // Utiliser la date de created_at (comportement existant)
+    // Utiliser la date LOCALE de created_at (pas UTC — critique pour commandes passées après minuit)
     targetDate = new Date(order.created_at);
   }
 
-  const dateStr = targetDate.toISOString().split('T')[0];
+  // Date locale (getFullYear/Month/Date = heure locale du navigateur admin, pas UTC)
+  const y = targetDate.getFullYear();
+  const mo = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const d = String(targetDate.getDate()).padStart(2, '0');
+  const dateStr = `${y}-${mo}-${d}`;
   return new Date(`${dateStr}T${match[1].padStart(2, '0')}:${match[2].padStart(2, '0')}:00`);
 }
 

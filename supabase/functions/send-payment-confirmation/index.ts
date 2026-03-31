@@ -76,7 +76,7 @@ serve(async (req) => {
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f5;">
     <tr>
       <td align="center" style="padding:20px 10px;">
-        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:#fff;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:#fff;">
 
           <!-- Header fond noir avec logo -->
           <tr>

@@ -1694,7 +1694,7 @@ async function submitOrder() {
   const name = document.getElementById('clientName').value.trim();
   const email = document.getElementById('clientEmail').value.trim();
   const phone = document.getElementById('clientPhone').value.trim();
-  const pickup = document.getElementById('pickupTime').value;
+  const pickupRaw = document.getElementById('pickupTime').value;
 
   // Validations strictes 🔒
   if (!name) { showToast('⚠️ Entrez votre prénom', 'error'); return; }
@@ -1706,12 +1706,15 @@ async function submitOrder() {
   if (!email) { showToast('⚠️ Email OBLIGATOIRE pour recevoir la confirmation', 'error'); return; }
   if (!validateEmail(email)) { showToast('⚠️ Email invalide (ex: nom@gmail.com)', 'error'); return; }
 
-  if (!pickup) { showToast('Choisissez une heure de retrait', 'error'); return; }
+  if (!pickupRaw) { showToast('Choisissez une heure de retrait', 'error'); return; }
   // Vérifier que ASAP n'est pas choisi quand le restaurant est fermé (ne devrait plus arriver)
-  if (pickup === 'asap' && !isOpenNow()) {
+  if (pickupRaw === 'asap' && !isOpenNow()) {
     showToast('Le restaurant est fermé. Choisissez un autre créneau.', 'error');
     return;
   }
+
+  // Convertir "asap" en heure réelle pour cohérence partout (email, admin, confirmation)
+  const pickup = pickupRaw === 'asap' ? `Aujourd'hui ${getAsapTime()}` : pickupRaw;
 
   // 🔒 FIX #2: Vérifier panier AVANT de désactiver le bouton
   if (!cart.length) {

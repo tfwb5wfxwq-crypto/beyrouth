@@ -200,8 +200,8 @@ serve(async (req) => {
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
                 <tr>
                   <td align="center">
-                    <a href="https://www.instagram.com/a_beyrouth/" target="_blank" style="display:inline-block;background:#E1306C;color:#fff;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:600;font-size:14px;">
-                      📸 Suivez-nous sur Instagram
+                    <a href="https://www.instagram.com/a_beyrouth/" target="_blank" style="display:inline-block;background:#fff;color:#C13584;text-decoration:none;padding:10px 22px;border-radius:8px;font-weight:600;font-size:13px;border:2px solid #C13584;">
+                      📸 &nbsp;@a_beyrouth sur Instagram
                     </a>
                   </td>
                 </tr>

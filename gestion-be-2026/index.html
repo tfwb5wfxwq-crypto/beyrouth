@@ -4238,6 +4238,11 @@ async function showCompletedOrderDetails(orderId) {
     statusBg = '#ecfdf5';
     statusEmoji = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><polyline points="20 6 9 17 4 12"/></svg>';
     statusText = 'Récupérée';
+  } else if (isCancelled && order.edenred_status === 'refunded') {
+    statusColor = '#d97706';
+    statusBg = '#fef3c7';
+    statusEmoji = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>';
+    statusText = 'Remboursée';
   } else if (isCancelled) {
     statusColor = '#e11d48';
     statusBg = '#fee2e2';
@@ -4686,6 +4691,11 @@ function renderCompletedOrderLine(order) {
     } else {
       statusText = 'Récupérée';
     }
+  } else if (isCancelled && order.edenred_status === 'refunded') {
+    statusBg = '#fef3c7';
+    statusColor = '#d97706';
+    statusIcon = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>';
+    statusText = 'Remboursée';
   } else if (isCancelled) {
     statusBg = '#fee2e2';
     statusColor = '#e11d48'; // Rose doux

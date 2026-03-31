@@ -104,7 +104,60 @@ serve(async (req) => {
     let refundError = null
     const debugLogs: string[] = [] // Logs pour debug
 
-    if (order.paygreen_transaction_id) {
+    if (order.edenred_status === 'captured' && order.edenred_payment_id) {
+      // REMBOURSEMENT EDENRED (priorité — si edenred_status='captured', c'est Edenred même si paygreen_transaction_id existe)
+      console.log('🎫 Remboursement Edenred:', order.edenred_payment_id)
+
+      try {
+        const amountCentimes = Math.round(order.total * 100) // Convertir euros → centimes
+
+        const EDENRED_PAYMENT_CLIENT_ID = Deno.env.get('EDENRED_PAYMENT_CLIENT_ID') ?? ''
+        const EDENRED_PAYMENT_CLIENT_SECRET = Deno.env.get('EDENRED_PAYMENT_CLIENT_SECRET') ?? ''
+
+        const refundResponse = await fetchWithTimeout(
+          `https://directpayment.eu.edenred.io/v2/transactions/${order.edenred_payment_id}/actions/refund`,
+          {
+            method: 'POST',
+            headers: {
+              'X-Client-Id': EDENRED_PAYMENT_CLIENT_ID,
+              'X-Client-Secret': EDENRED_PAYMENT_CLIENT_SECRET,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              amount: amountCentimes,
+              capture_mode: 'auto',
+              tstamp: new Date().toISOString()
+            })
+          },
+          15000
+        )
+
+        if (!refundResponse.ok) {
+          const errorText = await refundResponse.text()
+          throw new Error(`Refund Edenred échoué (${refundResponse.status}): ${errorText}`)
+        }
+
+        await supabase.from('orders').update({
+          edenred_status: 'refunded',
+          refund_completed_at: new Date().toISOString(),
+          refund_amount: order.total,
+          refund_error: null
+        }).eq('id', orderId)
+
+        console.log('✅ Remboursement Edenred OK')
+        refundSuccess = true
+
+      } catch (error) {
+        console.error('❌ Erreur remboursement Edenred:', error.message)
+        refundError = error.message
+        await supabase.from('orders').update({
+          refund_requested_at: new Date().toISOString(),
+          refund_error: error.message
+        }).eq('id', orderId)
+      }
+
+    } else if (order.paygreen_transaction_id) {
       // REMBOURSEMENT PAYGREEN
       debugLogs.push('💳 Remboursement PayGreen: ' + order.paygreen_transaction_id)
 
@@ -203,49 +256,6 @@ serve(async (req) => {
 
       } catch (error) {
         console.error('❌ Erreur remboursement PayGreen:', error.message)
-        refundError = error.message
-
-        await supabase.from('orders').update({
-          refund_requested_at: new Date().toISOString(),
-          refund_error: error.message
-        }).eq('id', orderId)
-      }
-
-    } else if (order.edenred_payment_id) {
-      // REMBOURSEMENT EDENRED
-      console.log('🎫 Remboursement Edenred:', order.edenred_payment_id)
-
-      try {
-        // Appeler l'Edge Function edenred-refund
-        const refundResponse = await supabase.functions.invoke('edenred-refund', {
-          body: {
-            captureId: order.edenred_payment_id,
-            amount: order.total
-          }
-        })
-
-        if (refundResponse.error) {
-          throw new Error(refundResponse.error.message || 'Erreur remboursement Edenred')
-        }
-
-        const refundData = refundResponse.data
-
-        if (!refundData.success) {
-          throw new Error(refundData.error || 'Remboursement Edenred échoué')
-        }
-
-        await supabase.from('orders').update({
-          refund_transaction_id: refundData.captureId,
-          refund_completed_at: new Date().toISOString(),
-          refund_amount: order.total,
-          refund_error: null
-        }).eq('id', orderId)
-
-        console.log('✅ Remboursement Edenred OK:', refundData.captureId)
-        refundSuccess = true
-
-      } catch (error) {
-        console.error('❌ Erreur remboursement Edenred:', error.message)
         refundError = error.message
 
         await supabase.from('orders').update({

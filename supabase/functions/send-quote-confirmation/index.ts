@@ -75,7 +75,7 @@ serve(async (req) => {
       )
     }
 
-    // Template email CLIENT (nouveau design avec logo)
+    // Template email CLIENT (Gmail-compatible - tables, solid colors, no flex/gradient)
     const emailHtml = `
 <!DOCTYPE html>
 <html>
@@ -84,64 +84,92 @@ serve(async (req) => {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Demande de devis reçue - A Beyrouth</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5;">
-  <div style="max-width: 600px; margin: 0 auto; background: #fff;">
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f5;">
+    <tr>
+      <td align="center" style="padding:20px 10px;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:#fff;">
 
-    <!-- Header fond noir avec logo -->
-    <div style="background: #000; padding: 8px 24px; text-align: center;">
-      <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width: 240px; height: auto; max-width: 100%;">
-    </div>
+          <!-- Header fond noir avec logo -->
+          <tr>
+            <td style="background:#000;padding:8px 24px;text-align:center;">
+              <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width:240px;height:auto;max-width:100%;display:block;margin:0 auto;">
+            </td>
+          </tr>
 
-    <!-- Contenu -->
-    <div style="padding: 24px 20px;">
-      <div style="font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px;">📋 Demande de devis reçue</div>
-      <div style="font-size: 14px; color: #666; line-height: 1.5; margin-bottom: 20px;">Merci ${name.split(' ')[0]}, nous revenons vers vous sous 48h.</div>
+          <!-- Contenu -->
+          <tr>
+            <td style="padding:24px 20px;">
+              <div style="font-size:20px;font-weight:600;color:#1a1a1a;margin-bottom:8px;">📋 Demande de devis reçue</div>
+              <div style="font-size:14px;color:#666;line-height:1.5;margin-bottom:20px;">Merci ${name.split(' ')[0]}, nous revenons vers vous sous 48h.</div>
 
-      <!-- Info principale -->
-      <div style="background: #fafafa; border-left: 3px solid #D4A853; padding: 16px 20px; border-radius: 6px; margin-bottom: 20px;">
-        <div style="font-size: 14px; color: #1a1a1a; font-weight: 600; margin-bottom: 8px;">✅ Votre demande a été enregistrée</div>
-        <div style="font-size: 13px; color: #666; line-height: 1.5;">
-          Notre équipe va étudier votre demande et vous envoyer un devis personnalisé dans les 48 heures.
-        </div>
-      </div>
+              <!-- Info principale -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+                <tr>
+                  <td style="background:#fafafa;border-left:3px solid #D4A853;padding:16px 20px;">
+                    <div style="font-size:14px;color:#1a1a1a;font-weight:600;margin-bottom:8px;">✅ Votre demande a été enregistrée</div>
+                    <div style="font-size:13px;color:#666;line-height:1.5;">
+                      Notre équipe va étudier votre demande et vous envoyer un devis personnalisé dans les 48 heures.
+                    </div>
+                  </td>
+                </tr>
+              </table>
 
-      <!-- Récapitulatif -->
-      <div style="background: #fafafa; padding: 16px 20px; border-radius: 6px; margin-bottom: 20px;">
-        <div style="font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Récapitulatif</div>
-        <div style="font-size: 14px; color: #1a1a1a; line-height: 1.8;">
-          ${eventType ? `<div>📅 <strong>${eventType}</strong></div>` : ''}
-          ${guestCount ? `<div>👥 ${guestCount} personnes</div>` : ''}
-          ${eventDate ? `<div>📆 ${eventDate}</div>` : ''}
-          <div>📧 ${email}</div>
-          ${phone ? `<div>📱 ${phone}</div>` : ''}
-        </div>
-      </div>
+              <!-- Récapitulatif -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+                <tr>
+                  <td style="background:#fafafa;padding:16px 20px;">
+                    <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">Récapitulatif</div>
+                    <div style="font-size:14px;color:#1a1a1a;line-height:1.8;">
+                      ${eventType ? `<div>📅 <strong>${eventType}</strong></div>` : ''}
+                      ${guestCount ? `<div>👥 ${guestCount} personnes</div>` : ''}
+                      ${eventDate ? `<div>📆 ${eventDate}</div>` : ''}
+                      <div>📧 ${email}</div>
+                      ${phone ? `<div>📱 ${phone}</div>` : ''}
+                    </div>
+                  </td>
+                </tr>
+              </table>
 
-      ${message ? `
-      <!-- Message -->
-      <div style="background: #fafafa; border-left: 3px solid #D4A853; padding: 16px 20px; border-radius: 6px; margin-bottom: 20px;">
-        <div style="font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Votre message</div>
-        <div style="font-size: 14px; color: #1a1a1a; line-height: 1.6; white-space: pre-wrap;">${message}</div>
-      </div>
-      ` : ''}
+              ${message ? `
+              <!-- Message -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+                <tr>
+                  <td style="background:#fafafa;border-left:3px solid #D4A853;padding:16px 20px;">
+                    <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Votre message</div>
+                    <div style="font-size:14px;color:#1a1a1a;line-height:1.6;white-space:pre-wrap;">${message}</div>
+                  </td>
+                </tr>
+              </table>
+              ` : ''}
 
-      <!-- Contact -->
-      <div style="padding: 16px 0; border-top: 1px solid #e0e0e0;">
-        <div style="font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 8px;">📍 Contact</div>
-        <div style="font-size: 14px; color: #1a1a1a; line-height: 1.5;">
-          <strong>A Beyrouth</strong><br>
-          4 Esplanade du Général de Gaulle<br>
-          92400 Courbevoie (La Défense)
-        </div>
-      </div>
-    </div>
+              <!-- Contact -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #e0e0e0;">
+                <tr>
+                  <td style="padding:16px 0;">
+                    <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">📍 Contact</div>
+                    <div style="font-size:14px;color:#1a1a1a;line-height:1.5;">
+                      <strong>A Beyrouth</strong><br>
+                      4 Esplanade du Général de Gaulle<br>
+                      92400 Courbevoie (La Défense)
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-    <!-- Footer -->
-    <div style="background: #fafafa; padding: 20px; border-top: 1px solid #e0e0e0; text-align: center;">
-      <a href="https://beyrouth.express" style="font-size: 13px; color: #D4A853; text-decoration: none;">beyrouth.express</a>
-    </div>
+          <!-- Footer -->
+          <tr>
+            <td style="background:#fafafa;padding:20px;border-top:1px solid #e0e0e0;text-align:center;">
+              <a href="https://beyrouth.express" style="font-size:13px;color:#D4A853;text-decoration:none;">beyrouth.express</a>
+            </td>
+          </tr>
 
-  </div>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
     `
@@ -172,65 +200,95 @@ serve(async (req) => {
 
     console.log(`✅ Email de confirmation devis envoyé à ${email}`)
 
-    // Envoyer aussi un email à l'admin avec les détails (nouveau design)
+    // Envoyer aussi un email à l'admin avec les détails (Gmail-compatible - tables, solid colors, no flex/gradient)
     const adminEmailHtml = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nouvelle demande de devis - ${name}</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5;">
-  <div style="max-width: 600px; margin: 0 auto; background: #fff;">
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f5;">
+    <tr>
+      <td align="center" style="padding:20px 10px;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:#fff;">
 
-    <!-- Header fond noir avec logo -->
-    <div style="background: #000; padding: 8px 24px; text-align: center;">
-      <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width: 240px; height: auto; max-width: 100%;">
-    </div>
+          <!-- Header fond noir avec logo -->
+          <tr>
+            <td style="background:#000;padding:8px 24px;text-align:center;">
+              <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width:240px;height:auto;max-width:100%;display:block;margin:0 auto;">
+            </td>
+          </tr>
 
-    <!-- Contenu -->
-    <div style="padding: 24px 20px;">
-      <div style="font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px;">🆕 Nouvelle demande de devis</div>
+          <!-- Contenu -->
+          <tr>
+            <td style="padding:24px 20px;">
+              <div style="font-size:20px;font-weight:600;color:#1a1a1a;margin-bottom:16px;">🆕 Nouvelle demande de devis</div>
 
-      <!-- Contact -->
-      <div style="background: #fafafa; padding: 16px 20px; border-radius: 6px; margin-bottom: 16px;">
-        <div style="font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Contact</div>
-        <div style="font-size: 16px; color: #1a1a1a; font-weight: 600; margin-bottom: 8px;">${name}</div>
-        <div style="font-size: 14px; color: #1a1a1a; line-height: 1.8;">
-          📧 <a href="mailto:${email}" style="color: #1a1a1a; text-decoration: none;">${email}</a><br>
-          ${phone ? `📱 <a href="tel:${phone}" style="color: #1a1a1a; text-decoration: none;">${phone}</a>` : ''}
-        </div>
-      </div>
+              <!-- Contact -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;">
+                <tr>
+                  <td style="background:#fafafa;padding:16px 20px;">
+                    <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">Contact</div>
+                    <div style="font-size:16px;color:#1a1a1a;font-weight:600;margin-bottom:8px;">${name}</div>
+                    <div style="font-size:14px;color:#1a1a1a;line-height:1.8;">
+                      📧 <a href="mailto:${email}" style="color:#1a1a1a;text-decoration:none;">${email}</a><br>
+                      ${phone ? `📱 <a href="tel:${phone}" style="color:#1a1a1a;text-decoration:none;">${phone}</a>` : ''}
+                    </div>
+                  </td>
+                </tr>
+              </table>
 
-      <!-- Événement -->
-      <div style="background: #fafafa; padding: 16px 20px; border-radius: 6px; margin-bottom: 16px;">
-        <div style="font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Événement</div>
-        <div style="font-size: 14px; color: #1a1a1a; line-height: 1.8;">
-          ${eventType ? `<div>📅 <strong>${eventType}</strong></div>` : ''}
-          ${guestCount ? `<div>👥 <strong>${guestCount} personnes</strong></div>` : ''}
-          ${eventDate ? `<div>📆 ${eventDate}</div>` : ''}
-        </div>
-      </div>
+              <!-- Événement -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;">
+                <tr>
+                  <td style="background:#fafafa;padding:16px 20px;">
+                    <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">Événement</div>
+                    <div style="font-size:14px;color:#1a1a1a;line-height:1.8;">
+                      ${eventType ? `<div>📅 <strong>${eventType}</strong></div>` : ''}
+                      ${guestCount ? `<div>👥 <strong>${guestCount} personnes</strong></div>` : ''}
+                      ${eventDate ? `<div>📆 ${eventDate}</div>` : ''}
+                    </div>
+                  </td>
+                </tr>
+              </table>
 
-      ${message ? `
-      <!-- Message -->
-      <div style="background: #fafafa; border-left: 3px solid #D4A853; padding: 16px 20px; border-radius: 6px; margin-bottom: 16px;">
-        <div style="font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Message</div>
-        <div style="font-size: 14px; color: #1a1a1a; line-height: 1.6; white-space: pre-wrap;">${message}</div>
-      </div>
-      ` : ''}
+              ${message ? `
+              <!-- Message -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;">
+                <tr>
+                  <td style="background:#fafafa;border-left:3px solid #D4A853;padding:16px 20px;">
+                    <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Message</div>
+                    <div style="font-size:14px;color:#1a1a1a;line-height:1.6;white-space:pre-wrap;">${message}</div>
+                  </td>
+                </tr>
+              </table>
+              ` : ''}
 
-      <!-- Info -->
-      <div style="background: #E3F2FD; padding: 12px 16px; border-left: 3px solid #2196F3; border-radius: 6px;">
-        <div style="font-size: 13px; color: #1565C0; font-weight: 600;">✉️ Email de confirmation envoyé au client</div>
-      </div>
-    </div>
+              <!-- Info -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="background:#E3F2FD;border-left:3px solid #2196F3;padding:12px 16px;">
+                    <div style="font-size:13px;color:#1565C0;font-weight:600;">✉️ Email de confirmation envoyé au client</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-    <!-- Footer -->
-    <div style="background: #fafafa; padding: 20px; border-top: 1px solid #e0e0e0; text-align: center;">
-      <div style="font-size: 12px; color: #888;">Demande enregistrée dans quote_requests</div>
-    </div>
-  </div>
+          <!-- Footer -->
+          <tr>
+            <td style="background:#fafafa;padding:20px;border-top:1px solid #e0e0e0;text-align:center;">
+              <div style="font-size:12px;color:#888;">Demande enregistrée dans quote_requests</div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
     `

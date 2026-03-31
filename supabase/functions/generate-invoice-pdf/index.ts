@@ -94,8 +94,8 @@ function generateInvoiceHTML(order: any): string {
   // Utiliser la date de génération de facture si disponible, sinon date de commande
   const invoiceDate = order.invoice_generated_at || order.created_at
   const date = new Date(invoiceDate)
-  const dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-  const timeStr = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+  const dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Paris' })
+  const timeStr = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' })
 
   // Utiliser le numéro de facture si disponible, sinon numéro de commande
   const invoiceNumber = order.invoice_number || order.numero

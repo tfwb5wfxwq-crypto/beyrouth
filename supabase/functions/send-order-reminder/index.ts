@@ -94,7 +94,7 @@ serve(async (req) => {
     // Formater l'heure de retrait
     const pickupText = order.heure_retrait || 'Dès que possible'
 
-    // Template email (nouveau design bleu)
+    // Template email (Gmail-compatible - tables, solid colors, no flex/gradient)
     const emailHtml = `
 <!DOCTYPE html>
 <html>
@@ -104,55 +104,82 @@ serve(async (req) => {
   <title>Votre commande vous attend</title>
 </head>
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;">
-  <div style="max-width:600px;margin:0 auto;background:#fff;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f5;">
+    <tr>
+      <td align="center" style="padding:20px 10px;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:#fff;">
 
-    <!-- Header (fond noir compact avec logo 240px) -->
-    <div style="background:#000;padding:8px 24px;text-align:center;">
-      <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width:240px;height:auto;max-width:100%;">
-    </div>
+          <!-- Header fond noir avec logo -->
+          <tr>
+            <td style="background:#000;padding:8px 24px;text-align:center;">
+              <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width:240px;height:auto;max-width:100%;display:block;margin:0 auto;">
+            </td>
+          </tr>
 
-    <!-- Contenu principal -->
-    <div style="padding:32px 24px;">
+          <!-- Contenu principal -->
+          <tr>
+            <td style="padding:32px 24px;">
 
-      <!-- Alerte orange (votre commande vous attend) -->
-      <div style="background:#fef3c7;border-left:3px solid #f59e0b;padding:16px 20px;margin-bottom:20px;">
-        <div style="font-size:16px;font-weight:600;color:#92400e;">⏰ Votre commande vous attend</div>
-      </div>
+              <!-- Alerte orange -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+                <tr>
+                  <td style="background:#fef3c7;border-left:3px solid #f59e0b;padding:16px 20px;">
+                    <span style="font-size:16px;font-weight:600;color:#92400e;">⏰ Votre commande vous attend</span>
+                  </td>
+                </tr>
+              </table>
 
-      <!-- Numéro de commande + Heure (encart gris comme les autres emails) -->
-      <div style="background:#fafafa;padding:16px 20px;margin-bottom:20px;border-radius:6px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-          <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Commande</div>
-          <div style="font-size:22px;font-weight:700;font-family:'Courier New',monospace;color:#1a1a1a;">${order.numero}</div>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid #e0e0e0;">
-          <div style="font-size:12px;color:#888;text-transform:uppercase;">Retrait</div>
-          <div style="font-size:15px;font-weight:600;color:#1a1a1a;">${pickupText}</div>
-        </div>
-      </div>
+              <!-- Numéro + Heure -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fafafa;margin-bottom:20px;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
+                      <tr>
+                        <td style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Commande</td>
+                        <td style="text-align:right;font-size:22px;font-weight:700;font-family:'Courier New',monospace;color:#1a1a1a;">${order.numero}</td>
+                      </tr>
+                    </table>
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #e0e0e0;">
+                      <tr>
+                        <td style="padding-top:12px;font-size:12px;color:#888;text-transform:uppercase;">Retrait</td>
+                        <td style="padding-top:12px;text-align:right;font-size:15px;font-weight:600;color:#1a1a1a;">${pickupText}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
 
-      <!-- Adresse + Bouton Google Maps -->
-      <div style="padding:16px 0;border-top:1px solid #e0e0e0;">
-        <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">📍 Retrait</div>
-        <div style="font-size:14px;color:#1a1a1a;line-height:1.5;margin-bottom:12px;">
-          <strong>A Beyrouth</strong> · 4 Esp. Gal de Gaulle<br>
-          92400 Courbevoie (La Défense)<br>
-          <span style="font-size:12px;color:#888;">Sortie 4 du métro La Défense</span>
-        </div>
-        <a href="https://www.google.com/maps/search/A+Beyrouth+4+Esplanade+du+General+de+Gaulle+92400+Courbevoie" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#E65100;color:#fff;text-decoration:none;padding:9px 20px;border-radius:7px;font-weight:600;font-size:13px;box-shadow:0 2px 4px rgba(230,81,0,0.25);">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          Ouvrir dans Google Maps
-        </a>
-      </div>
+              <!-- Adresse -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #e0e0e0;">
+                <tr>
+                  <td style="padding:16px 0;">
+                    <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">📍 Retrait</div>
+                    <div style="font-size:14px;color:#1a1a1a;line-height:1.5;margin-bottom:12px;">
+                      <strong>A Beyrouth</strong> · 4 Esp. Gal de Gaulle<br>
+                      92400 Courbevoie (La Défense)<br>
+                      <span style="font-size:12px;color:#888;">Sortie 4 du métro La Défense</span>
+                    </div>
+                    <a href="https://www.google.com/maps/search/A+Beyrouth+4+Esplanade+du+General+de+Gaulle+92400+Courbevoie" target="_blank" style="display:inline-block;background:#E65100;color:#fff;text-decoration:none;padding:9px 20px;border-radius:7px;font-weight:600;font-size:13px;">
+                      📍 Ouvrir dans Google Maps
+                    </a>
+                  </td>
+                </tr>
+              </table>
 
-    </div>
+            </td>
+          </tr>
 
-    <!-- Footer -->
-    <div style="background:#fafafa;padding:20px;border-top:1px solid #e0e0e0;text-align:center;">
-      <a href="https://beyrouth.express" style="font-size:13px;color:#D4A853;text-decoration:none;">beyrouth.express</a>
-    </div>
+          <!-- Footer -->
+          <tr>
+            <td style="background:#fafafa;padding:20px;border-top:1px solid #e0e0e0;text-align:center;">
+              <a href="https://beyrouth.express" style="font-size:13px;color:#D4A853;text-decoration:none;">beyrouth.express</a>
+            </td>
+          </tr>
 
-  </div>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
     `

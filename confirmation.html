@@ -404,11 +404,12 @@ function updateDisplay(order) {
     title.textContent = 'Commande acceptée !';
     subtitle.textContent = 'Votre commande est en préparation';
 
+    const heureText = (!order.heure_retrait || order.heure_retrait === 'asap') ? 'dès que possible' : `à <strong>${order.heure_retrait}</strong>`;
     banner.innerHTML = `
       <div class="status-banner accepted">
         <div class="status-banner-icon">👨‍🍳</div>
         <div class="status-banner-title">Préparation en cours</div>
-        <div class="status-banner-text">Votre commande sera prête à <strong>${order.heure_retrait}</strong></div>
+        <div class="status-banner-text">Votre commande sera prête ${heureText}</div>
       </div>
     `;
 
@@ -449,6 +450,23 @@ function updateDisplay(order) {
     `;
 
     emailMsg.innerHTML = '<strong>Merci et à bientôt !</strong>';
+
+  } else if (effectiveStatus === 'cancelled') {
+    icon.classList.add('orange');
+    icon.textContent = '❌';
+    title.className = 'orange';
+    title.textContent = 'Commande annulée';
+    subtitle.textContent = 'Remboursement en cours';
+
+    banner.innerHTML = `
+      <div class="status-banner waiting">
+        <div class="status-banner-icon">💳</div>
+        <div class="status-banner-title">Commande annulée</div>
+        <div class="status-banner-text">Le remboursement sera effectué sous 5 à 7 jours ouvrés.</div>
+      </div>
+    `;
+
+    emailMsg.innerHTML = '✉️ <strong>Email d\'annulation envoyé</strong>';
   }
 }
 

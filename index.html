@@ -2237,7 +2237,7 @@ function initPayGreen(method) {
 
       setPaymentFlag(false); // 🔒 Reset flag on success
       cancelPayment();
-      showConfirmation(orderNum);
+      window.location.href = `/confirmation.html?num=${orderNum}`;
     };
     return;
   }
@@ -2293,7 +2293,7 @@ function initPayGreen(method) {
       const orderNum = currentPaymentData.orderNum;
       setPaymentFlag(false); // 🔒 Reset flag on success
       cancelPayment();
-      showConfirmation(orderNum);
+      window.location.href = `/confirmation.html?num=${orderNum}`;
     });
 
     // Event ERROR : erreur générale PayGreen
@@ -2570,8 +2570,8 @@ async function handleEdenredOAuthCallback() {
     // Nettoyer le sessionStorage
     sessionStorage.removeItem('edenred_payment_data');
 
-    // Afficher la modal de confirmation (comme PayGreen) avec orderNum retourné par le serveur
-    showConfirmation(data.orderNum);
+    // Rediriger vers la page de confirmation (identique PayGreen)
+    window.location.href = `/confirmation.html?num=${data.orderNum}`;
 
   } catch (e) {
     console.error('Erreur callback OAuth:', e);
@@ -2677,9 +2677,9 @@ async function handleEdenredReturn() {
 
         showToast('✅ Paiement confirmé !', 'success');
 
-        // Afficher la modal de confirmation (comme PayGreen)
+        // Rediriger vers la page de confirmation (comme PayGreen)
         setTimeout(() => {
-          showConfirmation(orderNum);
+          window.location.href = `/confirmation.html?num=${orderNum}`;
         }, 800);
       }
       // Si paiement échoué

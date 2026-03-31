@@ -12,7 +12,7 @@ async function findOrderWithRetry(supabase: any, orderNum: string, maxRetries = 
   for (let i = 0; i < maxRetries; i++) {
     const { data, error } = await supabase
       .from('orders')
-      .select('id, statut, payment_confirmed_at')
+      .select('id, statut, payment_confirmed_at, paygreen_transaction_id')
       .eq('numero', orderNum)
       .maybeSingle()
 
@@ -127,6 +127,18 @@ serve(async (req) => {
 
     if (!existingOrder) {
       throw new Error(`Commande ${orderNum} introuvable après retry`)
+    }
+
+    // 🔒 SÉCURITÉ anti-brute-force : vérifier que le transaction ID du webhook
+    // correspond à celui stocké sur la commande (seul PayGreen connaît cet ID)
+    if (newStatus === 'payee' && existingOrder.paygreen_transaction_id && id) {
+      if (existingOrder.paygreen_transaction_id !== id) {
+        console.error(`❌ Transaction ID mismatch: webhook=${id}, BDD=${existingOrder.paygreen_transaction_id}`)
+        return new Response(
+          JSON.stringify({ error: 'Transaction ID invalide' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
     }
 
     const wasAlreadyPaid = existingOrder.statut === 'payee' || existingOrder.payment_confirmed_at !== null

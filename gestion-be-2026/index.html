@@ -3828,13 +3828,12 @@ function subscribeRealtime() {
       }
 
       const idx = orders.findIndex(o => o.id === fullOrder.id);
-      const oldStatut = payload.old?.statut
 
-      // 🔔 Son + ajout dans liste si commande passe en payee (PayGreen webhook)
-      if (fullOrder.statut === 'payee' && oldStatut === 'pending') {
-        console.log('🔔 Nouvelle commande payée:', fullOrder.numero);
-        if (idx === -1) orders.unshift(fullOrder);
-        else orders[idx] = fullOrder;
+      // 🔔 Son + ajout dans liste si commande payée et pas encore dans la liste
+      // (PayGreen : pending→payee via webhook / Edenred : pending→payee via OAuth callback)
+      if ((fullOrder.statut === 'payee' || fullOrder.statut === 'acceptee') && idx === -1) {
+        console.log('🔔 Nouvelle commande:', fullOrder.numero, fullOrder.statut);
+        orders.unshift(fullOrder);
         playAlert();
         if (currentTab !== 'orders') {
           newOrdersCount++;

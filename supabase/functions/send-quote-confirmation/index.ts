@@ -86,8 +86,6 @@ serve(async (req) => {
   <meta name="supported-color-schemes" content="light">
   <style>
     .email-header-bg { background-color: #000000 !important; }
-    .email-wrapper { background-color: #f5f5f5 !important; }
-    .email-body { background-color: #ffffff !important; }
   </style>
   <title>Demande de devis reçue - A Beyrouth</title>
 </head>
@@ -242,8 +240,6 @@ serve(async (req) => {
   <meta name="supported-color-schemes" content="light">
   <style>
     .email-header-bg { background-color: #000000 !important; }
-    .email-wrapper { background-color: #f5f5f5 !important; }
-    .email-body { background-color: #ffffff !important; }
   </style>
   <title>Nouvelle demande de devis - ${name}</title>
 </head>

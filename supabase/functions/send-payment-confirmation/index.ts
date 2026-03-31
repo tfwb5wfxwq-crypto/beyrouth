@@ -72,8 +72,6 @@ serve(async (req) => {
   <meta name="supported-color-schemes" content="light">
   <style>
     .email-header-bg { background-color: #000000 !important; }
-    .email-wrapper { background-color: #f5f5f5 !important; }
-    .email-body { background-color: #ffffff !important; }
   </style>
   <title>Paiement confirmé</title>
 </head>

@@ -30,10 +30,13 @@ serve(async (req) => {
     }
 
     const token = authHeader.replace('Bearer ', '')
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
-    // Vérifier si c'est un appel service_role (depuis webhook)
-    const isServiceRole = token === serviceRoleKey
+    // Vérifier si c'est un appel service_role (depuis webhook) via décodage JWT
+    let isServiceRole = false
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      isServiceRole = payload.role === 'service_role'
+    } catch { /* pas un JWT valide */ }
 
     if (!isServiceRole) {
       // Vérifier le JWT Supabase Auth

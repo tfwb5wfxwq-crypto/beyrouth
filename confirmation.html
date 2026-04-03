@@ -525,6 +525,14 @@ function updateDisplay(order) {
   }
 }
 
+async function fetchOrder(orderNum) {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/get-order-status?numero=${encodeURIComponent(orderNum)}`, {
+    headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+  });
+  if (!res.ok) return null;
+  return await res.json();
+}
+
 async function loadOrder() {
   const params = new URLSearchParams(window.location.search);
   const orderNum = params.get('num');
@@ -535,20 +543,22 @@ async function loadOrder() {
   }
 
   try {
-    // Charger la commande + setting auto-accept en parallèle
-    const [{ data, error }, { data: autoAcceptSetting }] = await Promise.all([
-      sb.from('orders').select('*').eq('numero', orderNum).single(),
+    // Charger la commande via Edge Function (pas de SELECT direct sur orders)
+    const [data, autoAcceptSetting] = await Promise.all([
+      fetchOrder(orderNum),
       sb.from('settings').select('value').eq('key', 'auto_accept_orders').maybeSingle()
+        .then(r => r.data)
     ]);
 
     autoAcceptEnabled = autoAcceptSetting?.value === 'true';
 
-    if (error) throw error;
-    if (!data) {
+    if (!data || data.error) {
       alert('Commande introuvable');
       window.location.href = '/';
       return;
     }
+
+    orderData = data;
 
     // Remplir les infos fixes
     document.getElementById('orderNum').textContent = data.numero;
@@ -558,7 +568,6 @@ async function loadOrder() {
     // Items - 🔒 SÉCURISÉ contre XSS
     const itemsHtml = data.items.map(item => {
       const total = (item.prix * item.qty).toFixed(2).replace('.', ',');
-      // Échapper les données utilisateur pour prévenir XSS
       const safeImageUrl = escapeHtml(item.image_url);
       const safeName = escapeHtml(item.nom);
 
@@ -586,43 +595,22 @@ async function loadOrder() {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('content').style.display = 'block';
 
-    // S'abonner aux changements temps réel
-    sb.channel('orders')
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'orders',
-        filter: `numero=eq.${orderNum}`
-      }, payload => {
-        console.log('Commande mise à jour:', payload.new);
-        orderData = payload.new;
-        updateDisplay(payload.new);
-      })
-      .subscribe();
-
-    // Polling si pending OU si payee+auto-accept (transition rapide imminente)
-    if (data.statut === 'pending' || (data.statut === 'payee' && autoAcceptEnabled)) {
-      const pendingPoll = setInterval(async () => {
-        if (!orderData || (orderData.statut !== 'pending' && orderData.statut !== 'payee')) {
-          clearInterval(pendingPoll);
-          return;
+    // Polling toutes les 5s pour les statuts intermédiaires
+    const poll = setInterval(async () => {
+      if (!orderData || ['recuperee', 'cancelled', 'refunded'].includes(orderData.statut)) {
+        clearInterval(poll);
+        return;
+      }
+      try {
+        const refreshed = await fetchOrder(orderNum);
+        if (refreshed && !refreshed.error && refreshed.statut !== orderData.statut) {
+          orderData = refreshed;
+          updateDisplay(refreshed);
         }
-        try {
-          const { data: refreshed } = await sb
-            .from('orders')
-            .select('*')
-            .eq('numero', orderNum)
-            .single();
-          if (refreshed && refreshed.statut !== 'pending' && refreshed.statut !== 'payee') {
-            clearInterval(pendingPoll);
-            orderData = refreshed;
-            updateDisplay(refreshed);
-          }
-        } catch (e) {
-          console.error('Erreur polling pending:', e);
-        }
-      }, 3000);
-    }
+      } catch (e) {
+        console.error('Erreur polling:', e);
+      }
+    }, 5000);
 
   } catch (error) {
     console.error('Erreur:', error);

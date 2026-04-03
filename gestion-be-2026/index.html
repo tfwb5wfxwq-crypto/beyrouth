@@ -2052,6 +2052,14 @@ async function doLogout() {
 function detectDevice(ua) {
   const lower = ua.toLowerCase();
 
+  // Mac (check AVANT iPhone car Safari/Mac UA peut contenir des sous-chaînes)
+  if (lower.includes('macintosh') || (lower.includes('mac os') && !lower.includes('iphone') && !lower.includes('ipad'))) {
+    if (lower.includes('safari') && !lower.includes('chrome')) {
+      return { icon: '💻', name: 'MacBook (Safari)', type: 'desktop' };
+    }
+    return { icon: '💻', name: 'MacBook', type: 'desktop' };
+  }
+
   // Tablette Android
   if (lower.includes('android') && !lower.includes('mobile')) {
     const model = ua.match(/SM-[A-Z0-9]+/i)?.[0] || 'Tablette Android';
@@ -2066,14 +2074,6 @@ function detectDevice(ua) {
   // iPhone
   if (lower.includes('iphone')) {
     return { icon: '📱', name: 'iPhone', type: 'phone' };
-  }
-
-  // Mac
-  if (lower.includes('mac os') || lower.includes('macintosh')) {
-    if (lower.includes('safari') && !lower.includes('chrome')) {
-      return { icon: '💻', name: 'MacBook (Safari)', type: 'desktop' };
-    }
-    return { icon: '💻', name: 'MacBook', type: 'desktop' };
   }
 
   // Windows

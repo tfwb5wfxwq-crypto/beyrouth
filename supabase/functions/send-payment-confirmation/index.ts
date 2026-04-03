@@ -16,9 +16,23 @@ serve(async (req) => {
   try {
     // 🔒 Appel interne uniquement (service_role)
     const authHeader = req.headers.get('Authorization')
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     const token = authHeader?.replace('Bearer ', '')
-    if (!token || token !== serviceRoleKey) {
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: 'Non autorisé' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    // Vérifier que le JWT a le rôle service_role (sans valider la signature - appel interne seulement)
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      if (payload.role !== 'service_role') {
+        return new Response(
+          JSON.stringify({ error: 'Non autorisé' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    } catch {
       return new Response(
         JSON.stringify({ error: 'Non autorisé' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

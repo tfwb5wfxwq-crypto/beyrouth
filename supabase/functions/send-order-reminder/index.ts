@@ -31,27 +31,14 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Vérifier que le token existe en BDD et n'est pas expiré
-    const { data: session, error: sessionError } = await supabase
-      .from('admin_sessions')
-      .select('*')
-      .eq('token', adminToken)
-      .gt('expires_at', new Date().toISOString())
-      .single()
-
-    if (sessionError || !session) {
-      console.error('❌ Token invalide ou expiré')
+        // 🔒 Valider le JWT Supabase Auth
+    const { data: { user: adminUser }, error: authError } = await supabase.auth.getUser(adminToken)
+    if (authError || !adminUser) {
       return new Response(
         JSON.stringify({ error: 'Token invalide ou expiré' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-
-    // ✅ Token valide → Update last_activity
-    await supabase
-      .from('admin_sessions')
-      .update({ last_activity: new Date().toISOString() })
-      .eq('token', adminToken)
 
     const { orderId } = await req.json()
 
@@ -110,29 +97,30 @@ serve(async (req) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="light">
+  <meta name="color-scheme" content="only light">
   <meta name="supported-color-schemes" content="light">
   <style>
+    :root { color-scheme: light; }
     .email-header-bg { background-color: #000000 !important; }
   </style>
   <title>Votre commande vous attend</title>
 </head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f5;">
+<body bgcolor="#f5f5f5" style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f5f5f5" style="background:#f5f5f5;">
     <tr>
-      <td align="center" style="padding:10px 0;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;">
+      <td align="center" bgcolor="#f5f5f5" style="background:#f5f5f5;padding:0;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
 
           <!-- Header fond noir avec logo -->
           <tr>
-            <td class="email-header-bg" style="background:#000000;padding:8px 24px;text-align:center;">
+            <td bgcolor="#000000" style="background:#000000;padding:8px 24px;text-align:center;">
               <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width:240px;height:auto;max-width:100%;display:block;margin:0 auto;">
             </td>
           </tr>
 
           <!-- Contenu principal -->
           <tr>
-            <td style="padding:32px 24px;">
+            <td bgcolor="#ffffff" style="background:#ffffff;padding:32px 24px;">
 
               <!-- Alerte orange -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
@@ -185,7 +173,7 @@ serve(async (req) => {
 
           <!-- Footer -->
           <tr>
-            <td style="background:#fafafa;padding:32px 24px;border-top:1px solid #e0e0e0;text-align:center;">
+            <td bgcolor="#f5f5f5" style="background:#f5f5f5;padding:32px 24px;border-top:1px solid #e0e0e0;text-align:center;">
 
               <!-- Instagram -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">

@@ -851,9 +851,10 @@ button{cursor:pointer;font-family:inherit;border:none}
       </div>
     </div>
     <p>Interface de gestion</p>
-    <input class="login-input" type="text" id="loginCode" placeholder="Code d'accès" autocomplete="off">
+    <input class="login-input" type="email" id="loginEmail" placeholder="Email" autocomplete="email">
+    <input class="login-input" type="password" id="loginPassword" placeholder="Mot de passe" autocomplete="current-password" style="margin-top:10px;">
     <button class="login-btn" onclick="doLogin()">Se connecter</button>
-    <div class="login-error" id="loginError">Code incorrect</div>
+    <div class="login-error" id="loginError">Email ou mot de passe incorrect</div>
   </div>
 </div>
 
@@ -1088,11 +1089,6 @@ button{cursor:pointer;font-family:inherit;border:none}
         </div>
       </div>
 
-      <div style="margin-bottom:24px">
-        <h3 style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto',sans-serif;font-size:1.1rem;color:#374151;margin-bottom:12px;font-weight:600;">Top clients</h3>
-        <div id="topClientsList" style="display:grid;gap:8px;"></div>
-      </div>
-
       <div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
           <h3 style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto',sans-serif;font-size:1.1rem;color:#374151;margin:0;font-weight:600;">Tous les clients</h3>
@@ -1239,6 +1235,19 @@ button{cursor:pointer;font-family:inherit;border:none}
 const SUPABASE_URL = 'https://xbuftfwcyontgqbbrrjt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidWZ0ZndjeW9udGdxYmJycmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2Njg1NzksImV4cCI6MjA4NjI0NDU3OX0.ROkSccADlpLsWMgqyiX_xNaFdJNR8P4R-LJCnZV2Gzg';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// 🔒 Session Supabase Auth — mise à jour automatique via onAuthStateChange
+let _supabaseSession = null;
+function getAdminToken() {
+  return _supabaseSession?.access_token || null;
+}
+sb.auth.onAuthStateChange((event, session) => {
+  _supabaseSession = session;
+  if (event === 'SIGNED_OUT') {
+    document.getElementById('loginPage').style.display = 'flex';
+    document.getElementById('dashboard').style.display = 'none';
+  }
+});
 
 // 🔧 MEMORY LEAK FIX: Store interval IDs for cleanup on logout
 let intervals = [];
@@ -1409,7 +1418,7 @@ function enterFullscreen() {
 
 // Auto plein écran après login
 setTimeout(() => {
-  if (localStorage.getItem('adminToken')) {
+  if (getAdminToken()) {
     enterFullscreen();
   }
 }, 1000);
@@ -1955,150 +1964,59 @@ async function resumeIndefinitePause() {
   }
 }
 
-// ===== AUTH 🔒 SÉCURISÉ =====
+// ===== AUTH 🔒 Supabase Auth email+password =====
 
 async function checkSession() {
-  // Vérifier si on a un token valide ET le code admin (requis pour toggle-menu-item)
-  const token = localStorage.getItem('adminToken');
-  const expiry = localStorage.getItem('adminTokenExpiry');
-  const adminCode = localStorage.getItem('adminCode');
-
-  if (token && expiry && adminCode && Date.now() < parseInt(expiry)) {
-    // Token encore valide + adminCode présent
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    _supabaseSession = session;
     showDashboard();
   } else {
-    // Token expiré, absent, ou adminCode manquant → forcer reconnexion
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminTokenExpiry');
-    localStorage.removeItem('adminCode');
-    // Afficher page de login (pas de redirection)
     document.getElementById('loginPage').style.display = 'flex';
     document.getElementById('dashboard').style.display = 'none';
   }
 }
 
-// 🔄 REFRESH AUTOMATIQUE DU TOKEN (pour tablette restaurant)
-async function refreshToken() {
-  const adminCode = localStorage.getItem('adminCode');
-  if (!adminCode) {
-    console.log('⚠️ Pas de code admin stocké, impossible de rafraîchir');
-    return false;
-  }
-
-  try {
-    console.log('🔄 Rafraîchissement du token en cours...');
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-auth`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-      },
-      body: JSON.stringify({ code: adminCode })
-    });
-
-    const data = await response.json();
-
-    if (data.success && data.token) {
-      localStorage.setItem('adminToken', data.token);
-      localStorage.setItem('adminTokenExpiry', Date.now() + data.expiresIn * 1000);
-      console.log('✅ Token rafraîchi automatiquement - Nouvelle expiration:', new Date(Date.now() + data.expiresIn * 1000).toLocaleString('fr-FR'));
-      return true;
-    } else {
-      console.error('❌ Erreur refresh:', data.error);
-    }
-  } catch (error) {
-    console.error('❌ Erreur refresh token:', error);
-  }
-  return false;
-}
-
-// Vérifier et rafraîchir le token si nécessaire
-async function checkAndRefreshToken() {
-  const token = localStorage.getItem('adminToken');
-  const expiry = localStorage.getItem('adminTokenExpiry');
-  const adminCode = localStorage.getItem('adminCode');
-
-  if (!token || !expiry || !adminCode) return;
-
-  const expiryTime = parseInt(expiry);
-  const now = Date.now();
-  const twoDaysInMs = 2 * 24 * 60 * 60 * 1000;
-  const remainingTime = expiryTime - now;
-
-  // Si le token expire dans moins de 2 jours, le rafraîchir
-  if (remainingTime < twoDaysInMs) {
-    const remainingDays = Math.floor(remainingTime / (24 * 60 * 60 * 1000));
-    const remainingHours = Math.floor((remainingTime % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
-    console.log(`⚠️ Token expire dans ${remainingDays}j ${remainingHours}h - Rafraîchissement automatique...`);
-    await refreshToken();
-  } else {
-    const remainingDays = Math.floor(remainingTime / (24 * 60 * 60 * 1000));
-    console.log(`✅ Token valide encore ${remainingDays} jours`);
-  }
-}
-
 checkSession();
 
-// 🚀 REFRESH AUTOMATIQUE: au démarrage + toutes les 6h
-checkAndRefreshToken();
-setInterval(checkAndRefreshToken, 6 * 60 * 60 * 1000); // Toutes les 6 heures
-
-document.getElementById('loginCode').addEventListener('keydown', e => {
+document.getElementById('loginPassword').addEventListener('keydown', e => {
   if (e.key === 'Enter') doLogin();
+});
+document.getElementById('loginEmail').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('loginPassword').focus();
 });
 
 async function doLogin() {
-  const code = document.getElementById('loginCode').value.trim();
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
   const errEl = document.getElementById('loginError');
   const btn = document.querySelector('.login-btn');
 
-  if (!code) {
-    errEl.textContent = 'Veuillez entrer le code';
+  if (!email || !password) {
+    errEl.textContent = 'Veuillez remplir tous les champs';
     errEl.style.display = 'block';
     return;
   }
 
   btn.disabled = true;
-  btn.textContent = 'Vérification...';
+  btn.textContent = 'Connexion...';
 
   try {
-    // 🔑 Générer ou récupérer device_id unique (comme Facebook/Google)
-    let deviceId = localStorage.getItem('device_id');
-    if (!deviceId) {
-      deviceId = crypto.randomUUID();
-      localStorage.setItem('device_id', deviceId);
-      console.log('🆔 Nouveau device_id généré:', deviceId);
-    } else {
-      console.log('🆔 Device_id existant:', deviceId);
-    }
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
 
-    // 🔒 Appeler l'Edge Function pour valider le code côté serveur
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-auth`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-      },
-      body: JSON.stringify({ code, deviceId })
-    });
-
-    const data = await response.json();
-
-    if (data.success && data.token) {
-      localStorage.setItem('adminToken', data.token);
-      localStorage.setItem('adminTokenExpiry', Date.now() + data.expiresIn * 1000);
-      localStorage.setItem('adminCode', code); // Stocké pour Edge Functions legacy
-      errEl.style.display = 'none';
-      showDashboard();
-    } else {
-      errEl.textContent = 'Code incorrect';
+    if (error || !data.session) {
+      errEl.textContent = 'Email ou mot de passe incorrect';
       errEl.style.display = 'block';
       setTimeout(() => {
         errEl.style.display = 'none';
-        document.getElementById('loginCode').value = '';
+        document.getElementById('loginPassword').value = '';
         btn.disabled = false;
         btn.textContent = 'Se connecter';
       }, 2000);
+    } else {
+      _supabaseSession = data.session;
+      errEl.style.display = 'none';
+      showDashboard();
     }
   } catch (error) {
     console.error('Erreur auth:', error);
@@ -2124,10 +2042,8 @@ async function doLogout() {
     }
   }
 
-  localStorage.removeItem('adminToken');
-  localStorage.removeItem('adminTokenExpiry');
-  localStorage.removeItem('adminCode');
-  // Recharger la page → checkSession() affichera le login
+  await sb.auth.signOut();
+  _supabaseSession = null;
   window.location.reload();
 }
 
@@ -2170,7 +2086,7 @@ function detectDevice(ua) {
 }
 
 async function showActiveSessions() {
-  const adminToken = localStorage.getItem('adminToken');
+  const adminToken = getAdminToken();
   if (!adminToken) {
     showToast('❌ Non connecté', 'error');
     return;
@@ -2993,7 +2909,7 @@ async function confirmResendEmail(orderId) {
   showToast(`⏳ Envoi de l'email à ${newEmail}...`, 'info');
 
   try {
-    const adminToken = localStorage.getItem('adminToken');
+    const adminToken = getAdminToken();
 
     // Appeler Edge Function pour renvoyer l'email
     const { data, error } = await sb.functions.invoke('resend-order-email', {
@@ -3201,7 +3117,7 @@ async function updateStatus(orderId, newStatus) {
 
   try {
     // Utiliser Edge Function sécurisée (bypass RLS)
-    const adminToken = localStorage.getItem('adminToken');
+    const adminToken = getAdminToken();
     const { data: result, error: updateError } = await sb.functions.invoke('update-order-status', {
       headers: {
         Authorization: `Bearer ${adminToken}`
@@ -3321,7 +3237,7 @@ async function remindOrder(orderId) {
   showToast(`📧 Envoi de l'email de relance à ${escapeHtml(order.client_prenom || 'client')}...`, 'info');
 
   try {
-    const adminToken = localStorage.getItem('adminToken');
+    const adminToken = getAdminToken();
     const reminderRes = await fetch(`${SUPABASE_URL}/functions/v1/send-order-reminder`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${adminToken}`, 'Content-Type': 'application/json' },
@@ -3431,7 +3347,7 @@ async function confirmResendInvoice(orderId) {
   showToast(`📧 Envoi de la facture à ${email}...`, 'info');
 
   try {
-    const adminToken = localStorage.getItem('adminToken');
+    const adminToken = getAdminToken();
 
     // IMPORTANT: On doit passer l'email custom à la Edge Function
     // Modifier send-order-completed pour accepter emailOverride
@@ -3567,7 +3483,7 @@ async function confirmCancelOrder(orderId) {
 
   try {
     // Appeler Edge Function pour gérer remboursement + email (avec auth admin)
-    const adminToken = localStorage.getItem('adminToken');
+    const adminToken = getAdminToken();
     const { data, error } = await sb.functions.invoke('cancel-and-refund-order', {
       headers: {
         Authorization: `Bearer ${adminToken}`
@@ -3633,8 +3549,7 @@ async function toggleMenuItem(id, newValue) {
   const numId = parseInt(id, 10);
   const boolValue = newValue === 'true' || newValue === true;
 
-  // Récupérer le token admin depuis localStorage
-  const adminToken = localStorage.getItem('adminToken');
+  const adminToken = getAdminToken();
   if (!adminToken) {
     alert('Erreur: Token admin manquant');
     return;
@@ -4117,7 +4032,7 @@ async function confirmCancel(orderId, cancellationReason = '') {
 
     // 2. Envoyer email d'annulation avec la raison
     try {
-      const adminToken = localStorage.getItem('adminToken');
+      const adminToken = getAdminToken();
       const { data, error } = await sb.functions.invoke('send-cancellation-email', {
         headers: {
           Authorization: `Bearer ${adminToken}`
@@ -4185,7 +4100,7 @@ async function refundPayGreenTransaction(transactionId, amount) {
 
   console.log(`🔄 Demande remboursement PayGreen (ID: ${transactionId}, montant: ${amount}€)`);
 
-  const adminToken = localStorage.getItem('adminToken');
+  const adminToken = getAdminToken();
   const { data, error } = await sb.functions.invoke('paygreen-refund', {
     headers: {
       Authorization: `Bearer ${adminToken}`
@@ -4215,7 +4130,7 @@ async function refundEdenredTransaction(captureId, amount) {
 
   console.log(`🔄 Demande remboursement Edenred (ID: ${captureId}, montant: ${amount}€)`);
 
-  const adminToken = localStorage.getItem('adminToken');
+  const adminToken = getAdminToken();
   const { data, error } = await sb.functions.invoke('edenred-refund', {
     headers: {
       Authorization: `Bearer ${adminToken}`
@@ -4512,7 +4427,7 @@ async function resendCompletedOrderEmail(orderId) {
   try {
     const { data, error } = await sb.functions.invoke('send-order-completed', {
       body: { orderId, forceResend: true },
-      headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
+      headers: { Authorization: `Bearer ${getAdminToken()}` }
     });
 
     if (error) throw new Error(error.message);
@@ -4621,7 +4536,7 @@ async function confirmCancelAndRefundCompleted(orderId) {
   try {
     const { data, error } = await sb.functions.invoke('cancel-and-refund-order', {
       body: { orderId, reason: reason },
-      headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
+      headers: { Authorization: `Bearer ${getAdminToken()}` }
     });
 
     if (error) throw new Error(error.message);
@@ -4655,7 +4570,7 @@ async function remindClient(orderId) {
   showToast('📧 Envoi en cours...', 'info');
 
   try {
-    const adminToken = localStorage.getItem('adminToken');
+    const adminToken = getAdminToken();
     const reminderRes = await fetch(`${SUPABASE_URL}/functions/v1/send-order-reminder`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${adminToken}`, 'Content-Type': 'application/json' },
@@ -4721,7 +4636,7 @@ async function markAsRecuperee(orderId) {
 
     // Envoyer l'email avec ticket de caisse
     try {
-      const adminToken = localStorage.getItem('adminToken');
+      const adminToken = getAdminToken();
       const { data, error: emailError } = await sb.functions.invoke('send-order-completed', {
         headers: { Authorization: `Bearer ${adminToken}` },
         body: { orderId: orderId }
@@ -5402,34 +5317,6 @@ async function loadClients() {
   document.getElementById('clientsOrdersTotal').textContent = totalOrders;
   document.getElementById('clientsRevenueTotal').textContent = totalRevenue.toFixed(2).replace('.', ',') + ' €';
 
-  // Top clients
-  const topClients = [...clients].slice(0, 10);
-  const topHtml = topClients.map(c => {
-    const badges = [];
-    if ((c.nombre_commandes || 0) >= 10) badges.push('<span style="color:#D4A853;margin-left:4px">🏆</span>');
-    if (c.optin_promo) badges.push('<span style="display:inline-flex;align-items:center;background:#10b981;color:#fff;font-size:.65rem;padding:2px 6px;border-radius:4px;margin-left:4px;font-weight:600">📧 Promo</span>');
-
-    return `
-      <div class="client-card" onclick="showClientDetail('${c.email}')">
-        <div class="client-info">
-          <div class="client-name">${escapeHtml(c.prenom) || 'Client'}${badges.join('')}</div>
-          <div class="client-contact">${escapeHtml(c.email) || ''} ${c.telephone ? '· ' + escapeHtml(c.telephone) : ''}</div>
-        </div>
-        <div class="client-stats">
-          <div class="client-stat">
-            <div class="client-stat-value">${c.nombre_commandes || 0}</div>
-            <div class="client-stat-label">commandes</div>
-          </div>
-          <div class="client-stat">
-            <div class="client-stat-value">${(c.total_depense || 0).toFixed(0)} €</div>
-            <div class="client-stat-label">dépensé</div>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join('');
-  document.getElementById('topClientsList').innerHTML = topHtml;
-
   // All clients
   renderAllClients(clients);
 
@@ -5503,38 +5390,57 @@ function applyClientFilter(clientList) {
   return clientList;
 }
 
+function renderClientCard(c) {
+  const badges = [];
+  if ((c.nombre_commandes || 0) >= 10) badges.push('<span style="color:#D4A853;margin-left:4px">🏆</span>');
+  if (c.optin_promo) badges.push('<span style="display:inline-flex;align-items:center;background:#10b981;color:#fff;font-size:.65rem;padding:2px 6px;border-radius:4px;margin-left:4px;font-weight:600">📧 Promo</span>');
+  return `
+    <div class="client-card" style="margin-bottom:8px;" onclick="showClientDetail('${c.email}')">
+      <div class="client-info">
+        <div class="client-name">${escapeHtml(c.prenom) || 'Client'}${badges.join('')}</div>
+        <div class="client-contact">${escapeHtml(c.email) || ''} ${c.telephone ? '· ' + escapeHtml(c.telephone) : ''}</div>
+      </div>
+      <div class="client-stats">
+        <div class="client-stat">
+          <div class="client-stat-value">${c.nombre_commandes || 0}</div>
+          <div class="client-stat-label">commandes</div>
+        </div>
+        <div class="client-stat">
+          <div class="client-stat-value">${(c.total_depense || 0).toFixed(0)} €</div>
+          <div class="client-stat-label">dépensé</div>
+        </div>
+        <div class="client-stat">
+          <div class="client-stat-value" style="font-size:.9rem;color:#888">${getTimeAgo(c.derniere_commande || c.created_at)}</div>
+          <div class="client-stat-label">dernière</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderAllClients(clientList) {
   const displayedClients = clientList.slice(0, clientsDisplayLimit);
   const remaining = clientList.length - clientsDisplayLimit;
 
-  const html = displayedClients.map(c => {
-    const badges = [];
-    if ((c.nombre_commandes || 0) >= 10) badges.push('<span style="color:#D4A853;margin-left:4px">🏆</span>');
-    if (c.optin_promo) badges.push('<span style="display:inline-flex;align-items:center;background:#10b981;color:#fff;font-size:.65rem;padding:2px 6px;border-radius:4px;margin-left:4px;font-weight:600">📧 Promo</span>');
+  // Grouper Top / Autres uniquement sur filtre "all" sans recherche active
+  const showGroups = currentClientFilter === 'all' && !document.getElementById('clientSearch').value;
+  let html = '';
 
-    return `
-      <div class="client-card" style="margin-bottom:8px;" onclick="showClientDetail('${c.email}')">
-        <div class="client-info">
-          <div class="client-name">${escapeHtml(c.prenom) || 'Client'}${badges.join('')}</div>
-          <div class="client-contact">${escapeHtml(c.email) || ''} ${c.telephone ? '· ' + escapeHtml(c.telephone) : ''}</div>
-        </div>
-        <div class="client-stats">
-          <div class="client-stat">
-            <div class="client-stat-value">${c.nombre_commandes || 0}</div>
-            <div class="client-stat-label">commandes</div>
-          </div>
-          <div class="client-stat">
-            <div class="client-stat-value">${(c.total_depense || 0).toFixed(0)} €</div>
-            <div class="client-stat-label">dépensé</div>
-          </div>
-          <div class="client-stat">
-            <div class="client-stat-value" style="font-size:.9rem;color:#888">${getTimeAgo(c.derniere_commande || c.created_at)}</div>
-            <div class="client-stat-label">dernière</div>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join('');
+  if (showGroups && displayedClients.length > 0) {
+    const topCount = Math.min(10, displayedClients.length);
+    const topClients = displayedClients.slice(0, topCount);
+    const otherClients = displayedClients.slice(topCount);
+
+    html += `<div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;margin:0 0 8px 2px;">🏆 Top</div>`;
+    html += topClients.map(renderClientCard).join('');
+
+    if (otherClients.length > 0) {
+      html += `<div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;margin:16px 0 8px 2px;">Tous</div>`;
+      html += otherClients.map(renderClientCard).join('');
+    }
+  } else {
+    html = displayedClients.map(renderClientCard).join('');
+  }
 
   let loadMoreBtn = '';
   if (remaining > 0) {

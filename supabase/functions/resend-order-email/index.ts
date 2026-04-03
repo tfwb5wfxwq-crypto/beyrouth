@@ -30,26 +30,14 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Vérifier le token admin
-    const { data: session, error: sessionError } = await supabase
-      .from('admin_sessions')
-      .select('*')
-      .eq('token', adminToken)
-      .gt('expires_at', new Date().toISOString())
-      .single()
-
-    if (sessionError || !session) {
+    // 🔒 Valider le JWT Supabase Auth
+    const { data: { user: adminUser }, error: authError } = await supabase.auth.getUser(adminToken)
+    if (authError || !adminUser) {
       return new Response(
         JSON.stringify({ error: 'Token invalide ou expiré' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-
-    // Update last_activity
-    await supabase
-      .from('admin_sessions')
-      .update({ last_activity: new Date().toISOString() })
-      .eq('token', adminToken)
 
     const { orderId, newEmail } = await req.json()
 
@@ -111,6 +99,9 @@ serve(async (req) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="only light">
+  <meta name="supported-color-schemes" content="light">
+  <style>:root { color-scheme: light; }</style>
   <title>Commande confirmée</title>
 </head>
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;">

@@ -35,7 +35,7 @@ serve(async (req) => {
   }
 
   try {
-    // 🔒 SÉCURITÉ: Validation token admin avec table admin_sessions
+    // 🔒 SÉCURITÉ: Validation JWT Supabase Auth
     const authHeader = req.headers.get('Authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       console.error('❌ Tentative accès sans token')
@@ -53,27 +53,14 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Vérifier que le token existe en BDD et n'est pas expiré
-    const { data: session, error: sessionError } = await supabase
-      .from('admin_sessions')
-      .select('*')
-      .eq('token', adminToken)
-      .gt('expires_at', new Date().toISOString())
-      .single()
-
-    if (sessionError || !session) {
-      console.error('❌ Token invalide ou expiré:', adminToken.substring(0, 8) + '...')
+    // 🔒 Valider le JWT Supabase Auth
+    const { data: { user: adminUser }, error: authError } = await supabase.auth.getUser(adminToken)
+    if (authError || !adminUser) {
       return new Response(
         JSON.stringify({ error: 'Token invalide ou expiré' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-
-    // ✅ Token valide → Update last_activity
-    await supabase
-      .from('admin_sessions')
-      .update({ last_activity: new Date().toISOString() })
-      .eq('token', adminToken)
 
     const { orderId, reason } = await req.json()
 
@@ -287,54 +274,100 @@ serve(async (req) => {
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="only light">
+  <meta name="supported-color-schemes" content="light">
+  <style>
+    :root { color-scheme: light; }
+    .email-header-bg { background-color: #000000 !important; }
+  </style>
   <title>Commande annulée</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5;">
-  <div style="max-width: 600px; margin: 0 auto; background: #fff;">
+<body bgcolor="#f5f5f5" style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f5f5f5" style="background:#f5f5f5;">
+    <tr>
+      <td align="center" bgcolor="#f5f5f5" style="background:#f5f5f5;padding:0;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
 
-    <!-- Header avec fond noir -->
-    <div style="background: #000; padding: 40px 24px; text-align: center;">
-      <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width: 240px; height: auto; max-width: 100%;">
-    </div>
+          <!-- Header fond noir avec logo -->
+          <tr>
+            <td bgcolor="#000000" style="background:#000000;padding:8px 24px;text-align:center;">
+              <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width:240px;height:auto;max-width:100%;display:block;margin:0 auto;">
+            </td>
+          </tr>
 
-    <!-- Contenu -->
-    <div style="padding: 32px 24px;">
-      <div style="font-size: 22px; font-weight: 600; color: #dc2626; margin-bottom: 16px;">⚠️ Commande annulée</div>
+          <!-- Contenu principal -->
+          <tr>
+            <td bgcolor="#ffffff" style="background:#ffffff;padding:24px 20px;">
 
-      <div style="background: #fef2f2; padding: 16px 20px; border-radius: 2px; margin-bottom: 24px;">
-        <div style="font-size: 13px; color: #991b1b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Numéro de commande</div>
-        <div style="font-size: 24px; font-weight: 700; font-family: 'Courier New', monospace; color: #1a1a1a; letter-spacing: 2px;">${order.numero}</div>
-      </div>
+              <!-- Alerte annulation -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+                <tr>
+                  <td style="background:#fef2f2;padding:16px 20px;">
+                    <span style="font-size:16px;font-weight:600;color:#991b1b;">❌ Commande annulée</span>
+                  </td>
+                </tr>
+              </table>
 
-      <div style="margin-bottom: 24px;">
-        <div style="font-size: 14px; color: #1a1a1a; line-height: 1.6;">
-          Nous sommes désolés de vous informer que votre commande a été annulée.
-        </div>
-      </div>
+              <!-- Numéro -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fafafa;margin-bottom:20px;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">Commande</div>
+                    <div style="font-size:22px;font-weight:700;font-family:'Courier New',monospace;color:#ef4444;">${order.numero}</div>
+                  </td>
+                </tr>
+              </table>
 
-      <div style="background: #fafafa; padding: 16px 20px; border-radius: 8px; margin-bottom: 24px;">
-        <div style="font-size: 13px; color: #888; margin-bottom: 8px; font-weight: 600;">Raison :</div>
-        <div style="font-size: 14px; color: #1a1a1a;">${reason}</div>
-      </div>
+              ${reason ? `
+              <!-- Raison -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fafafa;margin-bottom:20px;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">Raison</div>
+                    <div style="font-size:14px;color:#666;line-height:1.6;">${String(reason).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+                  </td>
+                </tr>
+              </table>
+              ` : ''}
 
-      <div style="background: #f0fdf4; border: 1px solid #86efac; padding: 16px 20px; border-radius: 8px;">
-        <div style="font-size: 14px; color: #166534; line-height: 1.6;">
-          <strong>💳 Remboursement :</strong><br>
-          Votre paiement de <strong>${order.total.toFixed(2)}€</strong> sera remboursé sous 3 à 5 jours ouvrés.
-        </div>
-      </div>
-    </div>
+              <!-- Remboursement -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+                <tr>
+                  <td style="background:#fef3c7;padding:16px 20px;">
+                    <div style="font-size:14px;font-weight:600;color:#92400e;margin-bottom:6px;">💳 Remboursement automatique</div>
+                    <div style="font-size:13px;color:#78350f;line-height:1.5;">Le montant de <strong>${order.total.toFixed(2).replace('.', ',')} €</strong> vous sera remboursé sous 5 à 7 jours ouvrés.</div>
+                  </td>
+                </tr>
+              </table>
 
-    <!-- Footer -->
-    <div style="background: #fafafa; padding: 24px; border-top: 1px solid #e0e0e0; text-align: center;">
-      <div style="font-size: 12px; color: #888; line-height: 1.6;">
-        Nous nous excusons pour ce désagrément.<br>
-        Pour toute question : <a href="mailto:contact@beyrouth.express" style="color: #D4A853; text-decoration: none;">contact@beyrouth.express</a><br>
-        <a href="https://beyrouth.express" style="color: #D4A853; text-decoration: none; margin-top: 8px; display: inline-block;">beyrouth.express</a>
-      </div>
-    </div>
+              <!-- Contact -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #e0e0e0;">
+                <tr>
+                  <td style="padding:16px 0;">
+                    <div style="font-size:14px;color:#1a1a1a;line-height:1.5;">
+                      <strong>A Beyrouth</strong> · 4 Esp. Gal de Gaulle<br>
+                      92400 Courbevoie (La Défense)
+                    </div>
+                  </td>
+                </tr>
+              </table>
 
-  </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td bgcolor="#f5f5f5" style="background:#f5f5f5;padding:20px;border-top:1px solid #e0e0e0;text-align:center;">
+              <p style="margin:0 0 8px 0;font-size:12px;color:#888;">Pour toute question : <a href="mailto:contact@beyrouth.express" style="color:#D4A853;text-decoration:none;">contact@beyrouth.express</a></p>
+              <p style="margin:0;font-size:11px;color:#aaa;"><a href="https://beyrouth.express" style="color:#D4A853;text-decoration:none;">beyrouth.express</a></p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
       `

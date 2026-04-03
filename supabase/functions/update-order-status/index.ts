@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    // 🔒 SÉCURITÉ: Validation token admin avec table admin_sessions
+    // 🔒 SÉCURITÉ: Validation JWT Supabase Auth
     const authHeader = req.headers.get('Authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       console.error('❌ Tentative accès update-order-status sans token')
@@ -31,27 +31,14 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Vérifier que le token existe en BDD et n'est pas expiré
-    const { data: session, error: sessionError } = await supabase
-      .from('admin_sessions')
-      .select('*')
-      .eq('token', adminToken)
-      .gt('expires_at', new Date().toISOString())
-      .single()
-
-    if (sessionError || !session) {
-      console.error('❌ Token invalide ou expiré:', adminToken.substring(0, 8) + '...')
+    // 🔒 Valider le JWT Supabase Auth
+    const { data: { user: adminUser }, error: authError } = await supabase.auth.getUser(adminToken)
+    if (authError || !adminUser) {
       return new Response(
         JSON.stringify({ error: 'Token invalide ou expiré' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-
-    // ✅ Token valide → Update last_activity
-    await supabase
-      .from('admin_sessions')
-      .update({ last_activity: new Date().toISOString() })
-      .eq('token', adminToken)
 
     const { orderId, newStatus } = await req.json()
 

@@ -1390,7 +1390,7 @@ let swRegistration = null;
 
 // Enregistrer Service Worker pour notifications
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/admin/sw.js')
+  navigator.serviceWorker.register('/gestion-be-2026/sw.js')
     .then(reg => {
       swRegistration = reg;
       console.log('✅ Service Worker enregistré');

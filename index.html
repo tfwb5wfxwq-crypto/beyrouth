@@ -1772,7 +1772,7 @@ async function submitOrder() {
         email, prenom: name, telephone: phone || null,
         derniere_commande: new Date().toISOString(),
         optin_promo: optin,
-      }, {onConflict: 'email'});
+      }, {onConflict: 'email', ignoreDuplicates: true});
 
       // Insérer la commande
       const {error: insertError} = await sb.from('orders')
@@ -2747,8 +2747,11 @@ async function showConfirmation(orderNum) {
     }, 300);
   }
 
-  // Récupérer les infos depuis la base de données (au cas où on revient d'une redirection OAuth)
-  const { data: orderData } = await sb.from('orders').select('*').eq('numero', orderNum).single();
+  // Récupérer les infos depuis l'Edge Function (sécurisée - pas de données sensibles)
+  const orderRes = await fetch(`${SUPABASE_URL}/functions/v1/get-order-status?numero=${encodeURIComponent(orderNum)}`, {
+    headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+  });
+  const orderData = orderRes.ok ? await orderRes.json() : null;
 
   if (!orderData) {
     console.error('Commande introuvable:', orderNum);
@@ -2859,14 +2862,20 @@ async function showConfirmation(orderNum) {
 
 async function loadOrderStatus(orderNum) {
   try {
-    const { data } = await sb.from('orders').select('*').eq('numero', orderNum).single();
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/get-order-status?numero=${encodeURIComponent(orderNum)}`, {
+      headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+    });
+    const data = res.ok ? await res.json() : null;
     if (data) {
       updateConfirmModalStatus(data);
-
-      if (confirmSubscription) confirmSubscription.unsubscribe();
-      confirmSubscription = sb.channel(`order-${orderNum}`)
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `numero=eq.${orderNum}` }, p => updateConfirmModalStatus(p.new))
-        .subscribe();
+      // Polling toutes les 5s au lieu de Realtime (anon n'a pas accès SELECT direct)
+      if (confirmSubscription) clearInterval(confirmSubscription);
+      confirmSubscription = setInterval(async () => {
+        const r = await fetch(`${SUPABASE_URL}/functions/v1/get-order-status?numero=${encodeURIComponent(orderNum)}`, {
+          headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+        });
+        if (r.ok) updateConfirmModalStatus(await r.json());
+      }, 5000);
     }
   } catch (e) {
     console.error('Erreur:', e);
@@ -2971,7 +2980,7 @@ function closeConfirmModal() {
     confirmModal = null;
   }
   if (confirmSubscription) {
-    confirmSubscription.unsubscribe();
+    clearInterval(confirmSubscription);
     confirmSubscription = null;
   }
   window.scrollTo({ top: 0, behavior: 'smooth' });

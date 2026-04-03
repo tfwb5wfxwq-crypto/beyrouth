@@ -529,6 +529,23 @@ function updateDisplay(order) {
     `;
 
     emailMsg.innerHTML = '✉️ <strong>Email d\'annulation envoyé</strong>';
+
+  } else if (effectiveStatus === 'refunded') {
+    icon.classList.add('orange');
+    icon.textContent = '↩️';
+    title.className = 'orange';
+    title.textContent = 'Commande annulée';
+    subtitle.textContent = 'Remboursement en cours';
+
+    banner.innerHTML = `
+      <div class="status-banner waiting">
+        <div class="status-banner-icon">💳</div>
+        <div class="status-banner-title">Commande annulée</div>
+        <div class="status-banner-text">Le remboursement sera effectué sous 5 à 7 jours ouvrés.</div>
+      </div>
+    `;
+
+    emailMsg.innerHTML = '✉️ <strong>Email d\'annulation envoyé</strong>';
   }
 }
 

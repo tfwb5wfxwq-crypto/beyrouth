@@ -36,27 +36,16 @@ serve(async (req) => {
     const isServiceRole = token === serviceRoleKey
 
     if (!isServiceRole) {
-      // Sinon, vérifier que c'est un token admin valide
-      const { data: session, error: sessionError } = await supabase
-        .from('admin_sessions')
-        .select('*')
-        .eq('token', token)
-        .gt('expires_at', new Date().toISOString())
-        .single()
-
-      if (sessionError || !session) {
+      // Vérifier le JWT Supabase Auth
+      const { data: { user: adminUser }, error: authError } = await supabase.auth.getUser(token)
+      if (authError || !adminUser) {
         console.error('❌ Token invalide ou expiré')
         return new Response(
           JSON.stringify({ error: 'Token invalide ou expiré' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
-
-      // ✅ Token admin valide → Update last_activity
-      await supabase
-        .from('admin_sessions')
-        .update({ last_activity: new Date().toISOString() })
-        .eq('token', token)
+      console.log('✅ Appel depuis admin UI (JWT)', adminUser.email)
     } else {
       console.log('✅ Appel depuis service_role (webhook)')
     }
@@ -153,29 +142,36 @@ serve(async (req) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="light">
+  <meta name="color-scheme" content="only light">
   <meta name="supported-color-schemes" content="light">
   <style>
+    :root { color-scheme: light; }
     .email-header-bg { background-color: #000000 !important; }
+    @media (prefers-color-scheme: dark) {
+      body, table, td, div, p, span { color-scheme: light !important; }
+      .content-bg { background-color: #ffffff !important; color: #1a1a1a !important; }
+      .footer-bg { background-color: #f5f5f5 !important; }
+      .wrapper-bg { background-color: #f5f5f5 !important; }
+    }
   </style>
   <title>Commande confirmée</title>
 </head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f5;">
+<body bgcolor="#f5f5f5" style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f5f5f5" style="background:#f5f5f5;">
     <tr>
-      <td align="center" style="padding:10px 0;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;">
+      <td align="center" bgcolor="#f5f5f5" style="background:#f5f5f5;padding:0;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
 
           <!-- Header fond noir avec logo -->
           <tr>
-            <td class="email-header-bg" style="background:#000000;padding:8px 24px;text-align:center;">
+            <td bgcolor="#000000" style="background:#000000;padding:8px 24px;text-align:center;">
               <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width:240px;height:auto;max-width:100%;display:block;margin:0 auto;">
             </td>
           </tr>
 
           <!-- Contenu principal -->
           <tr>
-            <td style="padding:24px 20px;">
+            <td bgcolor="#ffffff" style="background:#ffffff;padding:24px 20px;">
 
               <!-- Statut -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
@@ -249,7 +245,7 @@ serve(async (req) => {
 
           <!-- Footer uniforme avec CTA avis Google -->
           <tr>
-            <td style="background:#fafafa;padding:32px 24px;border-top:1px solid #e0e0e0;">
+            <td bgcolor="#f5f5f5" style="background:#f5f5f5;padding:32px 24px;border-top:1px solid #e0e0e0;">
 
               <!-- CTA Google -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
@@ -292,13 +288,13 @@ serve(async (req) => {
 
             </td>
           </tr>
-
         </table>
       </td>
     </tr>
   </table>
 </body>
 </html>
+
     `
 
     // Envoyer l'email via Brevo API

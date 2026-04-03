@@ -3604,7 +3604,7 @@ async function loadStats(period) {
   // Build query based on period
   let query = sb.from('orders')
     .select('*')
-    .in('statut', ['payee', 'acceptee', 'recuperee', 'cancelled'])
+    .in('statut', ['payee', 'acceptee', 'en_preparation', 'prete', 'recuperee'])
     .eq('archived', false);
 
   if (period === 'today') {
@@ -3636,12 +3636,8 @@ async function loadStats(period) {
 }
 
 function updateStats() {
-  // Called when switching to stats tab - load today by default
-  if (currentStatsPeriod === 'today') {
-    updateStatsDisplay(orders);
-  } else {
-    loadStats(currentStatsPeriod);
-  }
+  // Always load from DB to include recuperee orders (not in local orders variable)
+  loadStats(currentStatsPeriod);
 }
 
 function updateStatsDisplay(statsOrders) {

@@ -340,10 +340,17 @@ function escapeHtml(text) {
 function isPickupTimePassed(pickupTime) {
   if (!pickupTime || pickupTime === 'asap') return false;
 
+  // Si heure_retrait mentionne un jour futur → pas encore passé
+  // Ex: "Lundi 11h30", "Demain 14h00", "Mardi 12h30", etc.
+  const joursAVenir = ['Demain', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+  for (const jour of joursAVenir) {
+    if (pickupTime.startsWith(jour)) return false;
+  }
+
+  // Seulement pour "Aujourd'hui HHhMM" ou "HHhMM" (commande du jour)
   const now = new Date();
   const today = now.toISOString().split('T')[0];
 
-  // Parser "12h30" → Date
   const match = pickupTime.match(/(\d+)h(\d+)/);
   if (!match) return false;
 

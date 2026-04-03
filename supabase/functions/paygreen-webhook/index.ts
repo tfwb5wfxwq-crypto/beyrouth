@@ -56,34 +56,38 @@ serve(async (req) => {
     const signature = req.headers.get('signature')
     const webhookHmac = Deno.env.get('PAYGREEN_WEBHOOK_HMAC')
 
-    // 🔒 Vérification HMAC optionnelle (log si invalide mais ne bloque pas)
-    // La vraie sécurité = vérifier que le numéro de commande existe en BDD
-    if (signature && webhookHmac) {
+    // 🔒 Vérification HMAC OBLIGATOIRE — rejette si signature invalide ou absente
+    if (!webhookHmac) {
+      console.error('❌ PAYGREEN_WEBHOOK_HMAC non configuré — webhook rejeté')
+      return new Response(JSON.stringify({ error: 'Configuration HMAC manquante' }), { status: 500 })
+    }
+
+    if (!signature) {
+      console.warn('❌ Webhook sans signature HMAC — rejeté')
+      return new Response(JSON.stringify({ error: 'Signature manquante' }), { status: 401 })
+    }
+
+    try {
+      const encoder = new TextEncoder()
+      const key = await crypto.subtle.importKey(
+        'raw', encoder.encode(webhookHmac),
+        { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
+      )
+      let sigBytes: Uint8Array
       try {
-        const encoder = new TextEncoder()
-        const key = await crypto.subtle.importKey(
-          'raw', encoder.encode(webhookHmac),
-          { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
-        )
-        // Essayer base64 d'abord, puis hex
-        let sigBytes: Uint8Array
-        try {
-          sigBytes = Uint8Array.from(atob(signature), c => c.charCodeAt(0))
-        } catch {
-          // signature en hex
-          sigBytes = new Uint8Array(signature.match(/.{1,2}/g)!.map(b => parseInt(b, 16)))
-        }
-        const isValid = await crypto.subtle.verify('HMAC', key, sigBytes, encoder.encode(body))
-        if (isValid) {
-          console.log('✅ Signature HMAC valide')
-        } else {
-          console.warn('⚠️ Signature HMAC invalide — webhook traité quand même (ordre vérifié en BDD)')
-        }
-      } catch (hmacErr) {
-        console.warn('⚠️ Erreur vérification HMAC:', hmacErr.message, '— webhook traité quand même')
+        sigBytes = Uint8Array.from(atob(signature), c => c.charCodeAt(0))
+      } catch {
+        sigBytes = new Uint8Array(signature.match(/.{1,2}/g)!.map(b => parseInt(b, 16)))
       }
-    } else {
-      console.log('ℹ️ Pas de signature HMAC — webhook accepté (ordre vérifié en BDD)')
+      const isValid = await crypto.subtle.verify('HMAC', key, sigBytes, encoder.encode(body))
+      if (!isValid) {
+        console.warn('❌ Signature HMAC invalide — webhook rejeté')
+        return new Response(JSON.stringify({ error: 'Signature invalide' }), { status: 401 })
+      }
+      console.log('✅ Signature HMAC valide')
+    } catch (hmacErr) {
+      console.error('❌ Erreur vérification HMAC:', hmacErr.message, '— webhook rejeté')
+      return new Response(JSON.stringify({ error: 'Erreur vérification signature' }), { status: 401 })
     }
 
     const webhookData = JSON.parse(body)
@@ -189,17 +193,16 @@ serve(async (req) => {
       } else {
         // Envoyer email d'acceptation
         try {
-          const { data: emailResult, error: emailInvokeError } = await supabase.functions.invoke('send-order-confirmation', {
-            headers: {
-              Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
-            },
-            body: { orderId: data[0].id }
+          const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+          const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+          const emailResp = await fetch(`${supabaseUrl}/functions/v1/send-order-confirmation`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: data[0].id })
           })
-
-          if (emailInvokeError) {
-            console.error('❌ Erreur invocation email:', emailInvokeError)
-          } else if (!emailResult?.success) {
-            console.error('❌ Erreur envoi email:', emailResult)
+          const emailResult = await emailResp.json().catch(() => ({}))
+          if (!emailResp.ok) {
+            console.error('❌ Erreur envoi email confirmation:', emailResp.status, JSON.stringify(emailResult))
           } else {
             console.log(`📧 Email d'acceptation envoyé pour ${orderId}`)
           }
@@ -209,14 +212,18 @@ serve(async (req) => {
 
         // 📱 Envoyer notification Telegram
         try {
-          await supabase.functions.invoke('send-telegram-notification', {
-            body: {
+          const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+          const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+          await fetch(`${supabaseUrl}/functions/v1/send-telegram-notification`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
               orderNumber: data[0].numero,
               pickupTime: data[0].heure_retrait || 'Dès que possible',
               total: data[0].total.toFixed(2),
               paymentMethod: 'paygreen',
               items: data[0].items || []
-            }
+            })
           })
           console.log(`📱 Notification Telegram envoyée pour ${data[0].numero}`)
         } catch (telegramError) {
@@ -229,17 +236,16 @@ serve(async (req) => {
       const orderId = data[0].id
       console.log(`⏸️ Auto-accept désactivé → en attente validation manuelle`)
       try {
-        const { data: emailResult, error: emailInvokeError } = await supabase.functions.invoke('send-payment-confirmation', {
-          headers: {
-            Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
-          },
-          body: { orderId: data[0].id }
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+        const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        const emailResp = await fetch(`${supabaseUrl}/functions/v1/send-payment-confirmation`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId: data[0].id })
         })
-
-        if (emailInvokeError) {
-          console.error('❌ Erreur invocation email paiement:', emailInvokeError)
-        } else if (!emailResult?.success) {
-          console.error('❌ Erreur envoi email paiement:', emailResult)
+        const emailResult = await emailResp.json().catch(() => ({}))
+        if (!emailResp.ok) {
+          console.error('❌ Erreur envoi email paiement:', emailResp.status, JSON.stringify(emailResult))
         } else {
           console.log(`📧 Email de confirmation paiement envoyé pour ${orderId}`)
         }
@@ -249,14 +255,18 @@ serve(async (req) => {
 
       // 📱 Envoyer notification Telegram
       try {
-        await supabase.functions.invoke('send-telegram-notification', {
-          body: {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+        const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        await fetch(`${supabaseUrl}/functions/v1/send-telegram-notification`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
             orderNumber: data[0].numero,
             pickupTime: data[0].heure_retrait || 'Dès que possible',
             total: data[0].total.toFixed(2),
             paymentMethod: 'paygreen',
             items: data[0].items || []
-          }
+          })
         })
         console.log(`📱 Notification Telegram envoyée pour ${data[0].numero}`)
       } catch (telegramError) {

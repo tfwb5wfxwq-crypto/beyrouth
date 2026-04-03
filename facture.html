@@ -177,12 +177,17 @@
           return response.text();
         })
         .then(html => {
-          // Extraire juste le contenu body du HTML
+          // Extraire le contenu body ET les styles du head
           const parser = new DOMParser();
           const doc = parser.parseFromString(html, 'text/html');
           const body = doc.body.innerHTML;
 
-          // Injecter dans notre page
+          // Injecter les styles de l'Edge Function dans le head
+          doc.querySelectorAll('head style').forEach(style => {
+            document.head.appendChild(document.adoptNode(style));
+          });
+
+          // Injecter le contenu
           document.getElementById('invoice-content').innerHTML = body;
           document.getElementById('invoice-content').style.display = 'block';
           document.getElementById('spinner').style.display = 'none';

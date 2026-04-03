@@ -417,6 +417,7 @@ serve(async (req) => {
       console.log(`⏸️ ${reason} → en attente validation manuelle`)
       try {
         const emailResponse = await supabase.functions.invoke('send-payment-confirmation', {
+          headers: { Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}` },
           body: { orderId: updatedOrder[0].id }
         })
 

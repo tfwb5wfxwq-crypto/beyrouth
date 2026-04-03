@@ -172,6 +172,7 @@ serve(async (req) => {
         // Pas d'auto-accept: envoyer email de paiement confirmé
         try {
           await supabase.functions.invoke('send-payment-confirmation', {
+            headers: { Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}` },
             body: { orderId: data[0].id }
           })
           console.log(`📧 Email de paiement confirmé envoyé pour ${order_num}`)

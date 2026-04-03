@@ -14,6 +14,17 @@ serve(async (req) => {
   }
 
   try {
+    // 🔒 Appel interne uniquement (service_role)
+    const authHeader = req.headers.get('Authorization')
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    const token = authHeader?.replace('Bearer ', '')
+    if (!token || token !== serviceRoleKey) {
+      return new Response(
+        JSON.stringify({ error: 'Non autorisé' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const { orderId } = await req.json()
 
     if (!orderId) {
@@ -68,29 +79,30 @@ serve(async (req) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="light">
+  <meta name="color-scheme" content="only light">
   <meta name="supported-color-schemes" content="light">
   <style>
+    :root { color-scheme: light; }
     .email-header-bg { background-color: #000000 !important; }
   </style>
   <title>Paiement confirmé</title>
 </head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f5;">
+<body bgcolor="#f5f5f5" style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f5f5f5" style="background:#f5f5f5;">
     <tr>
-      <td align="center" style="padding:10px 0;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;">
+      <td align="center" bgcolor="#f5f5f5" style="background:#f5f5f5;padding:0;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
 
           <!-- Header fond noir avec logo -->
           <tr>
-            <td class="email-header-bg" style="background:#000000;padding:8px 24px;text-align:center;">
+            <td bgcolor="#000000" style="background:#000000;padding:8px 24px;text-align:center;">
               <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width:240px;height:auto;max-width:100%;display:block;margin:0 auto;">
             </td>
           </tr>
 
           <!-- Contenu principal -->
           <tr>
-            <td style="padding:24px 20px;">
+            <td bgcolor="#ffffff" style="background:#ffffff;padding:24px 20px;">
 
               <!-- Statut -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
@@ -139,7 +151,7 @@ serve(async (req) => {
 
           <!-- Footer avec CTA Google -->
           <tr>
-            <td style="background:#fafafa;padding:32px 24px;border-top:1px solid #e0e0e0;">
+            <td bgcolor="#f5f5f5" style="background:#f5f5f5;padding:32px 24px;border-top:1px solid #e0e0e0;">
 
               <!-- CTA Google -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">

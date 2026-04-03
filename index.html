@@ -1768,11 +1768,12 @@ async function submitOrder() {
   try {
     // Enregistrer le client
     if (sb) {
-      await sb.from('clients').upsert({
+      // INSERT simple - ignore 23505 (doublon email) car trigger met à jour les stats
+      await sb.from('clients').insert({
         email, prenom: name, telephone: phone || null,
         derniere_commande: new Date().toISOString(),
         optin_promo: optin,
-      }, {onConflict: 'email', ignoreDuplicates: true});
+      }).then(({error}) => { if (error && error.code !== '23505') console.warn('Client insert:', error.message); });
 
       // Insérer la commande
       const {error: insertError} = await sb.from('orders')

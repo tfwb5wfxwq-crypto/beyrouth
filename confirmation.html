@@ -465,8 +465,21 @@ function updateDisplay(order) {
     subtitle.textContent = 'Votre commande est en préparation';
 
     const rawHeure = order.heure_retrait || ''
-    const heureDisplay = rawHeure.replace(/^Aujourd'hui\s+/i, '')
-    const heureText = (!rawHeure || rawHeure === 'asap' || rawHeure === 'ASAP') ? 'dès que possible' : `à <strong>${heureDisplay}</strong>`;
+    let heureText;
+    if (!rawHeure || rawHeure === 'asap' || rawHeure === 'ASAP') {
+      heureText = 'dès que possible';
+    } else if (/^Aujourd'hui\s+/i.test(rawHeure)) {
+      const heure = rawHeure.replace(/^Aujourd'hui\s+/i, '');
+      heureText = `à <strong>${heure}</strong>`;
+    } else {
+      // "Lundi 11h30", "Demain 12h00" etc. → "lundi à 11h30"
+      const match = rawHeure.match(/^(\S+)\s+(.+)$/);
+      if (match) {
+        heureText = `<strong>${match[1].toLowerCase()}</strong> à <strong>${match[2]}</strong>`;
+      } else {
+        heureText = `<strong>${rawHeure}</strong>`;
+      }
+    }
     banner.innerHTML = `
       <div class="status-banner accepted">
         <div class="status-banner-icon">👨‍🍳</div>

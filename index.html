@@ -11,13 +11,15 @@
 <meta name="keywords" content="restaurant libanais la défense, restaurant libanais courbevoie, restaurant la défense, restaurant métro la défense, shawarma la défense, mezze la défense, falafel courbevoie, restaurant 92400, carte restaurant la défense, swile edenred la défense, click and collect la défense, restaurant midi la défense">
 <link rel="canonical" href="https://beyrouth.express/">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="512x512" href="favicon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
 <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 
 <!-- OpenGraph (Facebook, LinkedIn) -->
-<meta property="og:type" content="restaurant">
+<meta property="og:type" content="website">
 <meta property="og:title" content="Restaurant Libanais La Défense - A Beyrouth">
 <meta property="og:description" content="Restaurant libanais à La Défense (sortie métro 4). Shawarma, mezze, grillades. Click & collect 15 min. Cartes resto Swile/Edenred acceptées.">
 <meta property="og:url" content="https://beyrouth.express/">
@@ -31,7 +33,7 @@
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Restaurant Libanais La Défense - A Beyrouth">
-<meta property="twitter:description" content="Restaurant libanais sortie métro 4 La Défense. Click & collect express 15 min.">
+<meta name="twitter:description" content="Restaurant libanais sortie métro 4 La Défense. Click & collect express 15 min.">
 <meta name="twitter:image" content="https://beyrouth.express/img/og-image.jpg">
 
 
@@ -45,7 +47,7 @@
   "description": "Restaurant libanais à La Défense, cuisine authentique, click & collect express",
   "address": {
     "@type": "PostalAddress",
-    "streetAddress": "4 Esplanade du Général de Gaulle, Sortie 4 du métro",
+    "streetAddress": "4 Esplanade du Général de Gaulle",
     "addressLocality": "Courbevoie",
     "addressRegion": "Île-de-France",
     "postalCode": "92400",
@@ -63,11 +65,12 @@
     "@type": "OpeningHoursSpecification",
     "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"],
     "opens": "11:30",
-    "closes": "21:00"
+    "closes": "20:30"
   },
   "acceptsReservations": "False",
-  "paymentAccepted": "Carte bancaire, Swile, Ticket Restaurant, Restoflash, Conecs",
-  "hasMenu": "https://beyrouth.express/#menu"
+  "paymentAccepted": "Carte bancaire, Swile, Ticket Restaurant, Restoflash, Conecs, Edenred",
+  "hasMenu": "https://beyrouth.express/#menu",
+  "servesCuisine": ["Libanaise", "Lebanese", "Mezze", "Shawarma"]
 }
 </script>
 
@@ -103,7 +106,7 @@ button{cursor:pointer;font-family:inherit;border:none;outline:none;background:no
 img{max-width:100%;display:block}
 a{color:inherit;text-decoration:none}
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@600&display=swap');
+/* Google Fonts chargées via <link> dans le <head> — pas besoin de @import ici */
 
     /* ===== HEADER ===== */
 .header{background:var(--dark);color:#fff;padding:24px 24px;margin-bottom:0;height:auto;min-height:92px}
@@ -614,6 +617,12 @@ const PAYGREEN_SHOP_ID = 'sh_55f9f298d8ce478db7b87117ec86ce11';
 const IMAGE_VERSION = Date.now(); // Cache busting version - défini une seule fois au chargement
 let sb = null;
 let paygreen = null;
+
+// 🔒 Échappement XSS pour les données venant de Supabase
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
 let realtimeChannels = []; // 🔧 MEMORY LEAK FIX: Store realtime channels for cleanup
 try { sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null; } catch(e) { console.error('Supabase init error:', e); }
 try { if (window.Paygreen) paygreen = new window.Paygreen(PAYGREEN_PUBLIC_KEY); } catch(e) { console.error('Paygreen init error:', e); }
@@ -1033,7 +1042,7 @@ function renderMenu() {
   categories.forEach(cat => {
     const items = menuItems.filter(i => i.categorie_id === cat.id);
     if (!items.length) return;
-    html += `<h2 class="menu-cat-title" id="cat-${cat.id}">${cat.emoji || ''} ${cat.nom}</h2>`;
+    html += `<h2 class="menu-cat-title" id="cat-${cat.id}">${cat.emoji || ''} ${escapeHtml(cat.nom)}</h2>`;
     html += '<div class="menu-grid">';
     items.forEach(item => {
       const qty = getCartQty(item.id);
@@ -1041,7 +1050,7 @@ function renderMenu() {
         <div class="menu-card ${!item.disponible ? 'menu-card-unavailable' : ''}" data-id="${item.id}" onclick="${item.disponible ? `addToCart(${item.id})` : ''}">
           <div class="menu-card-visual">
             ${item.image_url
-              ? `<img src="${item.image_url}?v=${IMAGE_VERSION}" alt="${item.nom}" loading="lazy" decoding="async">`
+              ? `<img src="${item.image_url}?v=${IMAGE_VERSION}" alt="${escapeHtml(item.nom)}" loading="lazy" decoding="async">`
               : `<span class="emoji-placeholder">${item.emoji || '🍽️'}</span>`
             }
             ${!item.disponible ? '<div class="unavailable-badge">Bientôt disponible</div>' : ''}
@@ -1056,8 +1065,8 @@ function renderMenu() {
                   onclick="event.stopPropagation();addToCart(${item.id})"
                   ${!item.disponible ? 'disabled' : ''}>+</button>`}
           <div class="menu-card-body">
-            <div class="menu-card-name">${item.nom}</div>
-            <div class="menu-card-desc">${item.description || ''}</div>
+            <div class="menu-card-name">${escapeHtml(item.nom)}</div>
+            <div class="menu-card-desc">${escapeHtml(item.description || '')}</div>
             <div class="menu-card-bottom">
               <span class="menu-card-price">${formatPrice(item.prix)}</span>
             </div>
@@ -1440,7 +1449,7 @@ function updateCartUI() {
     div.innerHTML = `
       ${visual}
       <div class="cart-item-info">
-        <div class="cart-item-name">${c.nom}</div>
+        <div class="cart-item-name">${escapeHtml(c.nom)}</div>
         <div class="cart-item-price">${formatPrice(c.prix)} chacun</div>
         ${componentsHtml}
       </div>
@@ -2033,7 +2042,7 @@ function updateRestoCardsAvailability() {
   const currentMinutes = hour * 60 + minute;
 
   const isSunday = day === 0;
-  const isOpenHours = currentMinutes >= 11 * 60 + 30 && currentMinutes <= 22 * 60; // 11h30 - 22h00 (TEMP TESTING)
+  const isOpenHours = currentMinutes >= 11 * 60 + 30 && currentMinutes <= 21 * 60; // 11h30 - 21h00
 
   // Cartes resto bloquées si dimanche OU hors horaires (samedi autorisé aux heures d'ouverture)
   const isBlocked = isSunday || !isOpenHours;
@@ -2088,16 +2097,16 @@ function selectPaymentMethod(method) {
     const currentMinutes = hour * 60 + minute;
 
     const isSunday = day === 0;
-    const isOpenHours = currentMinutes >= 11 * 60 + 30 && currentMinutes <= 22 * 60; // 11h30 - 22h00 (TEMP TESTING)
+    const isOpenHours = currentMinutes >= 11 * 60 + 30 && currentMinutes <= 21 * 60; // 11h30 - 21h00
 
     const isBlocked = isSunday || !isOpenHours;
 
     if (isBlocked) {
       haptic.trigger('error');
       if (isSunday) {
-        showToast('⏰ Les cartes restaurant ne sont acceptées que du lundi au samedi de 11h30 à 22h00', 'error');
+        showToast('⏰ Les cartes restaurant ne sont acceptées que du lundi au samedi de 11h30 à 21h00', 'error');
       } else {
-        showToast('⏰ Les cartes restaurant ne sont acceptées que de 11h30 à 22h00', 'error');
+        showToast('⏰ Les cartes restaurant ne sont acceptées que de 11h30 à 21h00', 'error');
       }
       return;
     }
@@ -3169,7 +3178,7 @@ function renderTimeSlots() {
     minTimeMinutes += delayMinutes;
   }
 
-  for (let m = startMin; m < endMin; m += 30) { // Créneaux toutes les 30 min jusqu'à 21h00
+  for (let m = startMin; m <= endMin; m += 30) { // Créneaux toutes les 30 min jusqu'à 20h30 inclus
     const h = Math.floor(m / 60), min = m % 60;
     const label = `${h}h${min.toString().padStart(2, '0')}`;
 

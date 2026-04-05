@@ -892,6 +892,7 @@ async function init() {
   setInterval(updateOpenStatus, 60000);
   if (sb) {
     await loadFromSupabase();
+    cleanUnavailableFromCart(); // Nettoyer le panier au chargement (articles désactivés depuis la dernière visite)
     subscribeRealtime();
   } else {
     categories = DEMO_CATEGORIES;
@@ -1622,16 +1623,24 @@ function toggleCart() {
 
 function saveCart() { localStorage.setItem('be_cart', JSON.stringify(cart)); }
 function cleanUnavailableFromCart() {
-  const beforeLength = cart.length;
-  cart = cart.filter(cartItem => {
+  const removed = cart.filter(cartItem => {
     const item = menuItems.find(i => i.id === cartItem.id);
-    return item && item.disponible;
+    return !item || !item.disponible;
   });
-  if (cart.length < beforeLength) {
-    console.log(`🧹 ${beforeLength - cart.length} item(s) indisponible(s) retiré(s) du panier`);
+  if (removed.length > 0) {
+    cart = cart.filter(cartItem => {
+      const item = menuItems.find(i => i.id === cartItem.id);
+      return item && item.disponible;
+    });
+    console.log(`🧹 ${removed.length} item(s) indisponible(s) retiré(s) du panier:`, removed.map(i => i.nom));
     saveCart();
     updateCartUI();
-    showToast('⚠️ Certains plats ne sont plus disponibles et ont été retirés de votre panier', 'error');
+    const names = removed.map(i => `"${escapeHtml(i.nom)}"`).join(', ');
+    const plural = removed.length > 1;
+    showToast(
+      `⚠️ ${names} ${plural ? 'ne sont plus disponibles' : "n'est plus disponible"} et ${plural ? 'ont été retirés' : 'a été retiré'} de votre panier`,
+      'warning'
+    );
   }
 }
 
@@ -1728,6 +1737,27 @@ async function submitOrder() {
   // 🔒 FIX #2: Vérifier panier AVANT de désactiver le bouton
   if (!cart.length) {
     showToast('⚠️ Votre panier est vide', 'error');
+    return;
+  }
+
+  // 🔒 Vérifier disponibilité de TOUS les articles avant de lancer le paiement
+  const unavailableItems = cart.filter(c => {
+    const item = menuItems.find(i => i.id === c.id);
+    return !item || !item.disponible;
+  });
+  if (unavailableItems.length > 0) {
+    const names = unavailableItems.map(c => `"${escapeHtml(c.nom)}"`).join(', ');
+    const plural = unavailableItems.length > 1;
+    showToast(
+      `❌ ${names} ${plural ? 'ne sont plus disponibles' : "n'est plus disponible"} et ${plural ? 'ont été retirés' : 'a été retiré'} de votre panier`,
+      'error'
+    );
+    cart = cart.filter(c => {
+      const item = menuItems.find(i => i.id === c.id);
+      return item && item.disponible;
+    });
+    saveCart();
+    updateCartUI();
     return;
   }
 

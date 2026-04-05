@@ -30,6 +30,7 @@ serve(async (req) => {
     let invoiceToken = null
 
     if (req.method === 'GET') {
+      // GET avec invoice_token UUID (lien depuis email — token difficile à deviner)
       const url = new URL(req.url)
       invoiceToken = url.searchParams.get('token')
       if (!invoiceToken) {
@@ -39,6 +40,25 @@ serve(async (req) => {
         )
       }
     } else {
+      // POST : réservé admin — valider JWT Supabase Auth
+      const authHeader = req.headers.get('Authorization')
+      if (!authHeader?.startsWith('Bearer ')) {
+        return new Response(
+          JSON.stringify({ error: 'Non autorisé - token admin requis' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      const supabaseCheck = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      )
+      const { data: { user }, error: authError } = await supabaseCheck.auth.getUser(authHeader.replace('Bearer ', ''))
+      if (authError || !user) {
+        return new Response(
+          JSON.stringify({ error: 'Token invalide ou expiré' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
       const body = await req.json()
       orderId = body.orderId
       if (!orderId) {
@@ -143,230 +163,156 @@ function generateInvoiceHTML(order: any): string {
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Reçu ${order.numero}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reçu ${escapeHtml(order.numero)}</title>
   <style>
-    @media (max-width: 768px) {
-      body {
-        margin: 20px;
-      }
-      .invoice-header {
-        flex-direction: column;
-        text-align: left;
-      }
-      .invoice-title {
-        font-size: 24px;
-      }
-      .invoice-number {
-        font-size: 16px;
-      }
-      div[style*="display: flex"] {
-        flex-direction: column !important;
-      }
-      .client-info {
-        text-align: left !important;
-        margin-top: 20px;
-      }
-      table {
-        font-size: 14px;
-      }
-      th, td {
-        padding: 10px 6px !important;
-      }
-      th {
-        font-size: 11px;
-      }
-      .totals {
-        max-width: 100%;
-        margin-right: 0;
-      }
-      .total-ttc .totals-value {
-        font-size: 20px;
-      }
+    @page { size: A4 portrait; margin: 14mm 16mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      color: #222;
+      background: #fff;
+    }
+    .receipt {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 28px 24px;
+    }
+    .receipt-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding-bottom: 18px;
+      border-bottom: 2px solid #000;
+      margin-bottom: 22px;
+      gap: 12px;
+    }
+    .receipt-title { font-size: 22px; font-weight: 800; letter-spacing: 1.5px; color: #000; }
+    .receipt-num { font-size: 13px; color: #888; margin-top: 4px; }
+    .receipt-date { text-align: right; font-size: 13px; color: #444; line-height: 1.7; flex-shrink: 0; }
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .info-block .lbl {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: #999; margin-bottom: 6px;
+    }
+    .info-block p { font-size: 13px; line-height: 1.75; color: #333; }
+    .info-right { text-align: right; }
+    table { width: 100%; border-collapse: collapse; margin: 0 0 18px; }
+    thead th {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.8px; color: #999;
+      padding: 7px 8px; border-bottom: 1px solid #000; text-align: left;
+    }
+    thead th.r { text-align: right; }
+    thead th.c { text-align: center; }
+    tbody td { font-size: 14px; padding: 9px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
+    tbody td.r { text-align: right; white-space: nowrap; }
+    tbody td.c { text-align: center; }
+    .totals { max-width: 230px; margin-left: auto; }
+    .t-line { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px solid #eee; }
+    .t-line .lbl { color: #888; }
+    .t-line .val { font-weight: 500; white-space: nowrap; }
+    .t-total { border-bottom: none; border-top: 2px solid #000; margin-top: 4px; padding-top: 10px !important; }
+    .t-total .lbl, .t-total .val { font-size: 15px; font-weight: 700; color: #000; }
+    .note-box { margin-top: 20px; padding: 11px 13px; background: #f7f7f7; border-radius: 4px; }
+    .note-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #999; margin-bottom: 5px; }
+    .note-text { font-size: 13px; color: #333; }
+    .receipt-footer {
+      margin-top: 28px; padding-top: 14px;
+      border-top: 1px solid #eee;
+      font-size: 11px; color: #aaa; text-align: center; line-height: 1.9;
+    }
+    @media (max-width: 480px) {
+      .receipt { padding: 20px 16px; }
+      .receipt-header { flex-direction: column; gap: 6px; }
+      .receipt-date { text-align: left; }
+      .info-grid { grid-template-columns: 1fr; }
+      .info-right { text-align: left; }
+      .totals { max-width: 100%; }
+      thead th, tbody td { padding: 7px 5px; }
+      tbody td { font-size: 13px; }
     }
     @media print {
-      body { margin: 0; }
-      .no-print { display: none; }
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      margin: 40px;
-      color: #333;
-    }
-    .invoice-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 40px;
-      padding-bottom: 20px;
-      border-bottom: 3px solid #667eea;
-    }
-    .invoice-title {
-      font-size: 32px;
-      font-weight: 700;
-      color: #667eea;
-    }
-    .invoice-number {
-      font-size: 18px;
-      color: #666;
-      margin-top: 10px;
-    }
-    .restaurant-info, .client-info {
-      margin-bottom: 30px;
-    }
-    .section-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: #888;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-    .info-line {
-      font-size: 15px;
-      line-height: 1.8;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 40px 0;
-    }
-    th {
-      text-align: left;
-      padding: 16px 12px;
-      border-bottom: 2px solid #000;
-      font-size: 13px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #000;
-      background: #fafafa;
-    }
-    th.center { text-align: center; }
-    th.right { text-align: right; }
-    td {
-      font-size: 15px;
-      padding: 14px 12px;
-    }
-    .totals {
-      margin-top: 50px;
-      max-width: 350px;
-      margin-left: auto;
-    }
-    .totals-line {
-      display: flex;
-      justify-content: space-between;
-      padding: 12px 0;
-      font-size: 15px;
-    }
-    .totals-label {
-      color: #666;
-      font-weight: 400;
-    }
-    .totals-value {
-      font-weight: 500;
-      color: #000;
-      font-variant-numeric: tabular-nums;
-    }
-    .total-ttc {
-      border-top: 3px solid #000;
-      margin-top: 15px;
-      padding-top: 15px;
-    }
-    .total-ttc .totals-label {
-      color: #000;
-      font-size: 17px;
-      font-weight: 700;
-    }
-    .total-ttc .totals-value {
-      color: #D4A853;
-      font-size: 24px;
-      font-weight: 700;
-    }
-    .footer {
-      margin-top: 60px;
-      padding-top: 20px;
-      border-top: 1px solid #eee;
-      font-size: 12px;
-      color: #888;
-      text-align: center;
+      .receipt { padding: 0; max-width: 100%; }
+      .receipt-footer { margin-top: 16px; }
     }
   </style>
 </head>
 <body>
-  <div class="invoice-header">
-    <div>
-      <div class="invoice-title">REÇU</div>
-      <div class="invoice-number">N° de commande ${invoiceNumber}</div>
-    </div>
-    <div style="text-align: right;">
-      <div class="info-line"><strong>Date :</strong> ${dateStr}</div>
-      <div class="info-line"><strong>Heure :</strong> ${timeStr}</div>
-    </div>
-  </div>
-
-  <div style="display: flex; justify-content: space-between; margin-bottom: 40px;">
-    <div class="restaurant-info">
-      <div class="section-title">Restaurant</div>
-      <div class="info-line"><strong>A Beyrouth</strong></div>
-      <div class="info-line">PAPA (SARL)</div>
-      <div class="info-line">4 Esplanade du Général de Gaulle</div>
-      <div class="info-line">92400 Courbevoie</div>
-      <div class="info-line" style="margin-top:10px;">SIRET : 830 675 047 RCS Nanterre</div>
-      <div class="info-line">TVA : FR93 830 675 047</div>
-      <div class="info-line" style="margin-top:10px; font-size:12px; color:#888;">Commande via beyrouth.express</div>
+  <div class="receipt">
+    <div class="receipt-header">
+      <div>
+        <div class="receipt-title">REÇU</div>
+        <div class="receipt-num">Commande n° ${escapeHtml(invoiceNumber)}</div>
+      </div>
+      <div class="receipt-date">
+        <div><strong>${dateStr}</strong></div>
+        <div>${timeStr}</div>
+      </div>
     </div>
 
-    <div class="client-info" style="text-align: right;">
-      <div class="section-title">Client</div>
-      ${order.invoice_company ? `<div class="info-line"><strong>${escapeHtml(order.invoice_company)}</strong></div>` : ''}
-      <div class="info-line"><strong>${escapeHtml(order.client_prenom)}</strong></div>
-      <div class="info-line">${escapeHtml(order.client_email)}</div>
-      ${order.client_telephone ? `<div class="info-line">${escapeHtml(order.client_telephone)}</div>` : ''}
-      ${order.invoice_siret ? `<div class="info-line" style="margin-top:10px;">SIRET : ${escapeHtml(order.invoice_siret)}</div>` : ''}
-      ${order.invoice_address ? `<div class="info-line">${escapeHtml(order.invoice_address)}</div>` : ''}
+    <div class="info-grid">
+      <div class="info-block">
+        <div class="lbl">Restaurant</div>
+        <p>
+          <strong>A Beyrouth</strong><br>
+          PAPA (SARL)<br>
+          4 Esplanade du Général de Gaulle<br>
+          92400 Courbevoie<br>
+          <span style="font-size:12px;color:#999;">SIRET : 830 675 047 RCS Nanterre<br>TVA : FR93 830 675 047</span>
+        </p>
+      </div>
+      <div class="info-block info-right">
+        <div class="lbl">Client</div>
+        <p>
+          ${order.invoice_company ? `<strong>${escapeHtml(order.invoice_company)}</strong><br>` : ''}
+          <strong>${escapeHtml(order.client_prenom)}</strong><br>
+          ${escapeHtml(order.client_email)}<br>
+          ${order.client_telephone ? escapeHtml(order.client_telephone) : ''}
+          ${order.invoice_siret ? `<br><span style="font-size:12px;color:#999;">SIRET : ${escapeHtml(order.invoice_siret)}</span>` : ''}
+          ${order.invoice_address ? `<br>${escapeHtml(order.invoice_address)}` : ''}
+        </p>
+      </div>
     </div>
-  </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Désignation</th>
-        <th class="center">Qté</th>
-        <th class="right">P.U. TTC</th>
-        <th class="right">Total TTC</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${itemsHtml}
-    </tbody>
-  </table>
+    <table>
+      <thead>
+        <tr>
+          <th>Désignation</th>
+          <th class="c">Qté</th>
+          <th class="r">P.U. TTC</th>
+          <th class="r">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${itemsHtml}
+      </tbody>
+    </table>
 
-  <div class="totals">
-    <div class="totals-line">
-      <div class="totals-label">Total HT :</div>
-      <div class="totals-value">${totalHT.toFixed(2)}€</div>
+    <div class="totals">
+      <div class="t-line"><span class="lbl">Sous-total HT</span><span class="val">${totalHT.toFixed(2)} €</span></div>
+      <div class="t-line"><span class="lbl">TVA restauration (10%)</span><span class="val">${tva.toFixed(2)} €</span></div>
+      <div class="t-line t-total"><span class="lbl">Total payé</span><span class="val">${totalTTC.toFixed(2)} €</span></div>
     </div>
-    <div class="totals-line">
-      <div class="totals-label">TVA 10% :</div>
-      <div class="totals-value">${tva.toFixed(2)}€</div>
-    </div>
-    <div class="totals-line total-ttc">
-      <div class="totals-label">Total TTC :</div>
-      <div class="totals-value">${totalTTC.toFixed(2)}€</div>
-    </div>
-  </div>
 
-  ${order.note ? `
-  <div style="margin-top:40px; padding:15px; background:#f8f9ff; border-left:4px solid #667eea; border-radius:4px;">
-    <div style="font-size:14px; font-weight:600; color:#667eea; margin-bottom:5px;">Note :</div>
-    <div style="font-size:14px; color:#666;">${escapeHtml(order.note)}</div>
-  </div>
-  ` : ''}
+    ${order.note ? `
+    <div class="note-box">
+      <div class="note-lbl">Note</div>
+      <div class="note-text">${escapeHtml(order.note)}</div>
+    </div>
+    ` : ''}
 
-  <div class="footer">
-    <p style="margin:5px 0;"><strong>A Beyrouth</strong> - Restaurant libanais</p>
-    <p style="margin:5px 0;">4 Esplanade du Général de Gaulle, 92400 Courbevoie</p>
-    <p style="margin:5px 0;">SIRET : 830 675 047 RCS Nanterre - TVA : FR93 830 675 047</p>
-    <p style="margin:5px 0;">Métro : La Défense (lignes 1, A, T2)</p>
-    <p style="margin:5px 0; font-size:11px; color:#aaa;">Commande via beyrouth.express</p>
+    <div class="receipt-footer">
+      <strong>A Beyrouth</strong> — Restaurant libanais<br>
+      4 Esplanade du Général de Gaulle, 92400 Courbevoie — Métro La Défense (L1, A, T2)<br>
+      SIRET : 830 675 047 RCS Nanterre — TVA : FR93 830 675 047<br>
+      Commande via beyrouth.express
+    </div>
   </div>
 </body>
 </html>

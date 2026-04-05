@@ -3214,7 +3214,8 @@ function renderTimeSlots() {
     minTimeMinutes += delayMinutes;
   }
 
-  for (let m = startMin; m <= endMin; m += 30) { // Créneaux toutes les 30 min jusqu'à 20h30 inclus
+  // Créneaux: 30 min avant 13h00, 15 min à partir de 13h00 (attente max ~15 min l'après-midi)
+  for (let m = startMin; m <= endMin; ) {
     const h = Math.floor(m / 60), min = m % 60;
     const label = `${h}h${min.toString().padStart(2, '0')}`;
 
@@ -3228,15 +3229,19 @@ function renderTimeSlots() {
     // Vérifier si le créneau est bloqué par la pause (compare dates complètes)
     const isPaused = nextSlotAvailableAt && slotDate < nextSlotAvailableAt;
 
-    if (isPast || isPaused) continue; // Ne pas afficher les créneaux passés ou en pause
-    const value = day.isToday ? label : `${day.label} ${label}`;
-    html += `<div class="timepicker-slot ${selectedPickup === value ? 'active' : ''}"
-      onclick="selectTime('${value}')">${label}</div>`;
+    if (!isPast && !isPaused) {
+      const value = day.isToday ? label : `${day.label} ${label}`;
+      html += `<div class="timepicker-slot ${selectedPickup === value ? 'active' : ''}"
+        onclick="selectTime('${value}')">${label}</div>`;
+    }
+
+    // Incrément: 15 min à partir de 13h00, 30 min avant
+    m += (m >= 13 * 60) ? 15 : 30;
   }
   slotsEl.innerHTML = html;
 }
 
-// Calcule l'heure ASAP (maintenant + 20 min, arrondi au prochain quart d'heure)
+// Calcule l'heure ASAP (maintenant + délai préparation, arrondi au prochain créneau)
 function getAsapTime() {
   const now = new Date();
 
@@ -3249,9 +3254,10 @@ function getAsapTime() {
   const delayMinutes = isRushHour ? 20 : 5;
   now.setMinutes(now.getMinutes() + delayMinutes);
 
-  // Arrondir à la prochaine demi-heure (créneaux de 30min)
+  // Arrondir au prochain créneau: 15 min à partir de 13h00, 30 min avant
+  const slotInterval = now.getHours() >= 13 ? 15 : 30;
   const minutes = now.getMinutes();
-  const rounded = Math.ceil(minutes / 30) * 30;
+  const rounded = Math.ceil(minutes / slotInterval) * slotInterval;
   now.setMinutes(rounded);
   now.setSeconds(0, 0);
 
@@ -3259,9 +3265,11 @@ function getAsapTime() {
   let targetTime = now;
   if (nextSlotAvailableAt && nextSlotAvailableAt > now) {
     targetTime = new Date(nextSlotAvailableAt);
-    // Arrondir la pause à la prochaine demi-heure aussi
+    // Arrondir la pause au prochain créneau (15 min à partir de 13h, 30 min avant)
+    const pauseH = targetTime.getHours();
+    const pauseInterval = pauseH >= 13 ? 15 : 30;
     const pauseMinutes = targetTime.getMinutes();
-    const roundedPause = Math.ceil(pauseMinutes / 30) * 30;
+    const roundedPause = Math.ceil(pauseMinutes / pauseInterval) * pauseInterval;
     targetTime.setMinutes(roundedPause);
     targetTime.setSeconds(0, 0);
   }

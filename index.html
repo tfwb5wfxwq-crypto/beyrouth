@@ -833,8 +833,8 @@ function updateOpenStatus() {
   // ⚠️ PAUSE INDÉFINIE - Bloquer complètement le site
   if (window.indefinitePause === true) {
     statusEl.classList.add('closed');
-    textEl.textContent = 'Temporairement fermé';
-    hoursEl.textContent = '· Réouverture prochaine';
+    textEl.textContent = 'Fermé';
+    hoursEl.textContent = '· Fermeture temporaire';
     return false;
   }
 
@@ -1161,7 +1161,7 @@ function getCartQty(id) { const c = cart.find(c => c.id === id); return c ? c.qt
 function addToCart(itemId) {
   // ⚠️ CHECK : Restaurant fermé ou en pause indéfinie
   if (window.indefinitePause === true) {
-    showToast('Click & collect temporairement fermé.\n\nDécouvrez notre service traiteur pour vos événements.', 'error');
+    showToast('Le click & collect est temporairement fermé.\nRéouverture prochaine.', 'error');
     return;
   }
 
@@ -1706,6 +1706,12 @@ async function submitOrder() {
   // 🔒 FIX #1: Empêcher double-click (client débité 2×)
   if (isSubmittingPayment) {
     console.warn('⚠️ Paiement déjà en cours, blocage double-click');
+    return;
+  }
+
+  // ⚠️ Pause indéfinie : bloquer le paiement
+  if (window.indefinitePause === true) {
+    showToast('❌ Le click & collect est temporairement fermé.\nRéouverture prochaine.', 'error');
     return;
   }
 

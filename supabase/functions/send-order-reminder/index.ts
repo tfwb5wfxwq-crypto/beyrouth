@@ -2,6 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { sendEmailViaBrevo } from '../_shared/brevo-email.ts'
+import { t, type Lang } from '../_shared/email-i18n.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': 'https://beyrouth.express',
@@ -78,16 +79,19 @@ serve(async (req) => {
       )
     }
 
+    const lang: Lang = (order.language === 'en') ? 'en' : 'fr'
+    const tr = t(lang)
+
     // Formater l'heure de retrait
     const rawPickup = order.heure_retrait || ''
-    let pickupText = 'Dès que possible'
-    let subjectPickup = 'dès que possible'
+    let pickupText = tr.asap
+    let subjectPickup = tr.asap.toLowerCase()
 
     if (rawPickup && rawPickup !== 'asap' && rawPickup !== 'ASAP') {
       const isToday = /^Aujourd'hui\s+/i.test(rawPickup)
       const heureOnly = rawPickup.replace(/^Aujourd'hui\s+/i, '')
-      pickupText = heureOnly  // corps email : "16h30" ou "Lundi 12h30"
-      subjectPickup = isToday ? `aujourd'hui à ${heureOnly}` : rawPickup.toLowerCase()
+      pickupText = heureOnly
+      subjectPickup = isToday ? (lang === 'fr' ? `aujourd'hui à ${heureOnly}` : `today at ${heureOnly}`) : rawPickup.toLowerCase()
     }
 
     // Template email (Gmail-compatible - tables, solid colors, no flex/gradient)
@@ -131,7 +135,7 @@ serve(async (req) => {
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
                 <tr>
                   <td style="background:#fef3c7;padding:16px 20px;">
-                    <span style="font-size:16px;font-weight:600;color:#92400e;">⏰ Votre commande vous attend</span>
+                    <span style="font-size:16px;font-weight:600;color:#92400e;">${tr.orderWaiting}</span>
                   </td>
                 </tr>
               </table>
@@ -142,13 +146,13 @@ serve(async (req) => {
                   <td style="padding:16px 20px;">
                     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
                       <tr>
-                        <td style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Commande</td>
+                        <td style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">${tr.order}</td>
                         <td style="text-align:right;font-size:22px;font-weight:700;font-family:'Courier New',monospace;color:#1a1a1a;">${order.numero}</td>
                       </tr>
                     </table>
                     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #e0e0e0;">
                       <tr>
-                        <td style="padding-top:12px;font-size:12px;color:#888;text-transform:uppercase;">Retrait</td>
+                        <td style="padding-top:12px;font-size:12px;color:#888;text-transform:uppercase;">${tr.pickup}</td>
                         <td style="padding-top:12px;text-align:right;font-size:15px;font-weight:600;color:#1a1a1a;">${pickupText}</td>
                       </tr>
                     </table>
@@ -169,12 +173,12 @@ serve(async (req) => {
                                 <img src="https://beyrouth.express/img/beyrouth-location.gif" alt="Sortie métro La Défense" width="180" height="270" style="display:block;width:180px;height:270px;border-radius:10px 0 0 10px;">
                               </td>
                               <td style="padding:16px 16px 16px 14px;vertical-align:middle;">
-                                <div style="font-size:10px;color:#777777;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;">📍 Où retirer</div>
+                                <div style="font-size:10px;color:#777777;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;">${tr.wherePickup}</div>
                                 <div style="font-size:16px;color:#ffffff;font-weight:800;margin-bottom:6px;font-family:Georgia,serif;">A Beyrouth</div>
                                 <div style="height:1px;background:#333333;margin-bottom:10px;"></div>
                                 <div style="font-size:12px;color:#aaaaaa;line-height:1.7;margin-bottom:10px;">4 Esplanade du<br>Général de Gaulle<br>92400 Courbevoie</div>
-                                <div style="font-size:11px;color:#666666;margin-bottom:16px;">🚇 La Défense &middot; Sortie 4</div>
-                                <a href="https://www.google.com/maps/search/A+Beyrouth+4+Esplanade+du+General+de+Gaulle+92400+Courbevoie" target="_blank" style="display:block;background:#E65100;color:#ffffff;text-decoration:none;padding:10px 0;border-radius:7px;font-weight:600;font-size:12px;text-align:center;">📍 Voir sur Google Maps</a>
+                                <div style="font-size:11px;color:#666666;margin-bottom:16px;">${tr.metro}</div>
+                                <a href="https://www.google.com/maps/search/A+Beyrouth+4+Esplanade+du+General+de+Gaulle+92400+Courbevoie" target="_blank" style="display:block;background:#E65100;color:#ffffff;text-decoration:none;padding:10px 0;border-radius:7px;font-weight:600;font-size:12px;text-align:center;">${tr.viewMaps}</a>
                               </td>
                             </tr>
                           </table>
@@ -195,7 +199,7 @@ serve(async (req) => {
               <!-- Instagram -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
                 <tr>
-                  <td align="center" style="font-size:12px;color:#aaa;letter-spacing:0.5px;text-transform:uppercase;padding-bottom:8px;">Retrouvez-nous sur</td>
+                  <td align="center" style="font-size:12px;color:#aaa;letter-spacing:0.5px;text-transform:uppercase;padding-bottom:8px;">${tr.followUs}</td>
                 </tr>
                 <tr>
                   <td align="center">
@@ -230,7 +234,7 @@ serve(async (req) => {
     // Envoyer l'email via Brevo API
     const emailResult = await sendEmailViaBrevo({
       to: order.client_email,
-      subject: `⏰ ${order.numero} · Votre commande prête depuis ${subjectPickup} - A Beyrouth`,
+      subject: tr.subjectReminder(order.numero, subjectPickup),
       html: emailHtml,
       replyTo: 'contact@beyrouth.express',
       orderId: orderId

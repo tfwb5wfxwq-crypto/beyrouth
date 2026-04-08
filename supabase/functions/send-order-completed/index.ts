@@ -2,6 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { sendEmailViaBrevo } from '../_shared/brevo-email.ts'
+import { t, type Lang } from '../_shared/email-i18n.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': 'https://beyrouth.express',
@@ -90,6 +91,9 @@ serve(async (req) => {
       console.log(`🔄 Renvoi forcé de l'email pour commande ${order.numero}`)
     }
 
+    const lang: Lang = (order.language === 'en') ? 'en' : 'fr'
+    const tr = t(lang)
+
     // Liens externes (utiliser le token sécurisé)
     const invoicePdfUrl = `https://beyrouth.express/facture?token=${order.invoice_token}`
     const googleReviewUrl = 'https://maps.app.goo.gl/mKChLAAquBDL2C5c6'
@@ -108,7 +112,7 @@ serve(async (req) => {
     :root { color-scheme: light; }
     .email-header-bg { background-color: #000000 !important; }
   </style>
-  <title>Merci pour votre visite !</title>
+  <title>${tr.thankYou}</title>
 </head>
 <body bgcolor="#f5f5f5" style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f5f5f5" style="background:#f5f5f5;">
@@ -126,10 +130,9 @@ serve(async (req) => {
           <!-- Contenu principal -->
           <tr>
             <td bgcolor="#ffffff" style="background:#ffffff;padding:32px 24px;text-align:center;">
-              <h1 style="margin:0 0 12px 0;font-size:24px;font-weight:700;color:#1a1a1a;">Merci pour votre visite !</h1>
+              <h1 style="margin:0 0 12px 0;font-size:24px;font-weight:700;color:#1a1a1a;">${tr.thankYou}</h1>
               <p style="margin:0 0 24px 0;font-size:16px;color:#666;line-height:1.6;">
-                Votre commande <strong>${order.numero}</strong> a bien été récupérée.<br>
-                À très bientôt chez A Beyrouth !
+                ${tr.orderPickedUp(order.numero)}
               </p>
 
               <!-- Bouton Facture PDF -->
@@ -137,7 +140,7 @@ serve(async (req) => {
                 <tr>
                   <td align="center" style="padding:16px 0;">
                     <a href="${invoicePdfUrl}" target="_blank" style="display:inline-block;background:#2C3E50;color:#fff;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:600;font-size:15px;">
-                      📄 Télécharger mon reçu
+                      ${tr.downloadReceipt}
                     </a>
                   </td>
                 </tr>
@@ -154,12 +157,12 @@ serve(async (req) => {
                 <tr>
                   <td style="background:#E3F2FD;border-radius:10px;padding:20px;text-align:center;">
                     <div style="font-size:24px;margin-bottom:8px;">⭐⭐⭐⭐⭐</div>
-                    <div style="font-size:15px;font-weight:700;color:#1565C0;margin-bottom:6px;">Votre avis compte !</div>
+                    <div style="font-size:15px;font-weight:700;color:#1565C0;margin-bottom:6px;">${tr.yourReviewMatters}</div>
                     <div style="font-size:13px;color:#1976D2;margin-bottom:16px;line-height:1.5;">
-                      Mettez-nous 5 étoiles sur Google 🙏
+                      ${tr.rateUs}
                     </div>
                     <a href="${googleReviewUrl}" target="_blank" style="display:inline-block;background:#1976D2;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;">
-                      🌟 Laisser un avis
+                      ${tr.leaveReview}
                     </a>
                   </td>
                 </tr>
@@ -168,7 +171,7 @@ serve(async (req) => {
               <!-- Instagram -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
                 <tr>
-                  <td align="center" style="font-size:12px;color:#aaa;letter-spacing:0.5px;text-transform:uppercase;padding-bottom:8px;">Retrouvez-nous sur</td>
+                  <td align="center" style="font-size:12px;color:#aaa;letter-spacing:0.5px;text-transform:uppercase;padding-bottom:8px;">${tr.followUs}</td>
                 </tr>
                 <tr>
                   <td align="center">
@@ -205,7 +208,7 @@ serve(async (req) => {
     // emailOverride permet à Paco de renvoyer à une autre adresse (si client s'est trompé)
     const emailResult = await sendEmailViaBrevo({
       to: emailOverride || order.client_email,
-      subject: `Merci pour votre visite - Commande ${order.numero} - A Beyrouth`,
+      subject: tr.subjectCompleted(order.numero),
       html: emailHtml,
       replyTo: 'contact@beyrouth.express',
       orderId: orderId  // Pour sync auto du statut

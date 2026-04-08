@@ -2,6 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { sendEmailViaBrevo } from '../_shared/brevo-email.ts'
+import { t, type Lang } from '../_shared/email-i18n.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': 'https://beyrouth.express',
@@ -78,6 +79,9 @@ serve(async (req) => {
       )
     }
 
+    const lang: Lang = (order.language === 'en') ? 'en' : 'fr'
+    const tr = t(lang)
+
     // Template email (Gmail-compatible - tables, solid colors, no flex/gradient)
     const emailHtml = `
 <!DOCTYPE html>
@@ -114,7 +118,7 @@ serve(async (req) => {
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
                 <tr>
                   <td style="background:#fef2f2;padding:16px 20px;">
-                    <span style="font-size:16px;font-weight:600;color:#991b1b;">❌ Commande annulée</span>
+                    <span style="font-size:16px;font-weight:600;color:#991b1b;">${tr.orderCancelled}</span>
                   </td>
                 </tr>
               </table>
@@ -123,7 +127,7 @@ serve(async (req) => {
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fafafa;margin-bottom:20px;">
                 <tr>
                   <td style="padding:16px 20px;">
-                    <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">Commande</div>
+                    <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">${tr.order}</div>
                     <div style="font-size:22px;font-weight:700;font-family:'Courier New',monospace;color:#ef4444;">${order.numero}</div>
                   </td>
                 </tr>
@@ -134,7 +138,7 @@ serve(async (req) => {
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fafafa;margin-bottom:20px;">
                 <tr>
                   <td style="padding:16px 20px;">
-                    <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">Raison</div>
+                    <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">${tr.reason}</div>
                     <div style="font-size:14px;color:#666;line-height:1.6;">${cancellationReason.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
                   </td>
                 </tr>
@@ -145,8 +149,8 @@ serve(async (req) => {
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
                 <tr>
                   <td style="background:#fef3c7;padding:16px 20px;">
-                    <div style="font-size:14px;font-weight:600;color:#92400e;margin-bottom:6px;">💳 Remboursement automatique</div>
-                    <div style="font-size:13px;color:#78350f;line-height:1.5;">Le montant de <strong>${parseFloat(order.total).toFixed(2).replace('.', ',')} €</strong> vous sera remboursé sous 5 à 7 jours ouvrés.</div>
+                    <div style="font-size:14px;font-weight:600;color:#92400e;margin-bottom:6px;">${tr.refundTitle}</div>
+                    <div style="font-size:13px;color:#78350f;line-height:1.5;">${tr.refundMsg(parseFloat(order.total).toFixed(2).replace('.', ',') + ' €')}</div>
                   </td>
                 </tr>
               </table>
@@ -155,14 +159,14 @@ serve(async (req) => {
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #e0e0e0;">
                 <tr>
                   <td style="padding:16px 0;">
-                    <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">📍 Contact</div>
+                    <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">${tr.contact}</div>
                     <div style="font-size:14px;color:#1a1a1a;line-height:1.5;margin-bottom:12px;">
                       <strong>A Beyrouth</strong> · 4 Esp. Gal de Gaulle<br>
                       92400 Courbevoie (La Défense)<br>
                       <span style="font-size:12px;color:#888;">Sortie 4 du métro La Défense</span>
                     </div>
                     <a href="https://www.google.com/maps/search/A+Beyrouth+4+Esplanade+du+General+de+Gaulle+92400+Courbevoie" target="_blank" style="display:inline-block;background:#E65100;color:#fff;text-decoration:none;padding:9px 20px;border-radius:7px;font-weight:600;font-size:13px;">
-                      📍 Ouvrir dans Google Maps
+                      ${tr.openMaps}
                     </a>
                   </td>
                 </tr>
@@ -180,10 +184,10 @@ serve(async (req) => {
                 <tr>
                   <td style="background:#E3F2FD;border-radius:10px;padding:20px;text-align:center;">
                     <div style="font-size:20px;margin-bottom:6px;">⭐⭐⭐⭐⭐</div>
-                    <div style="font-size:14px;font-weight:700;color:#1565C0;margin-bottom:4px;">Votre avis compte !</div>
-                    <div style="font-size:12px;color:#1976D2;margin-bottom:14px;line-height:1.4;">Mettez-nous 5 étoiles sur Google 🙏</div>
+                    <div style="font-size:14px;font-weight:700;color:#1565C0;margin-bottom:4px;">${tr.yourReviewMatters}</div>
+                    <div style="font-size:12px;color:#1976D2;margin-bottom:14px;line-height:1.4;">${tr.rateUs}</div>
                     <a href="https://maps.app.goo.gl/mKChLAAquBDL2C5c6" target="_blank" style="display:inline-block;background:#1976D2;color:#fff;text-decoration:none;padding:10px 22px;border-radius:7px;font-weight:600;font-size:13px;">
-                      🌟 Laisser un avis
+                      ${tr.leaveReview}
                     </a>
                   </td>
                 </tr>
@@ -192,7 +196,7 @@ serve(async (req) => {
               <!-- Instagram -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
                 <tr>
-                  <td align="center" style="font-size:12px;color:#aaa;letter-spacing:0.5px;text-transform:uppercase;padding-bottom:8px;">Retrouvez-nous sur</td>
+                  <td align="center" style="font-size:12px;color:#aaa;letter-spacing:0.5px;text-transform:uppercase;padding-bottom:8px;">${tr.followUs}</td>
                 </tr>
                 <tr>
                   <td align="center">
@@ -227,7 +231,7 @@ serve(async (req) => {
     // Envoyer l'email via Brevo API
     const emailResult = await sendEmailViaBrevo({
       to: order.client_email,
-      subject: `❌ Commande ${order.numero} annulée - Remboursement en cours`,
+      subject: tr.subjectCancelled(order.numero),
       html: emailHtml,
       replyTo: 'contact@beyrouth.express',
       orderId: orderId

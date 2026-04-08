@@ -1827,6 +1827,7 @@ async function submitOrder() {
     client_prenom: name, client_email: email,
     client_telephone: phone || null,
     note: note || null,
+    language: (window.i18n && window.i18n.get()) || 'fr',
     created_at: new Date().toISOString(),
     ...(isTestMode && { payment_confirmed_at: new Date().toISOString() })
   };

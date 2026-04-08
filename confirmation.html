@@ -146,33 +146,80 @@ h1.blue { color: var(--blue); }
   font-size: 1.05rem;
 }
 .address-section {
-  background: #FFF3E0;
-  border-radius: 12px;
-  padding: 16px;
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
   margin-bottom: 20px;
+  height: 300px;
+  background: #111;
+  display: none;
+}
+.address-video-bg {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: 0.85;
+}
+.address-video-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(160deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.55) 100%);
+}
+.address-video-content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 18px 20px;
 }
 .address-title {
-  font-size: 0.75rem;
-  color: #E65100;
-  margin: 0 0 8px;
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.7);
+  margin: 0 0 6px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 .address-name {
-  font-weight: 600;
-  color: var(--dark);
-  margin: 0 0 4px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #fff;
+  margin: 0 0 2px;
 }
 .address-text {
-  font-size: 0.9rem;
-  color: #666;
-  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.8);
+  margin: 0 0 6px;
 }
 .address-note {
-  font-size: 0.85rem;
-  color: #888;
-  margin: 0;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.6);
+  margin: 0 0 12px;
+}
+.address-maps-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #E65100;
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  width: fit-content;
+  transition: background 0.2s;
+}
+.address-maps-btn:hover { background: #BF360C; }
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.address-section.visible {
+  animation: fadeInUp 0.5s ease forwards;
 }
 .email-section {
   background: #E3F2FD;
@@ -291,16 +338,22 @@ h1.blue { color: var(--blue); }
       </div>
     </div>
 
-    <!-- Adresse récupération -->
-    <div class="address-section">
-      <p class="address-title">📍 Où récupérer</p>
-      <p class="address-name">A Beyrouth</p>
-      <p class="address-text">4 Esplanade du Général de Gaulle<br>92400 Courbevoie (La Défense)</p>
-      <p class="address-note">Sortie 4 du métro La Défense</p>
-      <a href="https://www.google.com/maps/search/A+Beyrouth+4+Esplanade+du+General+de+Gaulle+92400+Courbevoie" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:8px 14px;background:#E65100;color:white;border-radius:8px;text-decoration:none;font-size:0.85rem;font-weight:600;transition:all 0.2s;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        Ouvrir dans Google Maps
-      </a>
+    <!-- Adresse récupération — vidéo fond (visible uniquement acceptee/prete) -->
+    <div class="address-section" id="addressSection">
+      <video class="address-video-bg" autoplay loop muted playsinline preload="auto">
+        <source src="/beyrouth-location.mp4" type="video/mp4">
+      </video>
+      <div class="address-video-overlay"></div>
+      <div class="address-video-content">
+        <p class="address-title">📍 Où récupérer votre commande</p>
+        <p class="address-name">A Beyrouth</p>
+        <p class="address-text">4 Esplanade du Général de Gaulle<br>92400 Courbevoie (La Défense)</p>
+        <p class="address-note">Sortie 4 du métro La Défense</p>
+        <a class="address-maps-btn" href="https://www.google.com/maps/search/A+Beyrouth+4+Esplanade+du+General+de+Gaulle+92400+Courbevoie" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Ouvrir dans Google Maps
+        </a>
+      </div>
     </div>
 
     <!-- Email info -->
@@ -367,6 +420,7 @@ function updateDisplay(order) {
   const subtitle = document.getElementById('statusSubtitle');
   const banner = document.getElementById('statusBanner');
   const emailMsg = document.getElementById('emailMessage');
+  const addressSection = document.getElementById('addressSection');
 
   const status = order.statut;
   const isPassed = isPickupTimePassed(order.heure_retrait);
@@ -375,6 +429,16 @@ function updateDisplay(order) {
   let effectiveStatus = status;
   if (status === 'acceptee' && isPassed) {
     effectiveStatus = 'prete';
+  }
+
+  // Vidéo localisation : visible uniquement si commande acceptée ou prête
+  const showVideo = ['acceptee', 'prete'].includes(effectiveStatus);
+  if (showVideo) {
+    addressSection.style.display = 'block';
+    requestAnimationFrame(() => addressSection.classList.add('visible'));
+  } else {
+    addressSection.style.display = 'none';
+    addressSection.classList.remove('visible');
   }
 
   // Reset classes

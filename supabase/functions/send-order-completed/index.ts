@@ -118,7 +118,7 @@ serve(async (req) => {
 
           <!-- Header fond noir avec logo -->
           <tr>
-            <td bgcolor="#000000" style="background:#000000;padding:8px 24px;text-align:center;">
+            <td bgcolor="#000000" style="background-color:#000000 !important;padding:8px 24px;text-align:center;">
               <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width:240px;height:auto;max-width:100%;display:block;margin:0 auto;">
             </td>
           </tr>

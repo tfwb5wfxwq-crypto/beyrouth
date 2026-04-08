@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="only light">
+  <meta name="supported-color-schemes" content="light">
+  <style>
+    :root { color-scheme: light only; supported-color-schemes: light; }
+    @media (prefers-color-scheme: dark) {
+      body { background-color: #f5f5f5 !important; }
+      .header-dark { background-color: #000000 !important; }
+      .card-dark { background-color: #1a1a1a !important; }
+      .content-white { background-color: #ffffff !important; color: #1a1a1a !important; }
+    }
+  </style>
+  <title>Preview Email — A Beyrouth</title>
+</head>
+<body bgcolor="#f5f5f5" style="margin:0;padding:20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background-color:#f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f5f5f5">
+    <tr>
+      <td align="center" style="padding:20px 0;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
+
+          <!-- Header logo -->
+          <tr>
+            <td bgcolor="#000000" class="header-dark" style="background-color:#000000 !important;padding:8px 24px;text-align:center;">
+              <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width:240px;height:auto;max-width:100%;display:block;margin:0 auto;">
+            </td>
+          </tr>
+
+          <!-- Contenu principal -->
+          <tr>
+            <td bgcolor="#ffffff" style="background:#ffffff;padding:24px 20px;">
+
+              <!-- Statut -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+                <tr>
+                  <td style="background:#f0fdf4;padding:16px 20px;">
+                    <span style="font-size:16px;font-weight:600;color:#166534;">✅ Commande confirmée</span>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Numéro + Heure -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fafafa;margin-bottom:20px;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
+                      <tr>
+                        <td style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Commande</td>
+                        <td style="text-align:right;font-size:22px;font-weight:700;font-family:'Courier New',monospace;color:#1a1a1a;">1842 KP</td>
+                      </tr>
+                    </table>
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #e0e0e0;padding-top:12px;">
+                      <tr>
+                        <td style="padding-top:12px;font-size:12px;color:#888;text-transform:uppercase;">Retrait</td>
+                        <td style="padding-top:12px;text-align:right;font-size:15px;font-weight:600;color:#1a1a1a;">12h30</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Items -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+                <tr style="border-bottom:1px solid #f0f0f0;">
+                  <td style="padding:10px 0;font-size:14px;color:#1a1a1a;">2× Assiette Mixte</td>
+                  <td style="padding:10px 0;text-align:right;font-size:14px;font-weight:500;color:#1a1a1a;">27,00€</td>
+                </tr>
+                <tr style="border-bottom:1px solid #f0f0f0;">
+                  <td style="padding:10px 0;font-size:14px;color:#1a1a1a;">1× Ayran</td>
+                  <td style="padding:10px 0;text-align:right;font-size:14px;font-weight:500;color:#1a1a1a;">3,50€</td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 0 0 0;border-top:1px solid #e0e0e0;font-size:16px;font-weight:600;color:#1a1a1a;">Total TTC</td>
+                  <td style="padding:14px 0 0 0;border-top:1px solid #e0e0e0;text-align:right;font-size:18px;font-weight:700;color:#1a1a1a;">30,50€</td>
+                </tr>
+              </table>
+
+              <!-- GIF + Adresse 2 colonnes -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #e0e0e0;">
+                <tr>
+                  <td style="padding:16px 0 0 0;">
+                    <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:10px;">📍 Retrait</div>
+                    <!-- Outer TD = fond noir + coins arrondis. Les 2 colonnes n'ont pas de background propre -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td bgcolor="#1a1a1a" class="card-dark" style="background-color:#1a1a1a !important;border-radius:10px;padding:0;">
+                          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                              <!-- GIF : coin arrondi top-left uniquement (bottom-left = outer TD) -->
+                              <td width="180" style="padding:0;vertical-align:top;width:180px;line-height:0;">
+                                <img src="/img/beyrouth-location.gif" alt="Sortie métro La Défense" width="180" height="270" style="display:block;width:180px;height:270px;border-radius:10px 0 0 10px;">
+                              </td>
+                              <!-- Texte : pas de background, hérite du parent -->
+                              <td style="padding:16px 16px 16px 14px;vertical-align:middle;">
+                                <div style="font-size:10px;color:#777777;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;">📍 Où retirer</div>
+                                <div style="font-size:16px;color:#ffffff;font-weight:800;margin-bottom:6px;font-family:Georgia,serif;">A Beyrouth</div>
+                                <div style="height:1px;background:#333333;margin-bottom:10px;"></div>
+                                <div style="font-size:12px;color:#aaaaaa;line-height:1.7;margin-bottom:10px;">
+                                  4 Esplanade du<br>Général de Gaulle<br>92400 Courbevoie
+                                </div>
+                                <div style="font-size:11px;color:#666666;margin-bottom:16px;">🚇 La Défense &middot; Sortie 4</div>
+                                <a href="https://www.google.com/maps/search/A+Beyrouth+4+Esplanade+du+General+de+Gaulle+92400+Courbevoie" target="_blank" style="display:block;background:#E65100;color:#ffffff;text-decoration:none;padding:10px 0;border-radius:7px;font-weight:600;font-size:12px;text-align:center;">📍 Voir sur Google Maps</a>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td bgcolor="#f5f5f5" style="background:#f5f5f5;padding:32px 24px;border-top:1px solid #e0e0e0;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
+                <tr>
+                  <td style="background:#E3F2FD;border-radius:10px;padding:20px;text-align:center;">
+                    <div style="font-size:20px;margin-bottom:6px;">⭐⭐⭐⭐⭐</div>
+                    <div style="font-size:14px;font-weight:700;color:#1565C0;margin-bottom:4px;">Votre avis compte !</div>
+                    <div style="font-size:12px;color:#1976D2;margin-bottom:14px;line-height:1.4;">Mettez-nous 5 étoiles sur Google 🙏</div>
+                    <a href="https://maps.app.goo.gl/mKChLAAquBDL2C5c6" target="_blank" style="display:inline-block;background:#1976D2;color:#fff;text-decoration:none;padding:10px 22px;border-radius:7px;font-weight:600;font-size:13px;">🌟 Laisser un avis</a>
+                  </td>
+                </tr>
+              </table>
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+                <tr><td align="center" style="font-size:12px;color:#aaa;letter-spacing:0.5px;text-transform:uppercase;padding-bottom:8px;">Retrouvez-nous sur</td></tr>
+                <tr><td align="center"><a href="https://www.instagram.com/a_beyrouth/" target="_blank" style="display:inline-block;background:#fafafa;color:#1a1a1a;text-decoration:none;padding:10px 28px;border-radius:20px;font-weight:600;font-size:14px;border:1px solid #e0e0e0;">@a_beyrouth</a></td></tr>
+              </table>
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="text-align:center;font-size:12px;color:#888;line-height:1.6;">
+                    <strong style="color:#1a1a1a;">A Beyrouth</strong> · 4 Esp. Gal de Gaulle, 92400 Courbevoie<br>
+                    <a href="mailto:contact@beyrouth.express" style="color:#D4A853;text-decoration:none;">contact@beyrouth.express</a> ·
+                    <a href="https://beyrouth.express" style="color:#D4A853;text-decoration:none;">beyrouth.express</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

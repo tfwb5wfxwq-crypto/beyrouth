@@ -145,13 +145,12 @@ serve(async (req) => {
   <meta name="color-scheme" content="only light">
   <meta name="supported-color-schemes" content="light">
   <style>
-    :root { color-scheme: light; }
-    .email-header-bg { background-color: #000000 !important; }
+    :root { color-scheme: light only; }
     @media (prefers-color-scheme: dark) {
-      body, table, td, div, p, span { color-scheme: light !important; }
-      .content-bg { background-color: #ffffff !important; color: #1a1a1a !important; }
-      .footer-bg { background-color: #f5f5f5 !important; }
-      .wrapper-bg { background-color: #f5f5f5 !important; }
+      body { background-color: #f5f5f5 !important; }
+      .header-dark { background-color: #000000 !important; }
+      .card-dark { background-color: #1a1a1a !important; }
+      .content-white { background-color: #ffffff !important; color: #1a1a1a !important; }
     }
   </style>
   <title>Commande confirmée</title>
@@ -164,7 +163,7 @@ serve(async (req) => {
 
           <!-- Header fond noir avec logo -->
           <tr>
-            <td bgcolor="#000000" style="background:#000000;padding:8px 24px;text-align:center;">
+            <td bgcolor="#000000" class="header-dark" style="background-color:#000000 !important;padding:8px 24px;text-align:center;">
               <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width:240px;height:auto;max-width:100%;display:block;margin:0 auto;">
             </td>
           </tr>
@@ -229,7 +228,7 @@ serve(async (req) => {
                   <td style="padding:16px 0 0 0;">
                     <table width="100%" cellpadding="0" cellspacing="0" border="0">
                       <tr>
-                        <td style="background:#1a1a1a;border-radius:10px;padding:0;">
+                        <td bgcolor="#1a1a1a" class="card-dark" style="background-color:#1a1a1a !important;border-radius:10px;padding:0;">
                           <table width="100%" cellpadding="0" cellspacing="0" border="0">
                             <tr>
                               <td width="180" style="padding:0;vertical-align:top;width:180px;line-height:0;">

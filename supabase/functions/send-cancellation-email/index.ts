@@ -101,7 +101,7 @@ serve(async (req) => {
 
           <!-- Header fond noir avec logo -->
           <tr>
-            <td bgcolor="#000000" style="background:#000000;padding:8px 24px;text-align:center;">
+            <td bgcolor="#000000" style="background-color:#000000 !important;padding:8px 24px;text-align:center;">
               <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width:240px;height:auto;max-width:100%;display:block;margin:0 auto;">
             </td>
           </tr>
@@ -253,7 +253,7 @@ serve(async (req) => {
     let refundResult = null
     if (order.paygreen_transaction_id && order.total > 0 && order.edenred_status !== 'captured') {
       try {
-        console.log(`💳 Remboursement de ${(order.total / 100).toFixed(2)}€ pour ${order.numero}...`)
+        console.log(`💳 Remboursement de ${parseFloat(order.total).toFixed(2)}€ pour ${order.numero}...`)
 
         // Étape 1: Obtenir un JWT token PayGreen
         const PAYGREEN_SECRET_KEY = Deno.env.get('PAYGREEN_SECRET_KEY')
@@ -290,7 +290,7 @@ serve(async (req) => {
               'Accept': 'application/json'
             },
             body: JSON.stringify({
-              amount: order.total, // En centimes
+              amount: Math.round(parseFloat(order.total) * 100), // Convertir euros → centimes
               reason: 'customer_request'
             })
           }
@@ -306,7 +306,7 @@ serve(async (req) => {
 
         refundResult = {
           refund_transaction_id: refund.id,
-          refund_amount: order.total,
+          refund_amount: Math.round(parseFloat(order.total) * 100),
           refund_requested_at: new Date().toISOString(),
           refund_completed_at: new Date().toISOString(),
           refund_error: null

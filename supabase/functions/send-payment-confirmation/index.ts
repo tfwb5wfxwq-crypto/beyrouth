@@ -23,16 +23,9 @@ serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-    // Vérifier que le JWT a le rôle service_role (sans valider la signature - appel interne seulement)
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      if (payload.role !== 'service_role') {
-        return new Response(
-          JSON.stringify({ error: 'Non autorisé' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-    } catch {
+    // 🔒 Vérifier contre la vraie clé service_role (comparaison directe, pas décodage JWT sans signature)
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    if (token !== serviceRoleKey) {
       return new Response(
         JSON.stringify({ error: 'Non autorisé' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -83,8 +76,9 @@ serve(async (req) => {
       )
     }
 
-    // Formater l'heure de retrait
-    const pickupText = order.heure_retrait || 'Dès que possible'
+    // Formater l'heure de retrait (stripping "Aujourd'hui" comme les autres emails)
+    const rawPickup = order.heure_retrait || ''
+    const pickupText = rawPickup.replace(/^Aujourd'hui\s+/i, '') || 'Dès que possible'
 
     // Template email (Gmail-compatible - tables, solid colors, no flex/gradient)
     const emailHtml = `
@@ -109,7 +103,7 @@ serve(async (req) => {
 
           <!-- Header fond noir avec logo -->
           <tr>
-            <td bgcolor="#000000" style="background:#000000;padding:8px 24px;text-align:center;">
+            <td bgcolor="#000000" style="background-color:#000000 !important;padding:8px 24px;text-align:center;">
               <img src="https://beyrouth.express/img/logo-email-final.png" alt="A Beyrouth" style="width:240px;height:auto;max-width:100%;display:block;margin:0 auto;">
             </td>
           </tr>

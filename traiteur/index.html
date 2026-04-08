@@ -137,16 +137,16 @@ a{color:inherit;text-decoration:none}
 .prestations-no-save{position:absolute;inset:0;z-index:3;cursor:default}
 
 .form{background:var(--white);border-radius:var(--r);padding:24px;box-shadow:0 2px 12px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.04)}
-.form-header{margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--border-light)}
+.form-header{margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border-light)}
 .form-header .section-title{font-family:'DM Serif Display',Georgia,serif;font-size:1.4rem;margin-bottom:5px;font-weight:400;letter-spacing:-0.3px;color:var(--dark)}
 .form-header-subtitle{font-size:0.85rem;color:var(--text-soft);line-height:1.5}
-.form-group{margin-bottom:12px}
+.form-group{margin-bottom:8px}
 .form-label{display:flex;align-items:center;gap:6px;font-weight:600;margin-bottom:7px;font-size:0.84rem;color:var(--dark);letter-spacing:0.2px}
 .form-label svg{width:14px;height:14px;opacity:0.4;flex-shrink:0}
 .form-input,.form-textarea,.form-select{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:0.91rem;font-family:inherit;background:var(--white);transition:all .25s cubic-bezier(0.4, 0, 0.2, 1);color:var(--dark)}
 .form-input:hover,.form-textarea:hover,.form-select:hover{border-color:#c0c0c0}
 .form-input:focus,.form-textarea:focus,.form-select:focus{border-color:var(--dark);outline:none;box-shadow:0 0 0 3px rgba(26,26,26,0.05);transform:translateY(-1px)}
-.form-textarea{resize:vertical;min-height:90px;line-height:1.5}
+.form-textarea{resize:vertical;min-height:72px;line-height:1.5}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .form-submit{width:100%;padding:14px 22px;background:linear-gradient(135deg, var(--dark) 0%, #000 100%);color:#fff;border-radius:var(--r-sm);font-size:0.98rem;font-weight:700;transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);letter-spacing:0.5px;margin-top:8px;box-shadow:0 4px 14px rgba(0,0,0,0.15);position:relative;overflow:hidden}
 .form-submit:before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);transition:left 0.5s}
@@ -387,14 +387,6 @@ a{color:inherit;text-decoration:none}
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label" for="entreprise">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-          Entreprise / Organisation
-        </label>
-        <input type="text" id="entreprise" name="entreprise" class="form-input">
-      </div>
-
       <div class="form-row">
         <div class="form-group">
           <label class="form-label" for="date">
@@ -428,20 +420,6 @@ a{color:inherit;text-decoration:none}
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="budget">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          Budget indicatif (€/personne)
-        </label>
-        <select id="budget" name="budget" class="form-select">
-          <option value="">-- Choisir --</option>
-          <option value="15-20">15-20€</option>
-          <option value="20-30">20-30€</option>
-          <option value="30-40">30-40€</option>
-          <option value="40+">40€ et plus</option>
-        </select>
-      </div>
-
-      <div class="form-group">
         <label class="form-label" for="message">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           Détails de votre demande *
@@ -450,7 +428,6 @@ a{color:inherit;text-decoration:none}
       </div>
 
       <button type="submit" class="form-submit">Envoyer ma demande</button>
-      <p class="form-footer-note">Nous vous répondrons sous 48h avec un devis personnalisé</p>
     </form>
 
   </div>

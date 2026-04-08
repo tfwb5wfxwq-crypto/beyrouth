@@ -151,19 +151,31 @@ serve(async (req) => {
                 </tr>
               </table>
 
-              <!-- Adresse -->
+              <!-- Adresse avec GIF localisation -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #e0e0e0;">
                 <tr>
-                  <td style="padding:16px 0;">
-                    <div style="font-size:12px;color:#888;text-transform:uppercase;margin-bottom:8px;">📍 Retrait</div>
-                    <div style="font-size:14px;color:#1a1a1a;line-height:1.5;margin-bottom:12px;">
-                      <strong>A Beyrouth</strong> · 4 Esp. Gal de Gaulle<br>
-                      92400 Courbevoie (La Défense)<br>
-                      <span style="font-size:12px;color:#888;">Sortie 4 du métro La Défense</span>
-                    </div>
-                    <a href="https://www.google.com/maps/search/A+Beyrouth+4+Esplanade+du+General+de+Gaulle+92400+Courbevoie" target="_blank" style="display:inline-block;background:#E65100;color:#fff;text-decoration:none;padding:9px 20px;border-radius:7px;font-weight:600;font-size:13px;">
-                      📍 Ouvrir dans Google Maps
-                    </a>
+                  <td style="padding:16px 0 0 0;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="background:#1a1a1a;border-radius:10px;padding:0;">
+                          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                              <td width="180" style="padding:0;vertical-align:top;width:180px;line-height:0;">
+                                <img src="https://beyrouth.express/img/beyrouth-location.gif" alt="Sortie métro La Défense" width="180" height="270" style="display:block;width:180px;height:270px;border-radius:10px 0 0 10px;">
+                              </td>
+                              <td style="padding:16px 16px 16px 14px;vertical-align:middle;">
+                                <div style="font-size:10px;color:#777777;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;">📍 Où retirer</div>
+                                <div style="font-size:16px;color:#ffffff;font-weight:800;margin-bottom:6px;font-family:Georgia,serif;">A Beyrouth</div>
+                                <div style="height:1px;background:#333333;margin-bottom:10px;"></div>
+                                <div style="font-size:12px;color:#aaaaaa;line-height:1.7;margin-bottom:10px;">4 Esplanade du<br>Général de Gaulle<br>92400 Courbevoie</div>
+                                <div style="font-size:11px;color:#666666;margin-bottom:16px;">🚇 La Défense &middot; Sortie 4</div>
+                                <a href="https://www.google.com/maps/search/A+Beyrouth+4+Esplanade+du+General+de+Gaulle+92400+Courbevoie" target="_blank" style="display:block;background:#E65100;color:#ffffff;text-decoration:none;padding:10px 0;border-radius:7px;font-weight:600;font-size:12px;text-align:center;">📍 Voir sur Google Maps</a>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
                   </td>
                 </tr>
               </table>

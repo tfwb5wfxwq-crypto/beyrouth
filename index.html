@@ -435,8 +435,7 @@ a{color:inherit;text-decoration:none}
       </div>
     </h1>
     <div class="header-right">
-      <button id="langToggle" onclick="toggleLang()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 12px;border-radius:16px;font-size:0.75rem;font-weight:700;cursor:pointer;letter-spacing:0.5px;transition:all .2s">FR</button>
-      <span class="header-mode-active">
+<span class="header-mode-active">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"/>
           <path d="M12 6v6l4 2"/>
@@ -620,9 +619,6 @@ a{color:inherit;text-decoration:none}
     <p class="footer-link">beyrouth.express</p>
   </div>
 </footer>
-
-<!-- i18n (doit être chargé avant tous les autres scripts) -->
-<script src="i18n.js"></script>
 
 <!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -3466,28 +3462,6 @@ window.addEventListener('beforeunload', () => {
   realtimeChannels = [];
 });
 
-// ===== i18n INIT =====
-(function() {
-  const lang = window.i18n.init();
-  document.documentElement.lang = lang;
-  const btn = document.getElementById('langToggle');
-  if (btn) btn.textContent = lang === 'fr' ? 'EN' : 'FR';
-  window.i18n.apply();
-})();
-
-function toggleLang() {
-  const newLang = window.i18n.get() === 'fr' ? 'en' : 'fr';
-  window.i18n.set(newLang);
-  const btn = document.getElementById('langToggle');
-  if (btn) btn.textContent = newLang === 'fr' ? 'EN' : 'FR';
-}
-
-window.addEventListener('languageChanged', () => {
-  window.i18n.apply();
-  const lang = window.i18n.get();
-  const btn = document.getElementById('langToggle');
-  if (btn) btn.textContent = lang === 'fr' ? 'EN' : 'FR';
-});
 </script>
 
 <!-- POPUP LOCALISATION -->

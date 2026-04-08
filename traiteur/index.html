@@ -10,7 +10,6 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
-<script src="../i18n.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -292,7 +291,6 @@ a{color:inherit;text-decoration:none}
         </svg>
         Traiteur
       </span>
-      <button id="langToggle" onclick="toggleLang()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 12px;border-radius:16px;font-size:0.75rem;font-weight:700;cursor:pointer;letter-spacing:0.5px;transition:all .2s">EN</button>
       <div class="header-status" id="headerStatus">
         <span class="dot"></span>
         <span id="statusText">Ouvert</span>
@@ -613,27 +611,6 @@ if (document.startViewTransition) {
   });
 }
 
-// ===== i18n INIT =====
-(function() {
-  const lang = window.i18n.init();
-  document.documentElement.lang = lang;
-  const btn = document.getElementById('langToggle');
-  if (btn) btn.textContent = lang === 'fr' ? 'EN' : 'FR';
-  window.i18n.apply();
-})();
-
-function toggleLang() {
-  const newLang = window.i18n.get() === 'fr' ? 'en' : 'fr';
-  window.i18n.set(newLang);
-  const btn = document.getElementById('langToggle');
-  if (btn) btn.textContent = newLang === 'fr' ? 'EN' : 'FR';
-}
-
-window.addEventListener('languageChanged', () => {
-  window.i18n.apply();
-  const btn = document.getElementById('langToggle');
-  if (btn) btn.textContent = window.i18n.get() === 'fr' ? 'EN' : 'FR';
-});
 </script>
 
 <!-- POPUP LOCALISATION -->

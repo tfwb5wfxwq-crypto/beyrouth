@@ -435,6 +435,7 @@ a{color:inherit;text-decoration:none}
       </div>
     </h1>
     <div class="header-right">
+      <button id="langToggle" onclick="toggleLang()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 12px;border-radius:16px;font-size:0.75rem;font-weight:700;cursor:pointer;letter-spacing:0.5px;transition:all .2s">FR</button>
       <span class="header-mode-active">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"/>
@@ -467,7 +468,7 @@ a{color:inherit;text-decoration:none}
     </a>
     <button class="info-time" onclick="openTimePicker()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-      <span id="timingPickLabel">Choisir un créneau</span>
+      <span id="timingPickLabel" data-i18n="timepicker.chooseSlot">Choisir un créneau</span>
       <span style="font-size:.65rem;opacity:.4">&#9662;</span>
     </button>
   </div>
@@ -483,10 +484,10 @@ a{color:inherit;text-decoration:none}
   <div class="timepicker-handle"></div>
   <div class="timepicker-title">Heure de retrait</div>
   <button class="timepicker-asap" id="tpAsap" onclick="selectTime('asap')">
-    Dès que possible
-    <span class="timepicker-asap-sub">~15 min de préparation</span>
+    <span data-i18n="timepicker.asap">Dès que possible</span>
+    <span class="timepicker-asap-sub" data-i18n="timepicker.prep15min">~15 min de préparation</span>
   </button>
-  <div class="timepicker-divider">ou choisir un créneau</div>
+  <div class="timepicker-divider" data-i18n="timepicker.orChooseSlot">ou choisir un créneau</div>
   <div class="timepicker-days" id="tpDays"></div>
   <div class="timepicker-slots" id="tpSlots"></div>
 </div>
@@ -532,12 +533,12 @@ a{color:inherit;text-decoration:none}
 <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
 <div class="cart-panel" id="cartPanel">
   <div class="cart-header">
-    <h3>Votre commande</h3>
+    <h3 data-i18n="cart.yourOrder">Votre commande</h3>
     <button class="cart-close" onclick="toggleCart()">&times;</button>
   </div>
   <div class="cart-body">
     <div class="cart-items" id="cartItems">
-      <div class="cart-empty" id="cartEmpty">Votre panier est vide</div>
+      <div class="cart-empty" id="cartEmpty" data-i18n="cart.empty">Votre panier est vide</div>
     </div>
     <div class="cart-suggest" id="cartSuggest" style="display:none">
       <div class="cart-suggest-title">Vous aimerez aussi</div>
@@ -545,7 +546,7 @@ a{color:inherit;text-decoration:none}
     </div>
     <div class="cart-footer" id="cartFooter" style="display:none">
       <div class="cart-subtotal">
-        <span>Total</span>
+        <span data-i18n="cart.total">Total</span>
         <strong id="cartTotal">0,00 €</strong>
       </div>
 
@@ -554,7 +555,7 @@ a{color:inherit;text-decoration:none}
         <div style="display:flex;align-items:center;gap:10px;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
           <div>
-            <div style="font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--green);opacity:.7;">Retrait prévu</div>
+            <div style="font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--green);opacity:.7;" data-i18n="timepicker.pickupTime">Retrait prévu</div>
             <div style="font-size:.95rem;font-weight:700;color:var(--green);margin-top:2px;" id="cartPickupDisplay">Dès que possible</div>
           </div>
         </div>
@@ -571,13 +572,13 @@ a{color:inherit;text-decoration:none}
         <textarea id="clientNote" placeholder="Note : allergies, sans oignon, etc." maxlength="500"></textarea>
         <label class="cart-optin">
           <input type="checkbox" id="optinPromos" checked>
-          <span>Me tenir informé des offres et promotions</span>
+          <span data-i18n="cart.optin">Me tenir informé des offres et promotions</span>
         </label>
       </div>
       <button class="cart-checkout-btn" id="cartSubmit" onclick="submitOrder()">
         Passer la commande
       </button>
-      <p class="cart-pay-info">Paiement en ligne sécurisé (CB, carte restaurant)</p>
+      <p class="cart-pay-info" data-i18n="cart.securePayment">Paiement en ligne sécurisé (CB, carte restaurant)</p>
     </div>
   </div>
 </div>
@@ -597,7 +598,7 @@ a{color:inherit;text-decoration:none}
   <div class="footer-inner">
     <p class="footer-brand">Beyrouth Express</p>
     <p class="footer-sub">Service en ligne de A Beyrouth</p>
-    <p class="footer-address">4 Esplanade du Général de Gaulle, 92400 Courbevoie</p>
+    <p class="footer-address" data-i18n="footer.address">4 Esplanade du Général de Gaulle, 92400 Courbevoie</p>
     <p class="footer-hours">Click & collect 7j/7 · Retrait Lun–Ven 11h30–20h30</p>
     <div style="display:flex;gap:16px;margin:20px 0;justify-content:center">
       <a href="https://www.instagram.com/a_beyrouth/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;background:linear-gradient(135deg, #833AB4 0%, #FD1D1D 50%, #F77737 100%);border-radius:12px;transition:all .3s ease;box-shadow:0 2px 8px rgba(131,58,180,0.3)" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 6px 16px rgba(131,58,180,0.5)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 2px 8px rgba(131,58,180,0.3)'" aria-label="Instagram">
@@ -619,6 +620,9 @@ a{color:inherit;text-decoration:none}
     <p class="footer-link">beyrouth.express</p>
   </div>
 </footer>
+
+<!-- i18n (doit être chargé avant tous les autres scripts) -->
+<script src="i18n.js"></script>
 
 <!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -1759,7 +1763,7 @@ async function submitOrder() {
 
   // 🔒 FIX #2: Vérifier panier AVANT de désactiver le bouton
   if (!cart.length) {
-    showToast('⚠️ Votre panier est vide', 'error');
+    showToast('⚠️ ' + window.i18n.t('cart.empty'), 'error');
     return;
   }
 
@@ -3459,6 +3463,29 @@ window.addEventListener('beforeunload', () => {
     }
   });
   realtimeChannels = [];
+});
+
+// ===== i18n INIT =====
+(function() {
+  const lang = window.i18n.init();
+  document.documentElement.lang = lang;
+  const btn = document.getElementById('langToggle');
+  if (btn) btn.textContent = lang === 'fr' ? 'EN' : 'FR';
+  window.i18n.apply();
+})();
+
+function toggleLang() {
+  const newLang = window.i18n.get() === 'fr' ? 'en' : 'fr';
+  window.i18n.set(newLang);
+  const btn = document.getElementById('langToggle');
+  if (btn) btn.textContent = newLang === 'fr' ? 'EN' : 'FR';
+}
+
+window.addEventListener('languageChanged', () => {
+  window.i18n.apply();
+  const lang = window.i18n.get();
+  const btn = document.getElementById('langToggle');
+  if (btn) btn.textContent = lang === 'fr' ? 'EN' : 'FR';
 });
 </script>
 

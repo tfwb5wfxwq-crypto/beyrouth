@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Commande confirmée — Beyrouth Express</title>
+<title data-i18n="confirmation.title">Commande confirmée — Beyrouth Express</title>
+<script src="i18n.js"></script>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
@@ -309,6 +310,8 @@ h1.blue { color: var(--blue); }
 </head>
 <body>
 
+<button id="langToggle" onclick="toggleLang()" style="position:fixed;top:16px;right:16px;z-index:9999;background:rgba(26,26,26,0.85);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 12px;border-radius:16px;font-size:0.75rem;font-weight:700;cursor:pointer;letter-spacing:0.5px;transition:all .2s">EN</button>
+
 <div class="container" id="app">
   <div class="loading" id="loading">
     <div style="font-size:3rem;margin-bottom:16px;" class="pulse">⏳</div>
@@ -327,16 +330,16 @@ h1.blue { color: var(--blue); }
 
     <!-- Heure de retrait -->
     <div class="section">
-      <p class="section-title">Retrait prévu</p>
+      <p class="section-title" data-i18n="confirmation.pickupTime">Retrait prévu</p>
       <p class="section-value" id="pickupTime">12h30</p>
     </div>
 
     <!-- Détails commande -->
     <div class="section">
-      <p class="section-title">Votre commande</p>
+      <p class="section-title" data-i18n="cart.yourOrder">Votre commande</p>
       <div id="items"></div>
       <div class="total-row">
-        <span>Total</span>
+        <span data-i18n="cart.total">Total</span>
         <span id="total">0,00 €</span>
       </div>
     </div>
@@ -348,10 +351,10 @@ h1.blue { color: var(--blue); }
       </video>
       <div class="address-video-overlay"></div>
       <div class="address-video-content">
-        <p class="address-title">📍 Où récupérer votre commande</p>
+        <p class="address-title">📍 <span data-i18n="confirmation.whereToPickup">Où récupérer</span></p>
         <p class="address-name">A Beyrouth</p>
-        <p class="address-text">4 Esplanade du Général de Gaulle<br>92400 Courbevoie (La Défense)</p>
-        <p class="address-note">Sortie 4 du métro La Défense</p>
+        <p class="address-text" data-i18n="confirmation.address" data-i18n-html>4 Esplanade du Général de Gaulle<br>92400 Courbevoie (La Défense)</p>
+        <p class="address-note" data-i18n="confirmation.metro">Sortie 4 du métro La Défense</p>
         <a class="address-maps-btn" href="https://www.google.com/maps/search/A+Beyrouth+4+Esplanade+du+General+de+Gaulle+92400+Courbevoie" target="_blank" rel="noopener">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
           Ouvrir dans Google Maps
@@ -657,7 +660,7 @@ async function loadOrder() {
     autoAcceptEnabled = autoAcceptSetting?.value === 'true';
 
     if (!data || data.error) {
-      alert('Commande introuvable');
+      alert(window.i18n.t('messages.orderNotFound'));
       window.location.href = '/';
       return;
     }
@@ -667,7 +670,7 @@ async function loadOrder() {
     // Remplir les infos fixes
     document.getElementById('orderNum').textContent = data.numero;
     const rawPickup = data.heure_retrait || ''
-    document.getElementById('pickupTime').textContent = (!rawPickup || rawPickup === 'asap' || rawPickup === 'ASAP') ? 'Dès que possible' : rawPickup.replace(/^Aujourd'hui\s+/i, '');
+    document.getElementById('pickupTime').textContent = (!rawPickup || rawPickup === 'asap' || rawPickup === 'ASAP') ? window.i18n.t('timepicker.asap') : rawPickup.replace(/^Aujourd'hui\s+/i, '');
 
     // Items - 🔒 SÉCURISÉ contre XSS
     const itemsHtml = data.items.map(item => {
@@ -731,6 +734,30 @@ setInterval(() => {
     updateDisplay(orderData);
   }
 }, 30000);
+</script>
+
+<script>
+// ===== i18n INIT =====
+(function() {
+  const lang = window.i18n.init();
+  document.documentElement.lang = lang;
+  const btn = document.getElementById('langToggle');
+  if (btn) btn.textContent = lang === 'fr' ? 'EN' : 'FR';
+  window.i18n.apply();
+})();
+
+function toggleLang() {
+  const newLang = window.i18n.get() === 'fr' ? 'en' : 'fr';
+  window.i18n.set(newLang);
+  const btn = document.getElementById('langToggle');
+  if (btn) btn.textContent = newLang === 'fr' ? 'EN' : 'FR';
+}
+
+window.addEventListener('languageChanged', () => {
+  window.i18n.apply();
+  const btn = document.getElementById('langToggle');
+  if (btn) btn.textContent = window.i18n.get() === 'fr' ? 'EN' : 'FR';
+});
 </script>
 
 </body>

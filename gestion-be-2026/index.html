@@ -253,11 +253,10 @@ button{cursor:pointer;font-family:inherit;border:none}
   .status-section-cards{grid-template-columns:1fr}
 }
 .order-card{
-  background:#fff;border-radius:var(--radius);padding:12px 16px;
-  box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid #e5e7eb;
+  background:#fff;border-radius:var(--radius);padding:14px 18px;
+  box-shadow:0 2px 12px rgba(0,0,0,.08);border-left:4px solid #e5e7eb;
   transition:all .3s;
   display:flex;flex-direction:row;align-items:center;gap:16px;
-  min-height:70px;
 }
 .order-card.new{border-left-color:#3b82f6;animation:slideIn .4s ease}
 .order-card.preparing{border-left-color:#f97316}
@@ -281,13 +280,17 @@ button{cursor:pointer;font-family:inherit;border:none}
 @keyframes slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:none}}
 @keyframes pulse-red{0%,100%{opacity:1}50%{opacity:0.85}}
 .order-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.order-num{font-family:'Courier New',monospace;font-size:1.2rem;font-weight:700;color:#1a1a1a;letter-spacing:1px}
+.order-num{font-family:'Courier New',monospace;font-size:1.25rem;font-weight:700;color:#111;letter-spacing:1.5px}
 .order-time-badge{
-  padding:4px 10px;border-radius:12px;font-size:.75rem;font-weight:600;
+  padding:5px 12px;border-radius:20px;font-size:.78rem;font-weight:700;
   background:#f3f4f6;color:#1f2937;cursor:pointer;
   transition:all .3s;user-select:none;border:1px solid #e5e7eb;
+  letter-spacing:0.2px;
 }
 .order-time-badge:hover{background:#e5e7eb}
+.urgency-late .order-time-badge{background:#fef2f2;color:#b91c1c;border-color:#fecaca;}
+.urgency-urgent .order-time-badge{background:#fff7ed;color:#c2410c;border-color:#fed7aa;}
+.urgency-soon .order-time-badge{background:#fffbeb;color:#d97706;border-color:#fde68a;}
 .order-client{font-size:.8rem;color:#666;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .order-items{margin-bottom:10px}
 .order-item-line{
@@ -2990,21 +2993,44 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
       grouped.get(key).items.push(i);
     });
     const hasCats = !(grouped.size === 1 && grouped.has('__none__'));
-    const pill = i => `<span style="display:inline-flex;align-items:center;background:#f3f4f6;border-radius:6px;padding:2px 8px;margin:2px 4px 2px 0;font-size:0.75rem;white-space:nowrap;font-weight:500;color:#1f2937;"><span style="font-weight:700;margin-right:4px;">${i.qty || i.quantite || 1}×</span>${escapeHtml(i.nom)}</span>`;
-    const renderGroup = ([k, g]) => `<div style="margin-bottom:4px;"><span style="font-size:0.68rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-right:6px;">${g.emoji} ${escapeHtml(g.nom || '')}</span>${g.items.map(pill).join('')}</div>`;
-    const wrap = content => `<div style="margin-top:8px;padding-top:8px;border-top:1px solid #ebebeb;">${content}</div>`;
+
+    // Couleurs pastel par catégorie
+    const catBg = {'Formules':'#fef9c3','Sandwichs':'#fef3c7','Grillades':'#fee2e2','Plateaux':'#fff7ed','Entrées Froides':'#ecfdf5','Entrées Chaudes':'#fff1f2','Desserts':'#fdf4ff','Boissons':'#dbeafe','Sauces':'#f0fdf4'};
+    const catColor = {'Formules':'#854d0e','Sandwichs':'#92400e','Grillades':'#991b1b','Plateaux':'#9a3412','Entrées Froides':'#065f46','Entrées Chaudes':'#9f1239','Desserts':'#7e22ce','Boissons':'#1e40af','Sauces':'#14532d'};
+
+    const renderItem = i => {
+      const qty = i.qty || i.quantite || 1;
+      return `<span style="white-space:nowrap;font-size:0.83rem;color:#1a1a1a;"><span style="font-weight:800;color:#d97706;">${qty}×</span> ${escapeHtml(i.nom)}</span>`;
+    };
+    const dot = `<span style="color:#d1d5db;margin:0 5px;font-size:0.75rem;vertical-align:middle;">·</span>`;
+
+    const renderGroup = ([k, g]) => {
+      const bg = catBg[g.nom] || '#f3f4f6';
+      const col = catColor[g.nom] || '#374151';
+      return `<div style="display:flex;align-items:baseline;flex-wrap:wrap;row-gap:3px;margin-bottom:6px;">
+        <span style="flex-shrink:0;font-size:0.72rem;font-weight:700;padding:2px 9px;background:${bg};border-radius:20px;margin-right:8px;color:${col};white-space:nowrap;line-height:1.8;">${g.emoji} ${escapeHtml(g.nom || '')}</span>${g.items.map(renderItem).join(dot)}</div>`;
+    };
+    const renderFlat = list => list.map(renderItem).join(dot);
+
+    const wrap = content => `<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.07);">${content}</div>`;
+
     // Grosse commande : accordéon
     if (items.length >= 10) {
       const uid = 'acc-' + order.id;
       const summary = hasCats
-        ? [...grouped.values()].map(g => g.emoji + ' ×' + g.items.reduce((s,i) => s + (i.qty||i.quantite||1), 0)).join('  ')
-        : items.length + ' articles';
-      const full = hasCats ? [...grouped.entries()].map(renderGroup).join('') : items.map(pill).join('');
-      return wrap(`<div onclick="var d=document.getElementById('${uid}');var a=document.getElementById('${uid}-a');d.style.display=d.style.display==='none'?'block':'none';a.textContent=d.style.display==='none'?'▼':'▲';" style="cursor:pointer;display:flex;align-items:center;gap:8px;font-size:0.75rem;color:#6b7280;user-select:none;"><span>${summary}</span><span style="color:#9ca3af;font-size:0.7rem;">— ${items.length} articles</span><span id="${uid}-a" style="color:#9ca3af;font-size:0.65rem;">▼</span></div><div id="${uid}" style="display:none;margin-top:6px;">${full}</div>`);
+        ? [...grouped.values()].map(g => {
+            const bg = catBg[g.nom] || '#f3f4f6';
+            const col = catColor[g.nom] || '#374151';
+            const total = g.items.reduce((s,i) => s + (i.qty||i.quantite||1), 0);
+            return `<span style="font-size:0.72rem;font-weight:700;padding:2px 8px;background:${bg};border-radius:20px;color:${col};">${g.emoji} ×${total}</span>`;
+          }).join(' ')
+        : `<span style="font-size:0.8rem;color:#6b7280;">${items.length} articles</span>`;
+      const full = hasCats ? [...grouped.entries()].map(renderGroup).join('') : renderFlat(items);
+      return wrap(`<div onclick="var d=document.getElementById('${uid}');var a=document.getElementById('${uid}-a');d.style.display=d.style.display==='none'?'block':'none';a.textContent=d.style.display==='none'?'▼':'▲';" style="cursor:pointer;display:flex;align-items:center;flex-wrap:wrap;gap:6px;user-select:none;">${summary}<span style="color:#9ca3af;font-size:0.7rem;margin-left:2px;">— ${items.length} articles</span><span id="${uid}-a" style="color:#bbb;font-size:0.65rem;">▼</span></div><div id="${uid}" style="display:none;margin-top:8px;">${full}</div>`);
     }
     // Commande normale : groupé si catégories dispo, sinon flat
     if (hasCats) return wrap([...grouped.entries()].map(renderGroup).join(''));
-    return wrap(items.map(pill).join(''));
+    return wrap(renderFlat(items));
   })();
 
   // Notes client (allergies, sans oignons, etc.) - ULTRA VISIBLE
@@ -3034,15 +3060,15 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
           return `<span onclick="showEmailDetails(${order.id})" style="cursor:pointer;font-size:1.2rem;filter:drop-shadow(0 0 2px ${config.color});" title="${config.title}">${config.icon}</span>`;
         })()}
 
-        <div style="min-width:120px;flex-shrink:0;">
-          <div style="font-size:0.85rem;font-weight:600;color:#1a1a1a;">${escapeHtml(order.client_prenom) || 'Client'}</div>
-          <div style="font-size:0.7rem;color:#888;">${escapeHtml(order.client_telephone) || ''}</div>
-          ${!isHistory ? `<div id="timer-${order.id}" style="font-size:0.65rem;color:#999;margin-top:2px;font-style:italic;">${getElapsedTime(order)}</div>` : ''}
+        <div style="min-width:130px;flex-shrink:0;">
+          <div style="font-size:0.98rem;font-weight:700;color:#111;letter-spacing:0.1px;">${escapeHtml(order.client_prenom) || 'Client'}</div>
+          <div style="font-size:0.73rem;color:#888;margin-top:1px;letter-spacing:0.3px;">${escapeHtml(order.client_telephone) || ''}</div>
+          ${!isHistory ? `<div id="timer-${order.id}" style="font-size:0.68rem;color:#aaa;margin-top:3px;font-style:italic;">${getElapsedTime(order)}</div>` : ''}
           ${!isHistory && order.reminder_sent_at ? (() => {
             const now = new Date();
             const reminderTime = new Date(order.reminder_sent_at);
             const mins = Math.floor((now - reminderTime) / 60000);
-            return `<div id="reminder-${order.id}" style="font-size:0.65rem;color:#f97316;margin-top:2px;font-weight:600;">📧 Relancé il y a ${mins} min</div>`;
+            return `<div id="reminder-${order.id}" style="font-size:0.68rem;color:#f97316;margin-top:2px;font-weight:700;">📧 Relancé il y a ${mins} min</div>`;
           })() : ''}
         </div>
 

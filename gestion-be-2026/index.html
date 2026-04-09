@@ -2967,15 +2967,13 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
   const badge = !isHistory && statusBadges[statusClass] ? statusBadges[statusClass] : null;
   const cardBg = !isHistory && cardBgColors[statusClass] ? cardBgColors[statusClass] : '#fff';
 
-  // Format items summary (compact) - 🔒 SÉCURISÉ contre XSS
-  const itemsSummary = items.map(i => `${i.qty || i.quantite || 1}x ${escapeHtml(i.nom)}`).join(', ');
-  const itemsShort = itemsSummary.length > 40 ? itemsSummary.substring(0, 37) + '...' : itemsSummary;
+  // Format items - 🔒 SÉCURISÉ contre XSS
 
   // Notes client (allergies, sans oignons, etc.) - ULTRA VISIBLE
   const hasNotes = order.note && order.note.trim().length > 0;
 
   return `
-    <div class="order-card ${statusClass} ${urgencyClass}" id="order-${order.id}" style="background:${cardBg};${hasNotes ? 'border: 2px solid #fca5a5; flex-direction: column; align-items: stretch;' : ''}">
+    <div class="order-card ${statusClass} ${urgencyClass}" id="order-${order.id}" style="background:${cardBg};flex-direction:column;align-items:stretch;${hasNotes ? 'border:2px solid #fca5a5;' : ''}">
 
       <!-- Ligne principale (infos commande) -->
       <div style="display: flex; flex-direction: row; align-items: center; gap: 16px; width: 100%;">
@@ -3008,10 +3006,6 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
             const mins = Math.floor((now - reminderTime) / 60000);
             return `<div id="reminder-${order.id}" style="font-size:0.65rem;color:#f97316;margin-top:2px;font-weight:600;">📧 Relancé il y a ${mins} min</div>`;
           })() : ''}
-        </div>
-
-        <div style="flex:1;min-width:200px;font-size:0.8rem;color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-          ${itemsShort}
         </div>
 
         ${!isHistory
@@ -3048,10 +3042,17 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
         }
       </div>
 
-      <!-- Notes client (discrète mais visible) -->
+      <!-- Articles commandés (complet, jamais tronqué) -->
+      ${items.length > 0 ? `
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ebebeb;font-size:0.78rem;color:#444;line-height:1.7;">
+        ${items.map(i => `<span style="display:inline-block;margin-right:14px;white-space:nowrap;">• ${i.qty || i.quantite || 1}x ${escapeHtml(i.nom)}</span>`).join('')}
+      </div>
+      ` : ''}
+
+      <!-- Note client (allergies, précisions) -->
       ${hasNotes ? `
-      <div style="background: #fef2f2; border-left: 3px solid #f87171; border-radius: 4px; padding: 8px 12px; margin-top: 8px; font-size: 0.85rem; color: #7f1d1d; line-height: 1.3;">
-        <span style="font-weight: 600;">💬</span> ${escapeHtml(order.note)}
+      <div style="background:#fef2f2;border-left:3px solid #f87171;border-radius:4px;padding:6px 12px;margin-top:6px;font-size:0.82rem;color:#7f1d1d;line-height:1.4;">
+        <span style="font-weight:700;">💬 Note :</span> ${escapeHtml(order.note)}
       </div>
       ` : ''}
 

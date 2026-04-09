@@ -2975,8 +2975,18 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
     if (items.length === 0) return '';
     const grouped = new Map();
     items.forEach(i => {
-      const key = i.categorie || '__none__';
-      if (!grouped.has(key)) grouped.set(key, { nom: i.categorie || null, emoji: i.categorie_emoji || '🍽️', items: [] });
+      let catNom = i.categorie || null;
+      let catEmoji = i.categorie_emoji || '🍽️';
+      // Fallback pour anciennes commandes : lookup via menuItemsList
+      if (!catNom && i.id) {
+        const mi = menuItemsList.find(m => m.id === i.id);
+        if (mi) {
+          const mc = menuCategories.find(c => c.id === mi.categorie_id);
+          if (mc) { catNom = mc.nom; catEmoji = mc.emoji || '🍽️'; }
+        }
+      }
+      const key = catNom || '__none__';
+      if (!grouped.has(key)) grouped.set(key, { nom: catNom, emoji: catEmoji, items: [] });
       grouped.get(key).items.push(i);
     });
     const hasCats = !(grouped.size === 1 && grouped.has('__none__'));

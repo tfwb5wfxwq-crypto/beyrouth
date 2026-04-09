@@ -1200,6 +1200,8 @@ function addToCart(itemId) {
       prix: item.prix,
       emoji: item.emoji || '🍽️',
       image_url: item.image_url || null,
+      categorie: categories.find(c => c.id === item.categorie_id)?.nom || null,
+      categorie_emoji: categories.find(c => c.id === item.categorie_id)?.emoji || '🍽️',
       qty: 1
     });
   }

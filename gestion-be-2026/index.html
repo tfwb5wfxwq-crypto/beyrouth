@@ -2492,9 +2492,9 @@ function getUrgency(order) {
   const now = new Date();
   const diffMinutes = (pickupTime - now) / 1000 / 60;
 
-  if (diffMinutes < -15) return 'late'; // En retard +15min
-  if (diffMinutes < 0) return 'urgent'; // Heure passée mais -15min
-  if (diffMinutes < 30) return 'urgent'; // < 30 min
+  if (diffMinutes < -15) return 'late';  // En retard +15min
+  if (diffMinutes < 0)   return 'urgent'; // Heure passée mais < 15min de retard
+  if (diffMinutes < 5)   return 'urgent'; // < 5 min avant retrait
   return 'normal';
 }
 
@@ -3717,21 +3717,32 @@ function updateStatsDisplay(statsOrders) {
 }
 
 async function updateTopbarStats() {
-  // Compter uniquement les commandes payées/validées du jour (exclut pending et cancelled)
-  const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
+  // Chiffre du JOUR = commandes dont le RETRAIT est aujourd'hui (pas le paiement)
+  // On charge hier + aujourd'hui pour couvrir "commandé hier soir pour aujourd'hui midi"
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  yesterday.setHours(0, 0, 0, 0);
 
   try {
     const { data, error } = await sb
       .from('orders')
-      .select('total')
-      .gte('created_at', `${today}T00:00:00`)
-      .lte('created_at', `${today}T23:59:59`)
-      .in('statut', ['payee', 'acceptee', 'en_preparation', 'prete', 'recuperee']); // Uniquement commandes valides
+      .select('total, heure_retrait, created_at')
+      .gte('created_at', yesterday.toISOString())
+      .in('statut', ['payee', 'acceptee', 'en_preparation', 'prete', 'recuperee']);
 
     if (error) throw error;
 
-    const total = data?.length || 0;
-    const revenue = data?.reduce((s, o) => s + (o.total || 0), 0) || 0;
+    // Filtrer côté client : garder uniquement celles dont le retrait est aujourd'hui
+    const todayStart = new Date(now); todayStart.setHours(0,0,0,0);
+    const todayEnd   = new Date(now); todayEnd.setHours(23,59,59,999);
+    const todayOrders = (data || []).filter(o => {
+      const pickup = parsePickupTime(o);
+      return pickup >= todayStart && pickup <= todayEnd;
+    });
+
+    const total = todayOrders.length;
+    const revenue = todayOrders.reduce((s, o) => s + (o.total || 0), 0);
 
     // Utiliser innerHTML pour garder les SVG (pas textContent qui écrase tout)
     document.getElementById('topbarStats').innerHTML = `

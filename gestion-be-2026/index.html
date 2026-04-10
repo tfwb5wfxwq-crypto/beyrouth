@@ -2083,10 +2083,12 @@ function startPresenceTracking() {
     .on('presence', { event: 'sync' }, () => {})
     .subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
+        // adminDeviceName = nom forcé via console (localStorage.setItem('adminDeviceName','Tablette Resto'))
+        const forcedName = localStorage.getItem('adminDeviceName') || '';
         await adminPresenceChannel.track({
           device_id: deviceId,
-          device_name: customName || device.name,
-          device_icon: device.icon,
+          device_name: forcedName || customName || device.name,
+          device_icon: forcedName ? '🍽️' : device.icon,
           user_agent: navigator.userAgent,
           joined_at: new Date().toISOString()
         });

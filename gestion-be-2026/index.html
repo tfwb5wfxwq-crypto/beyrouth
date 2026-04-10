@@ -1986,6 +1986,19 @@ async function checkSession() {
   }
 }
 
+// Config appareil via URL : ?device=tablette → localStorage + redirect propre
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const d = params.get('device');
+  if (d === 'tablette') {
+    localStorage.setItem('adminDeviceName', 'Tablette Resto');
+    window.history.replaceState({}, '', window.location.pathname);
+  } else if (d === 'paco') {
+    localStorage.setItem('adminDeviceName', 'iPhone Paco');
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+})();
+
 checkSession();
 
 document.getElementById('loginPassword').addEventListener('keydown', e => {

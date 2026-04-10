@@ -2107,9 +2107,13 @@ function detectDevice(ua) {
     return { icon: '💻', name: 'MacBook', type: 'desktop' };
   }
 
-  // Tablette Android (Samsung Galaxy Tab A9+ resto)
-  if (lower.includes('android') && !lower.includes('mobile')) {
-    return { icon: '🍽️', name: 'Tablette Resto', type: 'tablet' };
+  // Android : tablette si SM-X (Galaxy Tab) ou pas de "mobile" dans l'UA
+  if (lower.includes('android')) {
+    const isSamsungTab = /SM-X[A-Z0-9]*/i.test(ua);
+    if (isSamsungTab || !lower.includes('mobile')) {
+      return { icon: '🍽️', name: 'Tablette Resto', type: 'tablet' };
+    }
+    return { icon: '📱', name: 'Android', type: 'phone' };
   }
 
   // iPad

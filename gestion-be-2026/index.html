@@ -1240,7 +1240,9 @@ button{cursor:pointer;font-family:inherit;border:none}
 <script>
 const SUPABASE_URL = 'https://xbuftfwcyontgqbbrrjt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhidWZ0ZndjeW9udGdxYmJycmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2Njg1NzksImV4cCI6MjA4NjI0NDU3OX0.ROkSccADlpLsWMgqyiX_xNaFdJNR8P4R-LJCnZV2Gzg';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: false }
+});
 
 // 🔒 Session Supabase Auth — mise à jour automatique via onAuthStateChange
 let _supabaseSession = null;
@@ -2105,10 +2107,9 @@ function detectDevice(ua) {
     return { icon: '💻', name: 'MacBook', type: 'desktop' };
   }
 
-  // Tablette Android
+  // Tablette Android (Samsung Galaxy Tab A9+ resto)
   if (lower.includes('android') && !lower.includes('mobile')) {
-    const model = ua.match(/SM-[A-Z0-9]+/i)?.[0] || 'Tablette Android';
-    return { icon: '📱', name: model, type: 'tablet' };
+    return { icon: '🍽️', name: 'Tablette Resto', type: 'tablet' };
   }
 
   // iPad
@@ -2283,6 +2284,20 @@ async function showDashboard() {
       markAudioButtonNeedsActivation();
     }
   }, 500);
+
+  // 🔐 Keep-alive session : refresh token toutes les 50 min (évite déconnexion tablette)
+  intervals.push(setInterval(async () => {
+    const { error } = await sb.auth.refreshSession();
+    if (error) console.warn('⚠️ Refresh session échoué:', error.message);
+  }, 50 * 60 * 1000));
+  // Refresh aussi au retour au premier plan (tablette sortie de veille)
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState === 'visible') {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { window.location.reload(); return; }
+      _supabaseSession = session;
+    }
+  });
 
   // Horloge temps réel
   updateClock();

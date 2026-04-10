@@ -1258,6 +1258,7 @@ sb.auth.onAuthStateChange((event, session) => {
 // 🔧 MEMORY LEAK FIX: Store interval IDs for cleanup on logout
 let intervals = [];
 let realtimeChannel = null; // 🔧 MEMORY LEAK FIX: Store realtime channel for cleanup
+let adminPresenceChannel = null; // 👥 Realtime Presence: suivi multi-appareils
 
 // 🔒 SÉCURITÉ : Fonction d'échappement HTML pour prévenir les XSS
 function escapeHtml(text) {
@@ -2048,9 +2049,47 @@ async function doLogout() {
     }
   }
 
+  // Quitter le canal de présence
+  if (adminPresenceChannel) {
+    try {
+      await adminPresenceChannel.untrack();
+      sb.removeChannel(adminPresenceChannel);
+      adminPresenceChannel = null;
+    } catch (e) {}
+  }
+
   await sb.auth.signOut();
   _supabaseSession = null;
   window.location.reload();
+}
+
+// 👥 Realtime Presence — tracking multi-appareils
+function startPresenceTracking() {
+  let deviceId = localStorage.getItem('adminDeviceId');
+  if (!deviceId) {
+    deviceId = 'dev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+    localStorage.setItem('adminDeviceId', deviceId);
+  }
+  const device = detectDevice(navigator.userAgent);
+  const customNames = JSON.parse(localStorage.getItem('sessionCustomNames') || '{}');
+  const customName = customNames[deviceId] || '';
+
+  adminPresenceChannel = sb.channel('admin-presence', {
+    config: { presence: { key: deviceId } }
+  });
+  adminPresenceChannel
+    .on('presence', { event: 'sync' }, () => {})
+    .subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await adminPresenceChannel.track({
+          device_id: deviceId,
+          device_name: customName || device.name,
+          device_icon: device.icon,
+          user_agent: navigator.userAgent,
+          joined_at: new Date().toISOString()
+        });
+      }
+    });
 }
 
 // 👥 Afficher les sessions admin actives
@@ -2092,101 +2131,74 @@ function detectDevice(ua) {
 }
 
 async function showActiveSessions() {
-  const adminToken = getAdminToken();
-  if (!adminToken) {
-    showToast('❌ Non connecté', 'error');
-    return;
-  }
+  const myDeviceId = localStorage.getItem('adminDeviceId');
+  const customNames = JSON.parse(localStorage.getItem('sessionCustomNames') || '{}');
 
-  try {
-    const { data, error } = await sb.functions.invoke('admin-sessions', {
-      headers: { Authorization: `Bearer ${adminToken}` }
+  let sessions = [];
+  if (adminPresenceChannel) {
+    const presenceState = adminPresenceChannel.presenceState();
+    sessions = Object.entries(presenceState).map(([key, presences]) => {
+      const p = presences[presences.length - 1];
+      const did = p.device_id || key;
+      return {
+        device_id: did,
+        device_name: customNames[did] || p.device_name || detectDevice(p.user_agent || '').name,
+        device_icon: p.device_icon || detectDevice(p.user_agent || '').icon,
+        joined_at: p.joined_at,
+        is_current: did === myDeviceId
+      };
     });
-
-    if (error) throw error;
-
-    const sessions = data.sessions || [];
-
-    // Charger les noms personnalisés depuis localStorage
-    const customNames = JSON.parse(localStorage.getItem('sessionCustomNames') || '{}');
-
-    // Créer le modal
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
-    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-
-    modal.innerHTML = `
-      <div class="modal-box" style="max-width:600px;max-height:80vh;overflow-y:auto;">
-        <div class="modal-title" style="font-size:1.3rem;margin-bottom:8px;">👥 Sessions actives</div>
-        <p style="color:#888;font-size:0.85rem;margin:0 0 20px 0;">${sessions.length} appareil${sessions.length > 1 ? 's' : ''} connecté${sessions.length > 1 ? 's' : ''}</p>
-
-        ${sessions.length === 0 ? `
-          <p style="text-align:center;color:#666;padding:40px 20px;">Aucune session active</p>
-        ` : `
-          <div style="display:flex;flex-direction:column;gap:12px;">
-            ${sessions.map(s => {
-              const device = detectDevice(s.user_agent);
-              const sessionKey = s.ip_address; // Utiliser IP comme clé unique
-              const customName = customNames[sessionKey] || '';
-
-              return `
-              <div style="background:${s.is_current ? 'linear-gradient(135deg, rgba(212,168,83,0.15), rgba(212,168,83,0.05))' : '#fafafa'};
-                          border:1px solid ${s.is_current ? '#D4A853' : '#e5e7eb'};
-                          border-radius:10px;
-                          padding:14px 16px;
-                          position:relative;
-                          transition:all 0.2s;">
-
-                ${s.is_current ? '<div style="position:absolute;top:10px;right:12px;background:#D4A853;color:#fff;padding:3px 10px;border-radius:12px;font-size:0.7rem;font-weight:700;letter-spacing:0.5px;">VOUS</div>' : ''}
-
-                <!-- Header: icône + nom device -->
-                <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
-                  <span style="font-size:28px;line-height:1;">${device.icon}</span>
-                  <div style="flex:1;">
-                    ${customName ? `
-                      <div style="font-weight:700;font-size:0.95rem;color:#1a1a1a;margin-bottom:2px;">${escapeHtml(customName)}</div>
-                      <div style="font-size:0.75rem;color:#999;">${device.name}</div>
-                    ` : `
-                      <div style="font-weight:600;font-size:0.9rem;color:#1a1a1a;">${device.name}</div>
-                    `}
-                  </div>
-                  <button onclick="renameSession('${sessionKey}', '${device.name}')" style="background:#f0f0f0;border:none;padding:6px 10px;border-radius:6px;font-size:0.75rem;color:#666;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='#e0e0e0'" onmouseout="this.style.background='#f0f0f0'">
-                    ✏️ Renommer
-                  </button>
-                </div>
-
-                <!-- Infos compactes -->
-                <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:0.75rem;color:#666;">
-                  <div style="display:flex;align-items:center;gap:4px;">
-                    <span style="opacity:0.6;">🌐</span>
-                    <span style="font-family:'Courier New',monospace;">${escapeHtml(s.ip_address)}</span>
-                  </div>
-                  <div style="display:flex;align-items:center;gap:4px;">
-                    <span style="opacity:0.6;">⏱️</span>
-                    <span>${escapeHtml(s.age)}</span>
-                  </div>
-                  <div style="display:flex;align-items:center;gap:4px;">
-                    <span style="opacity:0.6;">📍</span>
-                    <span>${escapeHtml(s.last_activity)}</span>
-                  </div>
-                </div>
-              </div>
-            `}).join('')}
-          </div>
-        `}
-
-        <div class="modal-buttons" style="margin-top:20px;">
-          <button class="modal-btn modal-btn-primary" onclick="this.closest('.modal-overlay').remove()">Fermer</button>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(modal);
-
-  } catch (err) {
-    console.error('Erreur chargement sessions:', err);
-    showToast('❌ Erreur chargement sessions', 'error');
+    sessions.sort((a, b) => (a.is_current ? -1 : 1));
   }
+
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+  modal.innerHTML = `
+    <div class="modal-box" style="max-width:600px;max-height:80vh;overflow-y:auto;">
+      <div class="modal-title" style="font-size:1.3rem;margin-bottom:8px;">👥 Sessions actives</div>
+      <p style="color:#888;font-size:0.85rem;margin:0 0 20px 0;">${sessions.length} appareil${sessions.length > 1 ? 's' : ''} connecté${sessions.length > 1 ? 's' : ''}</p>
+
+      ${sessions.length === 0 ? `
+        <p style="text-align:center;color:#666;padding:40px 20px;">Aucun appareil détecté<br><span style="font-size:0.8rem;color:#aaa;">Rechargez la page si vous venez de vous connecter</span></p>
+      ` : `
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          ${sessions.map(s => {
+            const joinedAgo = s.joined_at ? (() => {
+              const mins = Math.floor((Date.now() - new Date(s.joined_at).getTime()) / 60000);
+              if (mins < 1) return 'à l\'instant';
+              if (mins < 60) return `il y a ${mins} min`;
+              const hrs = Math.floor(mins / 60);
+              return hrs < 24 ? `il y a ${hrs}h` : `il y a ${Math.floor(hrs/24)}j`;
+            })() : '';
+
+            return `
+            <div style="background:${s.is_current ? 'linear-gradient(135deg,rgba(212,168,83,0.15),rgba(212,168,83,0.05))' : '#fafafa'};
+                        border:1px solid ${s.is_current ? '#D4A853' : '#e5e7eb'};
+                        border-radius:10px;padding:14px 16px;position:relative;">
+              ${s.is_current ? '<div style="position:absolute;top:10px;right:12px;background:#D4A853;color:#fff;padding:3px 10px;border-radius:12px;font-size:0.7rem;font-weight:700;letter-spacing:0.5px;">VOUS</div>' : ''}
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span style="font-size:28px;line-height:1;">${s.device_icon}</span>
+                <div style="flex:1;">
+                  <div style="font-weight:700;font-size:0.95rem;color:#1a1a1a;">${escapeHtml(s.device_name)}</div>
+                  ${joinedAgo ? `<div style="font-size:0.75rem;color:#999;margin-top:2px;">⏱️ Connecté ${joinedAgo}</div>` : ''}
+                </div>
+                ${s.is_current ? `<button onclick="renameSession('${s.device_id}','${escapeHtml(s.device_name).replace(/'/g, "&#39;")}')"
+                  style="background:#f0f0f0;border:none;padding:6px 10px;border-radius:6px;font-size:0.75rem;color:#666;font-weight:600;cursor:pointer;">✏️ Renommer</button>` : ''}
+              </div>
+            </div>
+          `}).join('')}
+        </div>
+      `}
+
+      <div class="modal-buttons" style="margin-top:20px;">
+        <button class="modal-btn modal-btn-primary" onclick="this.closest('.modal-overlay').remove()">Fermer</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
 }
 
 // Renommer une session
@@ -2228,6 +2240,19 @@ function saveSessionName(sessionKey) {
 
   localStorage.setItem('sessionCustomNames', JSON.stringify(customNames));
 
+  // Mettre à jour la présence avec le nouveau nom si c'est notre appareil
+  const myDeviceId = localStorage.getItem('adminDeviceId');
+  if (sessionKey === myDeviceId && adminPresenceChannel && newName) {
+    const device = detectDevice(navigator.userAgent);
+    adminPresenceChannel.track({
+      device_id: myDeviceId,
+      device_name: newName,
+      device_icon: device.icon,
+      user_agent: navigator.userAgent,
+      joined_at: new Date().toISOString()
+    });
+  }
+
   document.getElementById('renameModal').remove();
   document.querySelector('.modal-overlay').remove();
 
@@ -2249,6 +2274,7 @@ async function showDashboard() {
   await loadSettings();
   await loadSlotPause();
   subscribeRealtime();
+  startPresenceTracking();
 
   // ⚠️ AUDIO: Si auto-login sans interaction, AudioContext reste suspendu
   // Signaler visuellement si AudioContext suspendu (auto-login sans geste)
@@ -2398,12 +2424,25 @@ function parsePickupTime(order) {
   let targetDate;
 
   if (heureRetrait.includes('demain') || heureRetrait.includes('tomorrow')) {
-    // "Demain HHhMM" → date locale de demain
-    targetDate = new Date();
+    // "Demain" est relatif à la DATE DE CRÉATION (pas à aujourd'hui)
+    // Ex: commande créée le 9 avril avec "Demain 12h30" → retrait le 10 avril
+    targetDate = new Date(order.created_at);
     targetDate.setDate(targetDate.getDate() + 1);
   } else {
-    // Utiliser la date LOCALE de created_at (pas UTC — critique pour commandes passées après minuit)
-    targetDate = new Date(order.created_at);
+    // Chercher un nom de jour (Lundi, Mardi, etc.)
+    const jours = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+    const jourMentionne = jours.find(j => heureRetrait.includes(j));
+    if (jourMentionne) {
+      const targetDayIndex = jours.indexOf(jourMentionne);
+      targetDate = new Date(order.created_at);
+      const createdDayIndex = targetDate.getDay();
+      let daysAhead = targetDayIndex - createdDayIndex;
+      if (daysAhead < 0) daysAhead += 7; // jour déjà passé cette semaine → semaine suivante
+      targetDate.setDate(targetDate.getDate() + daysAhead);
+    } else {
+      // "Aujourd'hui" ou pas de jour → date de création
+      targetDate = new Date(order.created_at);
+    }
   }
 
   // Date locale (getFullYear/Month/Date = heure locale du navigateur admin, pas UTC)
@@ -3104,7 +3143,7 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
         }
 
         ${!isHistory
-          ? `<div class="order-actions" style="display:flex;gap:8px;flex-wrap:nowrap;width:100%;margin-top:8px;overflow-x:auto;">${getActionButtons(order)}</div>`
+          ? `<div class="order-actions" style="display:flex;gap:8px;flex-wrap:nowrap;margin-left:auto;flex-shrink:0;">${getActionButtons(order)}</div>`
           : ''
         }
       </div>
@@ -3718,17 +3757,17 @@ function updateStatsDisplay(statsOrders) {
 
 async function updateTopbarStats() {
   // Chiffre du JOUR = commandes dont le RETRAIT est aujourd'hui (pas le paiement)
-  // On charge hier + aujourd'hui pour couvrir "commandé hier soir pour aujourd'hui midi"
+  // Fenêtre 7 jours pour couvrir les commandes passées plusieurs jours avant (ex: "Lundi" commandé vendredi)
   const now = new Date();
-  const yesterday = new Date(now);
-  yesterday.setDate(yesterday.getDate() - 1);
-  yesterday.setHours(0, 0, 0, 0);
+  const sevenDaysAgo = new Date(now);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  sevenDaysAgo.setHours(0, 0, 0, 0);
 
   try {
     const { data, error } = await sb
       .from('orders')
       .select('total, heure_retrait, created_at')
-      .gte('created_at', yesterday.toISOString())
+      .gte('created_at', sevenDaysAgo.toISOString())
       .in('statut', ['payee', 'acceptee', 'en_preparation', 'prete', 'recuperee']);
 
     if (error) throw error;

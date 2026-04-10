@@ -3145,14 +3145,13 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
         }
       </div>
 
-      <!-- Ligne 2 : boutons toujours en bas à droite (uniquement En cours) -->
-      ${!isHistory
-        ? `<div class="order-actions" style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px;">${getActionButtons(order)}</div>`
-        : ''
-      }
-
-      <!-- Articles groupés par catégorie -->
-      ${itemsBlockHtml}
+      <!-- Ligne 2 : items à gauche + boutons collés à droite sur la même ligne -->
+      ${!isHistory ? `
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-top:8px;">
+        <div style="flex:1;min-width:0;">${itemsBlockHtml}</div>
+        <div class="order-actions" style="display:flex;gap:8px;flex-shrink:0;align-self:flex-start;">${getActionButtons(order)}</div>
+      </div>
+      ` : itemsBlockHtml}
 
       <!-- Note client (allergies, précisions) -->
       ${hasNotes ? `

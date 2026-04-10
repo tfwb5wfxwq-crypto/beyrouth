@@ -2,7 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://beyrouth.express',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { orderNumber, pickupTime, total, paymentMethod, items } = await req.json()
+    const { orderNumber, pickupTime, total, paymentMethod, items, note } = await req.json()
 
     const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN')
     const TELEGRAM_CHAT_ID = Deno.env.get('TELEGRAM_CHAT_ID')
@@ -25,10 +25,20 @@ serve(async (req) => {
       )
     }
 
-    // Formater les items
+    // Formater les items (avec détails formule si applicable)
     const itemsList = items && items.length > 0
-      ? items.map((item: any) => `• ${item.quantite || item.qty || 1}x ${item.nom}`).join('\n')
+      ? items.map((item: any) => {
+          const qty = item.quantite || item.qty || 1
+          let line = `• ${qty}x ${item.nom}`
+          if (item.isFormule && item.components && item.components.length > 0) {
+            line += `\n  ↳ ${item.components.join(' · ')}`
+          }
+          return line
+        }).join('\n')
       : 'Aucun détail'
+
+    // Note client (si présente)
+    const noteSection = note ? `\n\n⚠️ *Note client* : ${note}` : ''
 
     // Message Telegram avec emoji et formatage
     const message = `
@@ -40,7 +50,7 @@ serve(async (req) => {
 💳 *Paiement* : ${paymentMethod === 'edenred' ? '🎫 Edenred' : '💳 PayGreen'}
 
 *Articles :*
-${itemsList}
+${itemsList}${noteSection}
     `.trim()
 
     // Envoyer via Telegram Bot API

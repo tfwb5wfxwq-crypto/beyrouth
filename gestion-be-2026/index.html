@@ -3000,7 +3000,10 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
 
     const renderItem = i => {
       const qty = i.qty || i.quantite || 1;
-      return `<span style="white-space:nowrap;font-size:0.83rem;color:#1a1a1a;"><span style="font-weight:800;color:#d97706;">${qty}×</span> ${escapeHtml(i.nom)}</span>`;
+      const comps = (i.isFormule && i.components && i.components.length > 0)
+        ? `<span style="display:block;font-size:0.75rem;color:#6b7280;margin-left:18px;margin-top:1px;">↳ ${i.components.map(c => escapeHtml(c)).join(' · ')}</span>`
+        : '';
+      return `<span style="display:inline-flex;flex-direction:column;vertical-align:top;margin-right:8px;margin-bottom:2px;"><span style="font-size:0.83rem;color:#1a1a1a;"><span style="font-weight:800;color:#d97706;">${qty}×</span> ${escapeHtml(i.nom)}</span>${comps}</span>`;
     };
     const dot = `<span style="color:#d1d5db;margin:0 5px;font-size:0.75rem;vertical-align:middle;">·</span>`;
 

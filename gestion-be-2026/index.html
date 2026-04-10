@@ -298,7 +298,7 @@ button{cursor:pointer;font-family:inherit;border:none}
   font-size:.8rem;border-bottom:1px solid #f5f5f5;
 }
 .order-total-line{font-weight:700;font-size:1rem;color:#1f2937;padding-top:8px}
-.order-actions{display:flex;gap:8px;flex-wrap:nowrap;width:100%}
+.order-actions{display:flex;gap:8px;flex-wrap:nowrap;width:auto}
 .order-action{
   padding:8px 10px;border-radius:var(--radius);font-weight:600;
   font-size:.85rem;transition:all .3s;min-height:36px;white-space:nowrap;
@@ -3149,13 +3149,11 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
         }
       </div>
 
-      <!-- Ligne 2 : items à gauche + boutons collés à droite sur la même ligne -->
-      ${!isHistory ? `
+      <!-- Ligne 2 : items flex:1 à gauche + boutons à droite -->
       <div style="display:flex;align-items:flex-start;gap:12px;margin-top:8px;">
         <div style="flex:1;min-width:0;">${itemsBlockHtml}</div>
-        <div class="order-actions" style="display:flex;gap:8px;flex-shrink:0;align-self:flex-start;">${getActionButtons(order)}</div>
+        ${!isHistory ? `<div class="order-actions" style="align-self:flex-start;">${getActionButtons(order)}</div>` : ''}
       </div>
-      ` : itemsBlockHtml}
 
       <!-- Note client (allergies, précisions) -->
       ${hasNotes ? `

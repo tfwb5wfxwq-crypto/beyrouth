@@ -3081,69 +3081,60 @@ function renderOrderCard(order, statusClass, dateStr, timeStr, statusEmoji, stat
   return `
     <div class="order-card ${statusClass} ${urgencyClass}" id="order-${order.id}" style="background:${cardBg};flex-direction:column;align-items:stretch;${hasNotes ? 'border:2px solid #fca5a5;' : ''}">
 
-      <!-- Ligne principale (infos commande) -->
-      <div style="display: flex; flex-direction: row; align-items: center; gap: 16px; width: 100%;">
-        ${badge ? `<span class="status-badge" style="background:${badge.bg};color:${badge.color};flex-shrink:0;">${badge.text}</span>` : ''}
+      <!-- Ligne principale : infos à gauche + boutons collés à droite -->
+      <div style="display:flex;flex-direction:row;align-items:center;gap:12px;width:100%;">
 
-        <span class="order-num" style="min-width:80px;flex-shrink:0;">${escapeHtml(order.numero)}</span>
+        <!-- Infos (flex:1 — prend tout l'espace disponible) -->
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;flex:1;min-width:0;">
+          ${badge ? `<span class="status-badge" style="background:${badge.bg};color:${badge.color};flex-shrink:0;">${badge.text}</span>` : ''}
 
-        ${(() => {
-          // Icône email cliquable avec statut visuel
-          if (!order.email_status || order.email_status === 'pending') {
-            return `<span onclick="showEmailDetails(${order.id})" style="cursor:pointer;font-size:1.2rem;opacity:0.3;" title="Email pas encore envoyé">📧</span>`;
+          <span class="order-num" style="flex-shrink:0;">${escapeHtml(order.numero)}</span>
+
+          ${(() => {
+            if (!order.email_status || order.email_status === 'pending') {
+              return `<span onclick="showEmailDetails(${order.id})" style="cursor:pointer;font-size:1.2rem;opacity:0.3;flex-shrink:0;" title="Email pas encore envoyé">📧</span>`;
+            }
+            const emailIcons = {
+              sent: { icon: '📧', color: '#999', title: 'Email envoyé' },
+              delivered: { icon: '✅', color: '#22c55e', title: 'Email livré' },
+              opened: { icon: '👁️', color: '#3b82f6', title: 'Email ouvert' },
+              error: { icon: '❌', color: '#ef4444', title: 'Erreur email' }
+            };
+            const config = emailIcons[order.email_status] || emailIcons.sent;
+            return `<span onclick="showEmailDetails(${order.id})" style="cursor:pointer;font-size:1.2rem;filter:drop-shadow(0 0 2px ${config.color});flex-shrink:0;" title="${config.title}">${config.icon}</span>`;
+          })()}
+
+          <div style="flex-shrink:0;">
+            <div style="font-size:0.98rem;font-weight:700;color:#111;letter-spacing:0.1px;">${escapeHtml(order.client_prenom) || 'Client'}</div>
+            <div style="font-size:0.73rem;color:#888;margin-top:1px;letter-spacing:0.3px;">${escapeHtml(order.client_telephone) || ''}</div>
+            ${!isHistory ? `<div id="timer-${order.id}" style="font-size:0.68rem;color:#aaa;margin-top:3px;font-style:italic;">${getElapsedTime(order)}</div>` : ''}
+            ${!isHistory && order.reminder_sent_at ? (() => {
+              const now = new Date();
+              const reminderTime = new Date(order.reminder_sent_at);
+              const mins = Math.floor((now - reminderTime) / 60000);
+              return `<div id="reminder-${order.id}" style="font-size:0.68rem;color:#f97316;margin-top:2px;font-weight:700;">📧 Relancé il y a ${mins} min</div>`;
+            })() : ''}
+          </div>
+
+          ${!isHistory
+            ? `<span class="order-time-badge" onclick="rescheduleOrder(${order.id},'${order.heure_retrait}')" style="flex-shrink:0;">${order.heure_retrait === 'asap' ? '⚡ Dès que possible' : '🕐 ' + order.heure_retrait}</span>`
+            : (statusEmoji && statusLabel && dateStr && timeStr)
+              ? `<span class="order-time-badge" style="cursor:default;flex-shrink:0;">${statusEmoji} ${statusLabel} — ${dateStr} ${timeStr}</span>`
+              : `<span class="order-time-badge" style="cursor:default;flex-shrink:0;">🕐 ${order.heure_retrait || 'N/A'}</span>`
           }
-          const emailIcons = {
-            sent: { icon: '📧', color: '#999', title: 'Email envoyé' },
-            delivered: { icon: '✅', color: '#22c55e', title: 'Email livré' },
-            opened: { icon: '👁️', color: '#3b82f6', title: 'Email ouvert' },
-            error: { icon: '❌', color: '#ef4444', title: 'Erreur email' }
-          };
-          const config = emailIcons[order.email_status] || emailIcons.sent;
-          return `<span onclick="showEmailDetails(${order.id})" style="cursor:pointer;font-size:1.2rem;filter:drop-shadow(0 0 2px ${config.color});" title="${config.title}">${config.icon}</span>`;
-        })()}
 
-        <div style="min-width:130px;flex-shrink:0;">
-          <div style="font-size:0.98rem;font-weight:700;color:#111;letter-spacing:0.1px;">${escapeHtml(order.client_prenom) || 'Client'}</div>
-          <div style="font-size:0.73rem;color:#888;margin-top:1px;letter-spacing:0.3px;">${escapeHtml(order.client_telephone) || ''}</div>
-          ${!isHistory ? `<div id="timer-${order.id}" style="font-size:0.68rem;color:#aaa;margin-top:3px;font-style:italic;">${getElapsedTime(order)}</div>` : ''}
-          ${!isHistory && order.reminder_sent_at ? (() => {
-            const now = new Date();
-            const reminderTime = new Date(order.reminder_sent_at);
-            const mins = Math.floor((now - reminderTime) / 60000);
-            return `<div id="reminder-${order.id}" style="font-size:0.68rem;color:#f97316;margin-top:2px;font-weight:700;">📧 Relancé il y a ${mins} min</div>`;
-          })() : ''}
+          ${isHistory
+            ? `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+                <div style="font-weight:700;font-size:0.9rem;color:#1a1a1a;white-space:nowrap;">${(order.total || 0).toFixed(2).replace('.',',')} €</div>
+                <div style="font-size:0.7rem;color:#888;display:flex;align-items:center;">${getPaymentIcon(order, true)}</div>
+              </div>`
+            : `<div style="font-weight:700;font-size:0.95rem;color:#1a1a1a;flex-shrink:0;white-space:nowrap;">${(order.total || 0).toFixed(2).replace('.',',')} €</div>`
+          }
         </div>
 
+        <!-- Boutons d'action : toujours collés à droite, jamais dans le flux des infos -->
         ${!isHistory
-          ? `<span class="order-time-badge" onclick="rescheduleOrder(${order.id},'${order.heure_retrait}')" style="flex-shrink:0;">${order.heure_retrait === 'asap' ? '⚡ Dès que possible' : '🕐 ' + order.heure_retrait}</span>`
-          : (statusEmoji && statusLabel && dateStr && timeStr)
-            ? `<span class="order-time-badge" style="cursor:default;flex-shrink:0;">${statusEmoji} ${statusLabel} — ${dateStr} ${timeStr}</span>`
-            : `<span class="order-time-badge" style="cursor:default;flex-shrink:0;">🕐 ${order.heure_retrait || 'N/A'}</span>`
-        }
-
-        ${isHistory
-          ? `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:60px;flex-shrink:0;">
-            <div style="font-weight:700;font-size:0.9rem;color:#1a1a1a;white-space:nowrap;">
-              ${(order.total || 0).toFixed(2).replace('.',',')} €
-            </div>
-            <div style="font-size:0.7rem;color:#888;display:flex;align-items:center;">
-              ${getPaymentIcon(order, true)}
-            </div>
-          </div>`
-          : `<div style="min-width:70px;text-align:right;font-weight:700;font-size:0.95rem;color:#1a1a1a;flex-shrink:0;">
-            ${(order.total || 0).toFixed(2).replace('.',',')} €
-          </div>
-          ${(() => {
-            // Badge paiement uniquement dans historique (Terminées/Archives), pas dans "En cours"
-            if (!isHistory) return '';
-            const paymentMethod = order.paygreen_transaction_id ? 'CB' :
-                                  order.edenred_payment_id ? 'Edenred' : 'Inconnu';
-            return `<span style="flex-shrink:0;font-size:0.75rem;padding:4px 8px;background:#f0f0f0;border-radius:6px;color:#666;white-space:nowrap;display:flex;align-items:center;" title="Moyen de paiement">${getPaymentIcon(order, false)} <span style="margin-left:4px">${paymentMethod}</span></span>`;
-          })()}`
-        }
-
-        ${!isHistory
-          ? `<div class="order-actions" style="display:flex;gap:8px;flex-wrap:nowrap;margin-left:auto;flex-shrink:0;">${getActionButtons(order)}</div>`
+          ? `<div class="order-actions" style="display:flex;gap:8px;flex-wrap:nowrap;flex-shrink:0;">${getActionButtons(order)}</div>`
           : ''
         }
       </div>

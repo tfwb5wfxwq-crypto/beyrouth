@@ -4881,8 +4881,9 @@ function renderCompletedOrderLine(order) {
 
 // Render un groupe de commandes terminées
 function renderCompletedGroup(dateKey, orders, isOpen) {
+  const validOrders = orders.filter(o => o.statut !== 'cancelled');
   const count = orders.length;
-  const revenue = orders.reduce((sum, o) => sum + parseFloat(o.total || 0), 0);
+  const revenue = validOrders.reduce((sum, o) => sum + parseFloat(o.total || 0), 0);
   const dateLabel = formatGroupDate(dateKey);
 
   const ordersHtml = orders.map(o => renderCompletedOrderLine(o)).join('');

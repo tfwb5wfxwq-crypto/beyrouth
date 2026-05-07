@@ -716,17 +716,23 @@ async function loadOrder() {
       }
     }, 5000);
 
-    // Fallback webhook : si toujours "pending" après 20s, vérifier PayGreen directement
-    // Protège contre les échecs de webhook (HMAC invalide, timeout, etc.)
+    // Fallback webhook : polling PayGreen direct si toujours "pending"
+    // Démarre à 5s (webhook normal ~1-2s), puis retry toutes les 5s jusqu'à 30s
     if (data.statut === 'pending') {
-      setTimeout(async () => {
-        if (!orderData || orderData.statut !== 'pending') return;
+      let fallbackAttempts = 0;
+      const fallbackPoll = setInterval(async () => {
+        fallbackAttempts++;
+        if (!orderData || orderData.statut !== 'pending' || fallbackAttempts > 6) {
+          clearInterval(fallbackPoll);
+          return;
+        }
         try {
           const res = await fetch(`${SUPABASE_URL}/functions/v1/check-payment-status?num=${encodeURIComponent(orderNum)}`, {
             headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
           });
           const result = await res.json();
           if (result.updated && result.statut && result.statut !== 'pending') {
+            clearInterval(fallbackPoll);
             console.log('✅ Fallback webhook: statut mis à jour →', result.statut);
             const refreshed = await fetchOrder(orderNum);
             if (refreshed && !refreshed.error) {
@@ -737,7 +743,7 @@ async function loadOrder() {
         } catch (e) {
           console.error('Erreur fallback webhook:', e);
         }
-      }, 20000);
+      }, 5000);
     }
 
   } catch (error) {

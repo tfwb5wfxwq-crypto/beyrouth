@@ -180,7 +180,7 @@ serve(async (req) => {
       // Alerte technique séparée — webhook manqué, rattrapé par fallback
       try {
         const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN')
-        const chatId = Deno.env.get('TELEGRAM_CHAT_ID')
+        const chatId = Deno.env.get('TELEGRAM_ADMIN_CHAT_ID')
         if (botToken && chatId) {
           await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
             method: 'POST',

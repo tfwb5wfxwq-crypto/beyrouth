@@ -78,7 +78,7 @@ serve(async (_req) => {
   const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN')
   const adminChatId = Deno.env.get('TELEGRAM_ADMIN_CHAT_ID')
 
-  if (botToken && adminChatId) {
+  if (!allOk && botToken && adminChatId) {
     await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

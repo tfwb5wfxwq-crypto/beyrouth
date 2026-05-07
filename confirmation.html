@@ -722,7 +722,7 @@ async function loadOrder() {
       let fallbackAttempts = 0;
       const fallbackPoll = setInterval(async () => {
         fallbackAttempts++;
-        if (!orderData || orderData.statut !== 'pending' || fallbackAttempts > 6) {
+        if (!orderData || orderData.statut !== 'pending' || fallbackAttempts > 3) {
           clearInterval(fallbackPoll);
           return;
         }
@@ -743,7 +743,7 @@ async function loadOrder() {
         } catch (e) {
           console.error('Erreur fallback webhook:', e);
         }
-      }, 5000);
+      }, 10000);
     }
 
   } catch (error) {

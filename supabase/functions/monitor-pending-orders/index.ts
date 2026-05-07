@@ -121,11 +121,13 @@ serve(async (_req) => {
           const emailFn = newStatus === 'acceptee' ? 'send-order-confirmation' : 'send-payment-confirmation'
 
           await Promise.allSettled([
+            // Email client
             fetch(`${supabaseUrl}/functions/v1/${emailFn}`, {
               method: 'POST',
               headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
               body: JSON.stringify({ orderId: order.id })
             }),
+            // Notif Paco — normale, sans mention du cron
             fetch(`${supabaseUrl}/functions/v1/send-telegram-notification`, {
               method: 'POST',
               headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
@@ -139,6 +141,25 @@ serve(async (_req) => {
               })
             })
           ])
+
+          // Alerte technique séparée — webhook ET fallback manqués, rattrapé par cron
+          try {
+            const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN')
+            const chatId = Deno.env.get('TELEGRAM_CHAT_ID')
+            if (botToken && chatId) {
+              await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  chat_id: chatId,
+                  text: `🚨 *ALERTE SYSTÈME*\nCommande \`${order.numero}\` — webhook PayGreen raté + fallback raté\n✅ Rattrapée par le moniteur cron (2 min)\n→ Paco a bien reçu sa notif`,
+                  parse_mode: 'Markdown'
+                })
+              })
+            }
+          } catch (e) {
+            console.error('Erreur alerte système Telegram:', e)
+          }
         }
       } catch (e) {
         console.error(`❌ Erreur traitement ${order.numero}:`, e)

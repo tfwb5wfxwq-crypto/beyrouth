@@ -52,7 +52,7 @@ serve(async (req) => {
     // Récupérer la commande
     const { data: order } = await supabase
       .from('orders')
-      .select('id, numero, statut, paygreen_transaction_id, payment_confirmed_at, total')
+      .select('id, numero, statut, paygreen_transaction_id, payment_confirmed_at, total, heure_retrait, items, note')
       .eq('numero', orderNum)
       .maybeSingle()
 
@@ -149,35 +149,51 @@ serve(async (req) => {
 
     console.log(`✅ Fallback webhook: ${orderNum} → ${finalStatus} (pg: ${pgStatus})`)
 
-    // Envoyer email si paiement confirmé
+    // Envoyer email + notifications si paiement confirmé
     if (newStatus === 'payee') {
       const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
       const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
       const emailFn = finalStatus === 'acceptee' ? 'send-order-confirmation' : 'send-payment-confirmation'
-      try {
-        await fetch(`${supabaseUrl}/functions/v1/${emailFn}`, {
+
+      await Promise.allSettled([
+        // Email client
+        fetch(`${supabaseUrl}/functions/v1/${emailFn}`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ orderId: order.id })
-        })
-      } catch (e) {
-        console.error('Erreur envoi email:', e)
-      }
-
-      // Notification Telegram
-      try {
-        await fetch(`${supabaseUrl}/functions/v1/send-telegram-notification`, {
+        }),
+        // Notif Paco — normale, sans mention du fallback
+        fetch(`${supabaseUrl}/functions/v1/send-telegram-notification`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
             orderNumber: orderNum,
+            pickupTime: order.heure_retrait || 'Dès que possible',
             total: (order.total || 0).toFixed(2),
             paymentMethod: 'paygreen',
-            note: '⚠️ Via fallback (webhook manqué)'
+            items: order.items || [],
+            note: order.note || null
           })
         })
+      ])
+
+      // Alerte technique séparée — webhook manqué, rattrapé par fallback
+      try {
+        const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN')
+        const chatId = Deno.env.get('TELEGRAM_CHAT_ID')
+        if (botToken && chatId) {
+          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: `🔧 *ALERTE SYSTÈME*\nCommande \`${orderNum}\` — webhook PayGreen raté\n✅ Rattrapée automatiquement par le fallback (20s)\n→ Paco a bien reçu sa notif`,
+              parse_mode: 'Markdown'
+            })
+          })
+        }
       } catch (e) {
-        console.error('Erreur Telegram:', e)
+        console.error('Erreur alerte système Telegram:', e)
       }
     }
 
